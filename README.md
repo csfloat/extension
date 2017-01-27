@@ -11,8 +11,17 @@
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/rating-count/jjicbefpemnphinccgikpdaagjebbnhg.svg)](https://chrome.google.com/webstore/detail/csgofloat-market-checker/jjicbefpemnphinccgikpdaagjebbnhg)
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/price/jjicbefpemnphinccgikpdaagjebbnhg.svg)](https://chrome.google.com/webstore/detail/csgofloat-market-checker/jjicbefpemnphinccgikpdaagjebbnhg)
 
+CSGOFloat is a free and open source API service that allows you to obtain the float and paint seed of any CSGO item using its inspect link.
 
-### Store Links
+CSGOFloat has an extension for Firefox/Chrome that lets you fetch floats directly from the market page! You can view the source code for the extensions here!
+
+### Repo Links
+
+[CSGOFloat (API/Backend)](https://github.com/Step7750/CSGOFloat)
+
+[CSGOFloat-Website](https://github.com/Step7750/CSGOFloat-Website)
+
+## Store Links
 [Chrome Store Link] (https://chrome.google.com/webstore/detail/csgofloat-market-checker/jjicbefpemnphinccgikpdaagjebbnhg)
 
 [Firefox Add-ons Link] (https://addons.mozilla.org/en-US/firefox/addon/csgofloat/)
