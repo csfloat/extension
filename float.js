@@ -9,13 +9,19 @@ window.addEventListener('message', (e) => {
     steamListingInfo = e.data.listingInfo;
 });
 
-let script = document.createElement('script');
-script.innerText = `
-    window.postMessage({
-        listingInfo: g_rgListingInfo
-    }, '*');
-`;
-document.head.appendChild(script);
+let retrieveListingInfoFromPage = function() {
+    let script = document.createElement('script');
+    script.innerText = `
+        window.postMessage({
+            listingInfo: g_rgListingInfo
+        }, '*');
+    `;
+    document.head.appendChild(script);
+
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, 0);
+    });
+};
 
 function getCSGOFloat(url, id) {
     if (currentlyProcessingFloat) {
@@ -190,69 +196,72 @@ function addButtons() {
     // Iterate through each item on the page
     let listingRows = document.querySelectorAll('.market_listing_row.market_recent_listing_row');
 
-    for (let row of listingRows) {
-        // Get the id and listing data for it
-        let id = row.id.replace('listing_', '');
+    retrieveListingInfoFromPage()
+    .then(() => {
+        for (let row of listingRows) {
+            // Get the id and listing data for it
+            let id = row.id.replace('listing_', '');
 
-        let listingData = steamListingInfo[id];
+            let listingData = steamListingInfo[id];
 
-        // Make sure it is a CSGO item
-        if (listingData.asset.appid == 730) {
+            // Make sure it is a CSGO item
+            if (listingData.asset.appid == 730) {
 
-            // Find the div for this item
-            let listingname = row.querySelector(`#listing_${id}_name`);
+                // Find the div for this item
+                let listingname = row.querySelector(`#listing_${id}_name`);
 
-            // Make sure it has an inspect link
-            if ('market_actions' in listingData.asset) {
-                if (listingname != null && listingData.asset.market_actions.length > 0) {
-                    // Obtain and format the inspect link
-                    let inspectlink = listingData.asset.market_actions[0].link
-                    .replace('%listingid%', id)
-                    .replace('%assetid%', listingData.asset['id']);
+                // Make sure it has an inspect link
+                if ('market_actions' in listingData.asset) {
+                    if (listingname != null && listingData.asset.market_actions.length > 0) {
+                        // Obtain and format the inspect link
+                        let inspectlink = listingData.asset.market_actions[0].link
+                        .replace('%listingid%', id)
+                        .replace('%assetid%', listingData.asset['id']);
 
-                    // Make sure we didn't already add the button
-                    if (!row.querySelector(`#item_${id}_floatdiv`)) {
-                        let buttonDiv = document.createElement('div');
-                        buttonDiv.style.display = 'inline';
-                        buttonDiv.style.textAlign = 'left';
-                        buttonDiv.id = `item_${id}_floatdiv`;
+                        // Make sure we didn't already add the button
+                        if (!row.querySelector(`#item_${id}_floatdiv`)) {
+                            let buttonDiv = document.createElement('div');
+                            buttonDiv.style.display = 'inline';
+                            buttonDiv.style.textAlign = 'left';
+                            buttonDiv.id = `item_${id}_floatdiv`;
 
-                        let getFloatButton = document.createElement('a');
-                        getFloatButton.classList.add('btn_green_white_innerfade');
-                        getFloatButton.classList.add('btn_small');
-                        getFloatButton.classList.add('floatbutton');
-                        getFloatButton.addEventListener('click', () => getCSGOFloat(inspectlink, id));
-                        buttonDiv.appendChild(getFloatButton);
+                            let getFloatButton = document.createElement('a');
+                            getFloatButton.classList.add('btn_green_white_innerfade');
+                            getFloatButton.classList.add('btn_small');
+                            getFloatButton.classList.add('floatbutton');
+                            getFloatButton.addEventListener('click', () => getCSGOFloat(inspectlink, id));
+                            buttonDiv.appendChild(getFloatButton);
 
-                        let buttonText = document.createElement('span');
-                        buttonText.innerText = 'Get Float';
-                        getFloatButton.appendChild(buttonText);
+                            let buttonText = document.createElement('span');
+                            buttonText.innerText = 'Get Float';
+                            getFloatButton.appendChild(buttonText);
 
-                        let messageDiv = document.createElement('div');
-                        messageDiv.classList.add('floatmessage');
-                        buttonDiv.appendChild(messageDiv);
+                            let messageDiv = document.createElement('div');
+                            messageDiv.classList.add('floatmessage');
+                            buttonDiv.appendChild(messageDiv);
 
-                        listingname.parentElement.appendChild(buttonDiv);
+                            listingname.parentElement.appendChild(buttonDiv);
 
-                        // check if we already have the float for this item
-                        if (id in floatData) {
-                            processSuccess(id);
+                            // check if we already have the float for this item
+                            if (id in floatData) {
+                                processSuccess(id);
+                            }
                         }
                     }
                 }
-            }
-            else {
-                // This page doesn't have weapons with inspect urls, clear the interval adding these buttons
-                clearInterval(floatTimer);
-            }
+                else {
+                    // This page doesn't have weapons with inspect urls, clear the interval adding these buttons
+                    clearInterval(floatTimer);
+                }
 
+            }
         }
-    }
 
-    // Add show all button if it doesn't exist and we have valid items
-    if (!document.querySelector('#allfloatbutton') && listingRows.length > 0) {
-        addAllFloatButton();
-    }
+        // Add show all button if it doesn't exist and we have valid items
+        if (!document.querySelector('#allfloatbutton') && listingRows.length > 0) {
+            addAllFloatButton();
+        }
+    }, 0);
 }
 
 floatTimer = setInterval(() => { addButtons(); }, 500);
