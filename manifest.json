@@ -17,6 +17,6 @@
     ],
     "permissions": [
         "https://api.csgofloat.com:1738/*",
-        "https://steamcommunity.com/market/listings/730/*"
+        "*://*.steamcommunity.com/market/listings/730/*"
     ]
 }
