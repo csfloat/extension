@@ -60,6 +60,11 @@ let processFloatQueue = function() {
 
     let lastItem = floatQueue.shift();
 
+    let floatDiv = document.querySelector(`#item_${lastItem.listingId}_floatdiv`);
+    let buttonText = floatDiv.querySelector('span');
+
+    if (buttonText) { buttonText.innerText = 'Fetching'; }
+
     getFloatData(lastItem.listingId, lastItem.inspectLink)
     .then((data) => {
         let itemInfo = data.iteminfo;
@@ -71,10 +76,8 @@ let processFloatQueue = function() {
         processFloatQueue();
     })
     .catch((err) => {
-        let floatDiv = document.querySelector(`#item_${lastItem.listingId}_floatdiv`);
-
         // Reset the button text for this itemid
-        floatDiv.querySelector('span').innerText = 'Get Float';
+        if (buttonText) { buttonText.innerText = 'Get Float'; }
 
         // Change the message div for this item to the error
         if (floatDiv) {
