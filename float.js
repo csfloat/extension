@@ -2,6 +2,20 @@ let floatQueue = [];
 let floatData = {};
 let floatTimer;
 let currentlyProcessingFloat = false;
+let steamListingInfo;
+
+// retrieve g_rgListingInfo from page script
+window.addEventListener('message', (e) => {
+    steamListingInfo = e.data.listingInfo;
+});
+
+let script = document.createElement('script');
+script.innerText = `
+    window.postMessage({
+        listingInfo: g_rgListingInfo
+    }, '*');
+`;
+document.head.appendChild(script);
 
 function getCSGOFloat(url, id) {
     if (currentlyProcessingFloat) {
@@ -144,7 +158,7 @@ function GetAllFloats() {
 
     for (let row of Array.from(listingRows).reverse()) {
         let id = row.id.replace('listing_', '');
-        let listingData = window.wrappedJSObject.g_rgListingInfo[id];
+        let listingData = steamListingInfo[id];
 
         // Make sure we don't already have the float for this item
         // Make sure it is a CSGO item (appid == 730)
@@ -180,7 +194,7 @@ function addButtons() {
         // Get the id and listing data for it
         let id = row.id.replace('listing_', '');
 
-        let listingData = window.wrappedJSObject.g_rgListingInfo[id];
+        let listingData = steamListingInfo[id];
 
         // Make sure it is a CSGO item
         if (listingData.asset.appid == 730) {
