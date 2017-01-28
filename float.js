@@ -2,14 +2,18 @@ let floatQueue = [];
 let floatData = {};
 let floatTimer;
 let currentlyProcessingFloat = false;
-let steamListingInfo;
+let steamListingInfo = {};
 
 // retrieve g_rgListingInfo from page script
 window.addEventListener('message', (e) => {
     steamListingInfo = e.data.listingInfo;
 });
 
-let retrieveListingInfoFromPage = function() {
+let retrieveListingInfoFromPage = function(listingId) {
+    if (listingId in steamListingInfo) {
+        return Promise.resolve(steamListingInfo[listingId]);
+    }
+
     let script = document.createElement('script');
     script.innerText = `
         window.postMessage({
@@ -19,7 +23,9 @@ let retrieveListingInfoFromPage = function() {
     document.head.appendChild(script);
 
     return new Promise((resolve, reject) => {
-        setTimeout(resolve, 0);
+        setTimeout(() => {
+            resolve(steamListingInfo[listingId]);
+        }, 0);
     });
 };
 
@@ -191,77 +197,63 @@ function GetAllFloats() {
     }
 }
 
+let getFloatButtonClicked = function(e) {
+    let row = e.currentTarget.parentElement.parentElement.parentElement;
+    let id = row.id.replace('listing_', '');
+
+    retrieveListingInfoFromPage(id)
+    .then((listingData) => {
+        let inspectLink = listingData.asset.market_actions[0].link
+        .replace('%listingid%', id)
+        .replace('%assetid%', listingData.asset.id);
+
+        getCSGOFloat(inspectLink, id);
+    });
+};
+
 // If an item on the current page doesn't have the float div/buttons, this function adds it
 function addButtons() {
     // Iterate through each item on the page
     let listingRows = document.querySelectorAll('.market_listing_row.market_recent_listing_row');
 
-    retrieveListingInfoFromPage()
-    .then(() => {
-        for (let row of listingRows) {
-            // Get the id and listing data for it
-            let id = row.id.replace('listing_', '');
+    for (let row of listingRows) {
+        let id = row.id.replace('listing_', '');
 
-            let listingData = steamListingInfo[id];
+        if (row.querySelector(`#item_${id}_floatdiv`)) { continue; }
 
-            // Make sure it is a CSGO item
-            if (listingData.asset.appid == 730) {
+        let listingNameElement = row.querySelector(`#listing_${id}_name`);
 
-                // Find the div for this item
-                let listingname = row.querySelector(`#listing_${id}_name`);
+        let buttonDiv = document.createElement('div');
+        buttonDiv.style.display = 'inline';
+        buttonDiv.style.textAlign = 'left';
+        buttonDiv.id = `item_${id}_floatdiv`;
+        listingNameElement.parentElement.appendChild(buttonDiv);
 
-                // Make sure it has an inspect link
-                if ('market_actions' in listingData.asset) {
-                    if (listingname != null && listingData.asset.market_actions.length > 0) {
-                        // Obtain and format the inspect link
-                        let inspectlink = listingData.asset.market_actions[0].link
-                        .replace('%listingid%', id)
-                        .replace('%assetid%', listingData.asset['id']);
+        let getFloatButton = document.createElement('a');
+        getFloatButton.classList.add('btn_green_white_innerfade');
+        getFloatButton.classList.add('btn_small');
+        getFloatButton.classList.add('floatbutton');
+        getFloatButton.addEventListener('click', getFloatButtonClicked);
+        buttonDiv.appendChild(getFloatButton);
 
-                        // Make sure we didn't already add the button
-                        if (!row.querySelector(`#item_${id}_floatdiv`)) {
-                            let buttonDiv = document.createElement('div');
-                            buttonDiv.style.display = 'inline';
-                            buttonDiv.style.textAlign = 'left';
-                            buttonDiv.id = `item_${id}_floatdiv`;
+        let buttonText = document.createElement('span');
+        buttonText.innerText = 'Get Float';
+        getFloatButton.appendChild(buttonText);
 
-                            let getFloatButton = document.createElement('a');
-                            getFloatButton.classList.add('btn_green_white_innerfade');
-                            getFloatButton.classList.add('btn_small');
-                            getFloatButton.classList.add('floatbutton');
-                            getFloatButton.addEventListener('click', () => getCSGOFloat(inspectlink, id));
-                            buttonDiv.appendChild(getFloatButton);
+        let messageDiv = document.createElement('div');
+        messageDiv.classList.add('floatmessage');
+        buttonDiv.appendChild(messageDiv);
 
-                            let buttonText = document.createElement('span');
-                            buttonText.innerText = 'Get Float';
-                            getFloatButton.appendChild(buttonText);
-
-                            let messageDiv = document.createElement('div');
-                            messageDiv.classList.add('floatmessage');
-                            buttonDiv.appendChild(messageDiv);
-
-                            listingname.parentElement.appendChild(buttonDiv);
-
-                            // check if we already have the float for this item
-                            if (id in floatData) {
-                                processSuccess(id);
-                            }
-                        }
-                    }
-                }
-                else {
-                    // This page doesn't have weapons with inspect urls, clear the interval adding these buttons
-                    clearInterval(floatTimer);
-                }
-
-            }
+        // check if we already have the float for this item
+        if (id in floatData) {
+            processSuccess(id);
         }
+    }
 
-        // Add show all button if it doesn't exist and we have valid items
-        if (!document.querySelector('#allfloatbutton') && listingRows.length > 0) {
-            addAllFloatButton();
-        }
-    }, 0);
+    // Add show all button if it doesn't exist and we have valid items
+    if (!document.querySelector('#allfloatbutton') && listingRows.length > 0) {
+        addAllFloatButton();
+    }
 }
 
 floatTimer = setInterval(() => { addButtons(); }, 500);
