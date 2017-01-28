@@ -1,7 +1,6 @@
 let floatQueue = [];
 let floatData = {};
 let floatTimer;
-let currentlyProcessingFloat = false;
 let steamListingInfo = {};
 
 // retrieve g_rgListingInfo from page script
@@ -10,7 +9,7 @@ window.addEventListener('message', (e) => {
 });
 
 let retrieveListingInfoFromPage = function(listingId) {
-    if (listingId in steamListingInfo) {
+    if (listingId != null && (listingId in steamListingInfo)) {
         return Promise.resolve(steamListingInfo[listingId]);
     }
 
@@ -24,115 +23,67 @@ let retrieveListingInfoFromPage = function(listingId) {
 
     return new Promise((resolve, reject) => {
         setTimeout(() => {
-            resolve(steamListingInfo[listingId]);
+            resolve((listingId != null) ? steamListingInfo[listingId] : steamListingInfo);
         }, 0);
     });
 };
 
-function getCSGOFloat(url, id) {
-    if (currentlyProcessingFloat) {
-        processError(id, {'error': 'Already processing a float request'}, false);
-        return;
+let getFloatData = function(listingId, inspectLink) {
+    if (listingId in floatData) {
+        return Promise.resolve(floatData[listingId]);
     }
 
-    currentlyProcessingFloat = true;
-    document.querySelector(`#item_${id}_floatdiv span`).innerText = 'Fetching';
-
-    // Request the float info from the API
-    fetch(`https://api.csgofloat.com:1738/?url=${url}`)
+    return fetch(`https://api.csgofloat.com:1738/?url=${inspectLink}`)
     .then((response) => {
         if (response.ok) { return response.json(); }
-
-        let e = new Error(); // todo: this better
-        e.response = response;
-        throw e;
-    })
-    .then((json) => {
-        if ('iteminfo' in json) {
-            // We're no longer processing a float
-            currentlyProcessingFloat = false;
-
-            // Add it to a dict holding the requested floats
-            floatData[id] = json.iteminfo;
-
-            // Display it to the user
-            processSuccess(id);
-
-            // If this is part of a queue, pop the last element (this request)
-            if (floatQueue.length > 0) {
-                floatQueue.pop();
-            }
-
-            // If there are still items in the queue, request the next one
-            if (floatQueue.length > 0) {
-                let lastItem = floatQueue[floatQueue.length - 1];
-                getCSGOFloat(lastItem[1], lastItem[0]);
-            }
-            else {
-                // There is no longer a queue, show the "Get all floats" button again
-                document.querySelector('#allfloatbutton').classList.remove('btn_disabled');
-            }
-        }
-    })
-    .catch((err) => {
-        err.response.json().then((json) => {
-            // Display the error to the user
-            processError(id, json, true);
-
-            // If this is part of a queue, pop the last element (this request)
-            if (floatQueue.length > 0) {
-                floatQueue.pop();
-            }
-
-            // If there are still items in the queue, request the next one
-            if (floatQueue.length > 0) {
-                let lastItem = floatQueue[floatQueue.length - 1];
-                getCSGOFloat(lastItem[1], lastItem[0]);
-            }
-            else {
-                // There is no longer a queue, show the "Get all floats" button again
-                document.querySelector('#allfloatbutton').classList.remove('btn_disabled');
-            }
-        });
+        return response.json().then((err) => { throw err; });
     });
-}
+};
 
-// Processes a successful float retrieval for the given itemid
-function processSuccess(itemid) {
-    // find the corresponding div
-    let floatdiv = document.querySelector(`#item_${itemid}_floatdiv`);
+let showFloatText = function(listingId) {
+    let floatDiv = document.querySelector(`#item_${listingId}_floatdiv`);
 
-    if (floatdiv) {
+    if (floatDiv) {
         // Remove the "get float" button
-        floatdiv.removeChild(floatdiv.querySelector('.floatbutton'));
+        floatDiv.removeChild(floatDiv.querySelector('.floatbutton'));
 
-        let msgdiv = floatdiv.querySelector('.floatmessage');
-
-        // Get the iteminfo for this itemid
-        let iteminfo = floatData[itemid];
-
-        let data = 'Float: ' + iteminfo['floatvalue'] + '<br>Paint Seed: ' + iteminfo['paintseed'];
+        let itemInfo = floatData[listingId];
 
         // Show the float and paint seed to the user
-        msgdiv.innerHTML = data;
+        let msgdiv = floatDiv.querySelector('.floatmessage');
+        msgdiv.innerHTML = `Float: ${itemInfo.floatvalue}<br>Paint Seed: ${itemInfo.paintseed}`;
     }
-}
+};
 
-// Processes the error for a given itemid, allows you to specify whether the error caused no floats
-// to be processing currently
-function processError(itemid, error, resetProcessing) {
-    // If this caused us to no longer process a float, reset the boolean
-    if (resetProcessing) { currentlyProcessingFloat = false; }
+let processFloatQueue = function() {
+    if (floatQueue.length === 0) { return setTimeout(processFloatQueue, 500); }
 
-    // Change the button test for this itemid
-    document.querySelector(`#item_${itemid}_floatdiv span`).innerText = 'Get Float';
+    let lastItem = floatQueue.shift();
 
-    // Change the message div for this item to the error
-    let floatdiv = document.querySelector(`#item_${itemid}_floatdiv`);
-    if (floatdiv) {
-        floatdiv.querySelector('.floatmessage').innerHTML = error['error'];
-    }
-}
+    getFloatData(lastItem.listingId, lastItem.inspectLink)
+    .then((data) => {
+        let itemInfo = data.iteminfo;
+
+        floatData[lastItem.listingId] = itemInfo;
+
+        showFloatText(lastItem.listingId);
+
+        processFloatQueue();
+    })
+    .catch((err) => {
+        let floatDiv = document.querySelector(`#item_${lastItem.listingId}_floatdiv`);
+
+        // Reset the button text for this itemid
+        floatDiv.querySelector('span').innerText = 'Get Float';
+
+        // Change the message div for this item to the error
+        if (floatDiv) {
+            floatDiv.querySelector('.floatmessage').innerHTML = err.error;
+        }
+
+        processFloatQueue();
+    });
+};
 
 // Adds the "Get all floats" button
 function addAllFloatButton() {
@@ -165,36 +116,23 @@ function addAllFloatButton() {
 
 // Puts all of the available items on the page into a queue for float retrieval
 function GetAllFloats() {
-    // Get all current items on the page (in proper order)
-    let listingRows = document.querySelectorAll('.market_listing_row.market_recent_listing_row');
+    retrieveListingInfoFromPage()
+    .then((steamListingData) => {
+        // Get all current items on the page (in proper order)
+        let listingRows = document.querySelectorAll('.market_listing_row.market_recent_listing_row');
 
-    for (let row of Array.from(listingRows).reverse()) {
-        let id = row.id.replace('listing_', '');
-        let listingData = steamListingInfo[id];
+        for (let row of listingRows) {
+            let id = row.id.replace('listing_', '');
 
-        // Make sure we don't already have the float for this item
-        // Make sure it is a CSGO item (appid == 730)
-        if (listingData.asset.appid == 730 && !(id in floatData)) {
-            let nameDiv = row.querySelector(`#listing_${id}_name`);
+            let listingData = steamListingData[id];
 
-            // Make sure we found the div and that there is an item in market_actions
-            if (nameDiv != null && (listingData.asset.market_actions || []).length > 0) {
-                // Obtain and format the inspect link
-                let inspectLink = listingData.asset.market_actions[0].link
-                .replace('%listingid%', id)
-                .replace('%assetid%', listingData.asset.id);
+            let inspectLink = listingData.asset.market_actions[0].link
+            .replace('%listingid%', id)
+            .replace('%assetid%', listingData.asset.id);
 
-                floatQueue.push([id, inspectLink]);
-            }
+            floatQueue.push({ listingId: id, inspectLink: inspectLink });
         }
-    }
-
-    // If we put any items in the queue, remove the "Get all floats" button and start the queue
-    if (floatQueue.length > 0) {
-        document.querySelector('#allfloatbutton').classList.add('btn_disabled');
-        let lastItem = floatQueue[floatQueue.length - 1];
-        getCSGOFloat(lastItem[1], lastItem[0]);
-    }
+    });
 }
 
 let getFloatButtonClicked = function(e) {
@@ -207,7 +145,7 @@ let getFloatButtonClicked = function(e) {
         .replace('%listingid%', id)
         .replace('%assetid%', listingData.asset.id);
 
-        getCSGOFloat(inspectLink, id);
+        floatQueue.push({ listingId: id, inspectLink: inspectLink });
     });
 };
 
@@ -246,7 +184,7 @@ function addButtons() {
 
         // check if we already have the float for this item
         if (id in floatData) {
-            processSuccess(id);
+            showFloatText(id);
         }
     }
 
@@ -257,6 +195,9 @@ function addButtons() {
 }
 
 floatTimer = setInterval(() => { addButtons(); }, 500);
+
+// start the queue processing loop
+processFloatQueue();
 
 console.log('%c CSGOFloat Market Checker (v1.0.2) by Step7750 ', 'background: #222; color: #fff;');
 console.log('%c Changelog can be found here: https://github.com/Step7750/CSGOFloat ', 'background: #222; color: #fff;');
