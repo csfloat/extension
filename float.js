@@ -82,7 +82,7 @@ let processFloatQueue = function() {
 
         // Change the message div for this item to the error
         if (floatDiv) {
-            floatDiv.querySelector('.floatmessage').innerHTML = err.error;
+            floatDiv.querySelector('.floatmessage').innerHTML = err.error || 'Unknown Error';
         }
 
         processFloatQueue();
