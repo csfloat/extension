@@ -203,5 +203,5 @@ floatTimer = setInterval(() => { addButtons(); }, 500);
 // start the queue processing loop
 processFloatQueue();
 
-console.log('%c CSGOFloat Market Checker (v1.0.2) by Step7750 ', 'background: #222; color: #fff;');
+console.log('%c CSGOFloat Market Checker (v1.1.0) by Step7750 ', 'background: #222; color: #fff;');
 console.log('%c Changelog can be found here: https://github.com/Step7750/CSGOFloat ', 'background: #222; color: #fff;');
