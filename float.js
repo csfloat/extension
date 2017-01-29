@@ -5,7 +5,9 @@ let steamListingInfo = {};
 
 // retrieve g_rgListingInfo from page script
 window.addEventListener('message', (e) => {
-    steamListingInfo = e.data.listingInfo;
+    if (e.data.type == 'listingInfo') {
+        steamListingInfo = e.data.listingInfo;
+    }
 });
 
 const retrieveListingInfoFromPage = function(listingId) {
@@ -13,13 +15,9 @@ const retrieveListingInfoFromPage = function(listingId) {
         return Promise.resolve(steamListingInfo[listingId]);
     }
 
-    let script = document.createElement('script');
-    script.innerText = `
-        window.postMessage({
-            listingInfo: g_rgListingInfo
-        }, '*');
-    `;
-    document.head.appendChild(script);
+    window.postMessage({
+        type: 'requestListingInfo'
+    }, '*');
 
     return new Promise((resolve, reject) => {
         setTimeout(() => {
@@ -197,6 +195,20 @@ const addButtons = function() {
         addAllFloatButton();
     }
 };
+
+// register the message listener in the page scope
+let script = document.createElement('script');
+script.innerText = `
+    window.addEventListener('message', (e) => {
+        if (e.data.type == 'requestListingInfo') {
+            window.postMessage({
+                type: 'listingInfo',
+                listingInfo: g_rgListingInfo
+            }, '*');
+        }
+    });
+`;
+document.head.appendChild(script);
 
 floatTimer = setInterval(() => { addButtons(); }, 500);
 
