@@ -169,7 +169,7 @@ const getFloatButtonClicked = function(e) {
         floatQueue.push({ listingId: id, inspectLink: inspectLink });
     },
     () => {
-        setFloatText(id, "Failed to obtain listing info, please try again");
+        setFloatText(id, 'Failed to obtain listing info, please try again');
     });
 };
 
