@@ -49,3 +49,6 @@ v1.0.1
 v1.0.2
 * Added "Fetching" status to the "Get Float" button when that item is being processed
 * Cleaned up the code w/ better commenting
+
+v1.1
+* Rewrite of the extension to allow greater flexibility in the future
