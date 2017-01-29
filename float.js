@@ -8,7 +8,7 @@ window.addEventListener('message', (e) => {
     steamListingInfo = e.data.listingInfo;
 });
 
-let retrieveListingInfoFromPage = function(listingId) {
+const retrieveListingInfoFromPage = function(listingId) {
     if (listingId != null && (listingId in steamListingInfo)) {
         return Promise.resolve(steamListingInfo[listingId]);
     }
@@ -28,7 +28,7 @@ let retrieveListingInfoFromPage = function(listingId) {
     });
 };
 
-let getFloatData = function(listingId, inspectLink) {
+const getFloatData = function(listingId, inspectLink) {
     if (listingId in floatData) {
         return Promise.resolve({ iteminfo: floatData[listingId] });
     }
@@ -40,7 +40,7 @@ let getFloatData = function(listingId, inspectLink) {
     });
 };
 
-let showFloatText = function(listingId) {
+const showFloatText = function(listingId) {
     let floatDiv = document.querySelector(`#item_${listingId}_floatdiv`);
 
     if (floatDiv) {
@@ -56,7 +56,7 @@ let showFloatText = function(listingId) {
     }
 };
 
-let processFloatQueue = function() {
+const processFloatQueue = function() {
     if (floatQueue.length === 0) { return setTimeout(processFloatQueue, 500); }
 
     let lastItem = floatQueue.shift();
@@ -90,7 +90,7 @@ let processFloatQueue = function() {
 };
 
 // Puts all of the available items on the page into the queue for float retrieval
-let getAllFloats = function() {
+const getAllFloats = function() {
     retrieveListingInfoFromPage()
     .then((steamListingData) => {
         // Get all current items on the page (in proper order)
@@ -111,7 +111,7 @@ let getAllFloats = function() {
 };
 
 // Adds the "Get all floats" button
-let addAllFloatButton = function() {
+const addAllFloatButton = function() {
     let parentDiv = document.createElement('div');
     parentDiv.style.padding = '10px';
     parentDiv.style.marginTop = '10px';
@@ -139,7 +139,7 @@ let addAllFloatButton = function() {
     document.querySelector('#searchResultsTable').insertBefore(parentDiv, document.querySelector('#searchResultsRows'));
 };
 
-let getFloatButtonClicked = function(e) {
+const getFloatButtonClicked = function(e) {
     let row = e.currentTarget.parentElement.parentElement.parentElement;
     let id = row.id.replace('listing_', '');
 
@@ -154,7 +154,7 @@ let getFloatButtonClicked = function(e) {
 };
 
 // If an item on the current page doesn't have the float div/buttons, this function adds it
-let addButtons = function() {
+const addButtons = function() {
     // Iterate through each item on the page
     let listingRows = document.querySelectorAll('.market_listing_row.market_recent_listing_row');
 
