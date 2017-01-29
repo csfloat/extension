@@ -30,7 +30,7 @@ let retrieveListingInfoFromPage = function(listingId) {
 
 let getFloatData = function(listingId, inspectLink) {
     if (listingId in floatData) {
-        return Promise.resolve(floatData[listingId]);
+        return Promise.resolve({ iteminfo: floatData[listingId] });
     }
 
     return fetch(`https://api.csgofloat.com:1738/?url=${inspectLink}`)
@@ -45,7 +45,8 @@ let showFloatText = function(listingId) {
 
     if (floatDiv) {
         // Remove the "get float" button
-        floatDiv.removeChild(floatDiv.querySelector('.floatbutton'));
+        let floatButton = floatDiv.querySelector('.floatbutton');
+        if (floatButton) { floatDiv.removeChild(floatButton); }
 
         let itemInfo = floatData[listingId];
 
