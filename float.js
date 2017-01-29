@@ -55,7 +55,7 @@ const showFloatText = function(listingId) {
 };
 
 const processFloatQueue = function() {
-    if (floatQueue.length === 0) { return setTimeout(processFloatQueue, 500); }
+    if (floatQueue.length === 0) { return setTimeout(processFloatQueue, 100); }
 
     let lastItem = floatQueue.shift();
 
