@@ -60,6 +60,13 @@ const processFloatQueue = function() {
     let lastItem = floatQueue.shift();
 
     let floatDiv = document.querySelector(`#item_${lastItem.listingId}_floatdiv`);
+
+    if (!floatDiv) {
+        // they have switched pages since initiating the request, so continue
+        processFloatQueue();
+        return;
+    }
+
     let buttonText = floatDiv.querySelector('span');
 
     if (buttonText) { buttonText.innerText = 'Fetching'; }
