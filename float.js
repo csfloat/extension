@@ -89,37 +89,8 @@ let processFloatQueue = function() {
     });
 };
 
-// Adds the "Get all floats" button
-function addAllFloatButton() {
-    let parentDiv = document.createElement('div');
-    parentDiv.style.padding = '10px';
-    parentDiv.style.marginTop = '10px';
-    parentDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
-
-    let allFloatButton = document.createElement('a');
-    allFloatButton.id = 'allfloatbutton';
-    allFloatButton.classList.add('btn_green_white_innerfade');
-    allFloatButton.classList.add('btn_small');
-    allFloatButton.addEventListener('click', GetAllFloats);
-    parentDiv.appendChild(allFloatButton);
-
-    let allFloatSpan = document.createElement('span');
-    allFloatSpan.innerText = 'Get All Floats';
-    allFloatButton.appendChild(allFloatSpan);
-
-    let githubLink = document.createElement('a');
-    githubLink.style.marginLeft = '10px';
-    githubLink.style.textDecoration = 'underline';
-    githubLink.style.fontFamily = `'Motiva Sans', sans-serif`;
-    githubLink.href = 'https://github.com/Step7750/CSGOFloat';
-    githubLink.innerText = 'Powered by CSGOFloat';
-    parentDiv.appendChild(githubLink);
-
-    document.querySelector('#searchResultsTable').insertBefore(parentDiv, document.querySelector('#searchResultsRows'));
-}
-
-// Puts all of the available items on the page into a queue for float retrieval
-function GetAllFloats() {
+// Puts all of the available items on the page into the queue for float retrieval
+let getAllFloats = function() {
     retrieveListingInfoFromPage()
     .then((steamListingData) => {
         // Get all current items on the page (in proper order)
@@ -137,7 +108,36 @@ function GetAllFloats() {
             floatQueue.push({ listingId: id, inspectLink: inspectLink });
         }
     });
-}
+};
+
+// Adds the "Get all floats" button
+let addAllFloatButton = function() {
+    let parentDiv = document.createElement('div');
+    parentDiv.style.padding = '10px';
+    parentDiv.style.marginTop = '10px';
+    parentDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+
+    let allFloatButton = document.createElement('a');
+    allFloatButton.id = 'allfloatbutton';
+    allFloatButton.classList.add('btn_green_white_innerfade');
+    allFloatButton.classList.add('btn_small');
+    allFloatButton.addEventListener('click', getAllFloats);
+    parentDiv.appendChild(allFloatButton);
+
+    let allFloatSpan = document.createElement('span');
+    allFloatSpan.innerText = 'Get All Floats';
+    allFloatButton.appendChild(allFloatSpan);
+
+    let githubLink = document.createElement('a');
+    githubLink.style.marginLeft = '10px';
+    githubLink.style.textDecoration = 'underline';
+    githubLink.style.fontFamily = `'Motiva Sans', sans-serif`;
+    githubLink.href = 'https://github.com/Step7750/CSGOFloat';
+    githubLink.innerText = 'Powered by CSGOFloat';
+    parentDiv.appendChild(githubLink);
+
+    document.querySelector('#searchResultsTable').insertBefore(parentDiv, document.querySelector('#searchResultsRows'));
+};
 
 let getFloatButtonClicked = function(e) {
     let row = e.currentTarget.parentElement.parentElement.parentElement;
@@ -154,7 +154,7 @@ let getFloatButtonClicked = function(e) {
 };
 
 // If an item on the current page doesn't have the float div/buttons, this function adds it
-function addButtons() {
+let addButtons = function() {
     // Iterate through each item on the page
     let listingRows = document.querySelectorAll('.market_listing_row.market_recent_listing_row');
 
@@ -196,7 +196,7 @@ function addButtons() {
     if (!document.querySelector('#allfloatbutton') && listingRows.length > 0) {
         addAllFloatButton();
     }
-}
+};
 
 floatTimer = setInterval(() => { addButtons(); }, 500);
 
