@@ -2,17 +2,23 @@ let floatQueue = [];
 let floatData = {};
 let floatTimer;
 let steamListingInfo = {};
+let listingInfoPromises = [];
 
 // retrieve g_rgListingInfo from page script
 window.addEventListener('message', (e) => {
     if (e.data.type == 'listingInfo') {
         steamListingInfo = e.data.listingInfo;
+
+        // resolve listingInfoPromises
+        for (let promise of listingInfoPromises) promise(steamListingInfo);
+
+        listingInfoPromises = [];
     }
 });
 
 const retrieveListingInfoFromPage = function(listingId) {
     if (listingId != null && (listingId in steamListingInfo)) {
-        return Promise.resolve(steamListingInfo[listingId]);
+        return Promise.resolve(steamListingInfo);
     }
 
     window.postMessage({
@@ -20,9 +26,7 @@ const retrieveListingInfoFromPage = function(listingId) {
     }, '*');
 
     return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            resolve((listingId != null) ? steamListingInfo[listingId] : steamListingInfo);
-        }, 0);
+        listingInfoPromises.push(resolve);
     });
 };
 
@@ -33,24 +37,30 @@ const getFloatData = function(listingId, inspectLink) {
 
     return fetch(`https://api.csgofloat.com:1738/?url=${inspectLink}`)
     .then((response) => {
-        if (response.ok) { return response.json(); }
+        if (response.ok) return response.json();
         return response.json().then((err) => { throw err; });
     });
 };
 
-const showFloatText = function(listingId) {
+const showFloat = function(listingId) {
+    let itemInfo = floatData[listingId];
+
+    if (itemInfo) setFloatText(listingId, `Float: ${itemInfo.floatvalue}<br>Paint Seed: ${itemInfo.paintseed}`, true);
+};
+
+const setFloatText = function(listingId, text, removeButton) {
     let floatDiv = document.querySelector(`#item_${listingId}_floatdiv`);
 
     if (floatDiv) {
-        // Remove the "get float" button
-        let floatButton = floatDiv.querySelector('.floatbutton');
-        if (floatButton) { floatDiv.removeChild(floatButton); }
+        if (removeButton) {
+            // Remove the "get float" button
+            let floatButton = floatDiv.querySelector('.floatbutton');
+            if (floatButton) { floatDiv.removeChild(floatButton); }
+        }
 
-        let itemInfo = floatData[listingId];
-
-        // Show the float and paint seed to the user
+        // Show the text to the user
         let msgdiv = floatDiv.querySelector('.floatmessage');
-        msgdiv.innerHTML = `Float: ${itemInfo.floatvalue}<br>Paint Seed: ${itemInfo.paintseed}`;
+        msgdiv.innerHTML = text;
     }
 };
 
@@ -73,11 +83,9 @@ const processFloatQueue = function() {
 
     getFloatData(lastItem.listingId, lastItem.inspectLink)
     .then((data) => {
-        let itemInfo = data.iteminfo;
+        floatData[lastItem.listingId] = data.iteminfo;
 
-        floatData[lastItem.listingId] = itemInfo;
-
-        showFloatText(lastItem.listingId);
+        showFloat(lastItem.listingId);
 
         processFloatQueue();
     })
@@ -149,7 +157,11 @@ const getFloatButtonClicked = function(e) {
     let id = row.id.replace('listing_', '');
 
     retrieveListingInfoFromPage(id)
-    .then((listingData) => {
+    .then((steamListingData) => {
+        let listingData = steamListingData[id];
+
+        if (!listingData) return;
+
         let inspectLink = listingData.asset.market_actions[0].link
         .replace('%listingid%', id)
         .replace('%assetid%', listingData.asset.id);
@@ -193,7 +205,7 @@ const addButtons = function() {
 
         // check if we already have the float for this item
         if (id in floatData) {
-            showFloatText(id);
+            showFloat(id);
         }
     }
 
@@ -223,5 +235,5 @@ floatTimer = setInterval(() => { addButtons(); }, 500);
 processFloatQueue();
 
 const logStyle = 'background: #222; color: #fff;';
-console.log('%c CSGOFloat Market Checker (v1.1.0) by Step7750 ', logStyle);
+console.log('%c CSGOFloat Market Checker (v1.1.1) by Step7750 ', logStyle);
 console.log('%c Changelog can be found here: https://github.com/Step7750/CSGOFloat-Extension ', logStyle);
