@@ -2,31 +2,31 @@ let floatQueue = [];
 let floatData = {};
 let floatTimer;
 let steamListingInfo = {};
+let listingInfoPromises = [];
 
 // retrieve g_rgListingInfo from page script
 window.addEventListener('message', (e) => {
     if (e.data.type == 'listingInfo') {
         steamListingInfo = e.data.listingInfo;
+
+        // resolve listingInfoPromises
+        for (let promise of listingInfoPromises) promise(steamListingInfo);
+
+        listingInfoPromises = [];
     }
 });
 
 const retrieveListingInfoFromPage = function(listingId) {
     if (listingId != null && (listingId in steamListingInfo)) {
-        return Promise.resolve(steamListingInfo[listingId]);
+        return Promise.resolve(steamListingInfo);
     }
-
-    // Reset, since this is a new page
-    steamListingInfo = {};
 
     window.postMessage({
         type: 'requestListingInfo'
     }, '*');
 
     return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            if (Object.keys(steamListingInfo).length === 0) reject();
-            else resolve((listingId != null) ? steamListingInfo[listingId] : steamListingInfo);
-        }, 10);
+        listingInfoPromises.push(resolve);
     });
 };
 
@@ -120,10 +120,6 @@ const getAllFloats = function() {
 
             floatQueue.push({ listingId: id, inspectLink: inspectLink });
         }
-    },
-    () => {
-        // Try again
-        getAllFloats();
     });
 };
 
@@ -161,15 +157,16 @@ const getFloatButtonClicked = function(e) {
     let id = row.id.replace('listing_', '');
 
     retrieveListingInfoFromPage(id)
-    .then((listingData) => {
+    .then((steamListingData) => {
+        let listingData = steamListingData[id];
+
+        if (!listingData) return;
+
         let inspectLink = listingData.asset.market_actions[0].link
         .replace('%listingid%', id)
         .replace('%assetid%', listingData.asset.id);
 
         floatQueue.push({ listingId: id, inspectLink: inspectLink });
-    },
-    () => {
-        setFloatText(id, 'Failed to obtain listing info, please try again');
     });
 };
 
