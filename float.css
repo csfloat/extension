@@ -1,0 +1,38 @@
+#floatFilter hr {
+	background-color: #1b2939;
+	border-style: solid none none;
+	border-color: black;
+	border-width: 1px 0 0;
+	height: 2px;
+}
+
+#floatUtilities {
+	padding: 10px;
+	margin-top: 10px;
+	background-color: rgba(0, 0, 0, 0.2);
+}
+
+#compile-status {
+	display: inline;
+	text-align: left;
+	margin-left: 5px;
+}
+
+#compile-status[error="false"] {
+	color: green;
+}
+
+#compile-status[error="true"] {
+	color: red;
+}
+
+.float-github {
+	margin-left: 10px;
+	text-decoration: underline;
+	font-family: 'Motiva Sans', sans-serif;
+}
+
+.float-btn {
+	display: inline;
+	text-align: left;
+}

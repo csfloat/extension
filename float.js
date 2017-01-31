@@ -125,13 +125,54 @@ const getAllFloats = function() {
     });
 };
 
-// Adds the "Get all floats" button
-const addAllFloatButton = function() {
-    let parentDiv = document.createElement('div');
-    parentDiv.style.padding = '10px';
-    parentDiv.style.marginTop = '10px';
-    parentDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+const filterKeyPress = function () {
+    let input = document.querySelector('#float_expression_filter');
+    let expression = input.value;
 
+    let status = document.querySelector('#compile-status');
+
+    // try to compile the expression
+    try {
+        compileExpression(expression);
+        status.setAttribute('error', 'false');
+        status.innerText = '✓';
+    }
+    catch (e) {
+        status.setAttribute('error', 'true');
+        status.innerText = '✗';
+    }
+}
+
+const addFilterDiv = function (parent) {
+    let filterdiv = document.createElement('div');
+    filterdiv.id = 'floatFilter';
+    parent.appendChild(filterdiv);
+
+    // Add separator
+    let hr = document.createElement('hr');
+    filterdiv.appendChild(hr);
+
+    // Add new filter input box
+    let input = document.createElement('input');
+    input.id = 'float_expression_filter'
+    input.classList.add('filter_search_box');
+    input.placeholder = 'Add Float Highlight Filter';
+    input.style.width = '350px';
+    input.addEventListener('keyup', filterKeyPress);
+    filterdiv.appendChild(input);
+
+    // Add compile status indicator
+    let status = document.createElement('div');
+    status.id = 'compile-status';
+    filterdiv.appendChild(status);
+}
+
+// Adds float utilities
+const addFloatUtilities = function() {
+    let parentDiv = document.createElement('div');
+    parentDiv.id = 'floatUtilities';
+
+    // Add get all floats button
     let allFloatButton = document.createElement('a');
     allFloatButton.id = 'allfloatbutton';
     allFloatButton.classList.add('btn_green_white_innerfade');
@@ -143,13 +184,15 @@ const addAllFloatButton = function() {
     allFloatSpan.innerText = 'Get All Floats';
     allFloatButton.appendChild(allFloatSpan);
 
+    // Add github link
     let githubLink = document.createElement('a');
-    githubLink.style.marginLeft = '10px';
-    githubLink.style.textDecoration = 'underline';
-    githubLink.style.fontFamily = `'Motiva Sans', sans-serif`;
+    githubLink.classList.add('float-github');
     githubLink.href = 'https://github.com/Step7750/CSGOFloat';
     githubLink.innerText = 'Powered by CSGOFloat';
     parentDiv.appendChild(githubLink);
+
+    // Add filter div
+    addFilterDiv(parentDiv);
 
     document.querySelector('#searchResultsTable').insertBefore(parentDiv, document.querySelector('#searchResultsRows'));
 };
@@ -185,8 +228,7 @@ const addButtons = function() {
         let listingNameElement = row.querySelector(`#listing_${id}_name`);
 
         let buttonDiv = document.createElement('div');
-        buttonDiv.style.display = 'inline';
-        buttonDiv.style.textAlign = 'left';
+        buttonDiv.classList.add('float-btn');
         buttonDiv.id = `item_${id}_floatdiv`;
         listingNameElement.parentElement.appendChild(buttonDiv);
 
@@ -216,9 +258,9 @@ const addButtons = function() {
         }
     }
 
-    // Add show all button if it doesn't exist and we have valid items
-    if (!document.querySelector('#allfloatbutton') && listingRows.length > 0) {
-        addAllFloatButton();
+    // Add float utilities if it doesn't exist and we have valid items
+    if (!document.querySelector('#floatUtilities') && listingRows.length > 0) {
+        addFloatUtilities();
     }
 };
 

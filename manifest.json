@@ -15,6 +15,9 @@
             "js": [
                 "lib/filtrex.js",
                 "float.js"
+            ],
+            "css": [
+                "float.css"
             ]
         }
     ],
