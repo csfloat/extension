@@ -52,3 +52,6 @@ v1.0.2
 
 v1.1
 * Rewrite of the extension to allow greater flexibility in the future
+
+v1.1.1
+* Fixes Slow Item Info Retrieval Handling
