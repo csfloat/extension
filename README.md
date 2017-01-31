@@ -55,3 +55,6 @@ v1.1
 
 v1.1.1
 * Fixes Slow Item Info Retrieval Handling
+
+v1.1.2
+* Implements proper sanitization of injected HTML during float retrieval

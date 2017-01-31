@@ -45,22 +45,24 @@ const getFloatData = function(listingId, inspectLink) {
 const showFloat = function(listingId) {
     let itemInfo = floatData[listingId];
 
-    if (itemInfo) setFloatText(listingId, `Float: ${itemInfo.floatvalue}<br>Paint Seed: ${itemInfo.paintseed}`, true);
-};
-
-const setFloatText = function(listingId, text, removeButton) {
     let floatDiv = document.querySelector(`#item_${listingId}_floatdiv`);
 
     if (floatDiv) {
-        if (removeButton) {
-            // Remove the "get float" button
-            let floatButton = floatDiv.querySelector('.floatbutton');
-            if (floatButton) { floatDiv.removeChild(floatButton); }
-        }
+        // Remove the "get float" button
+        let floatButton = floatDiv.querySelector('.floatbutton');
+        if (floatButton) floatDiv.removeChild(floatButton);
 
-        // Show the text to the user
+        // Remove message div
         let msgdiv = floatDiv.querySelector('.floatmessage');
-        msgdiv.innerHTML = text;
+        if (msgdiv) floatDiv.removeChild(msgdiv);
+
+        // Add the float value
+        let itemFloatDiv = floatDiv.querySelector('.itemfloat');
+        if (itemFloatDiv) itemFloatDiv.innerText = `Float: ${itemInfo.floatvalue}`;
+
+        // Add the paint seed
+        let seedDiv = floatDiv.querySelector('.itemseed');
+        if (seedDiv) seedDiv.innerText = `Paint Seed: ${itemInfo.paintseed}`;
     }
 };
 
@@ -79,7 +81,7 @@ const processFloatQueue = function() {
 
     let buttonText = floatDiv.querySelector('span');
 
-    if (buttonText) { buttonText.innerText = 'Fetching'; }
+    if (buttonText) buttonText.innerText = 'Fetching';
 
     getFloatData(lastItem.listingId, lastItem.inspectLink)
     .then((data) => {
@@ -91,11 +93,11 @@ const processFloatQueue = function() {
     })
     .catch((err) => {
         // Reset the button text for this itemid
-        if (buttonText) { buttonText.innerText = 'Get Float'; }
+        if (buttonText) buttonText.innerText = 'Get Float';
 
         // Change the message div for this item to the error
         if (floatDiv) {
-            floatDiv.querySelector('.floatmessage').innerHTML = err.error || 'Unknown Error';
+            floatDiv.querySelector('.floatmessage').innerText = err.error || 'Unknown Error';
         }
 
         processFloatQueue();
@@ -199,9 +201,14 @@ const addButtons = function() {
         buttonText.innerText = 'Get Float';
         getFloatButton.appendChild(buttonText);
 
-        let messageDiv = document.createElement('div');
-        messageDiv.classList.add('floatmessage');
-        buttonDiv.appendChild(messageDiv);
+        // Create divs the following class names and append them to the button div
+        let divClassNames = ['floatmessage', 'itemfloat', 'itemseed'];
+
+        for (let className of divClassNames) {
+            let div = document.createElement('div');
+            div.classList.add(className);
+            buttonDiv.appendChild(div);
+        }
 
         // check if we already have the float for this item
         if (id in floatData) {
@@ -235,5 +242,5 @@ floatTimer = setInterval(() => { addButtons(); }, 500);
 processFloatQueue();
 
 const logStyle = 'background: #222; color: #fff;';
-console.log('%c CSGOFloat Market Checker (v1.1.1) by Step7750 ', logStyle);
+console.log('%c CSGOFloat Market Checker (v1.1.2) by Step7750 ', logStyle);
 console.log('%c Changelog can be found here: https://github.com/Step7750/CSGOFloat-Extension ', logStyle);
