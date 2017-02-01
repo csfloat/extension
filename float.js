@@ -149,13 +149,24 @@ const addFilter = function () {
 
 const removeFilter = function(e) {
     let removeBtn = e.srcElement;
-    
-    let filterID = parseInt(removeBtn.parentNode.parentNode.id);
+
+    // get the parent
+    let thisFilterDiv = removeBtn.parentNode.parentNode;
+
+    // Remove the button
+    thisFilterDiv.removeChild(removeBtn.parentNode);
+
+    // get the expression string
+    let expression = thisFilterDiv.innerText;
 
     // remove the div
-    document.querySelector('#floatFilters').removeChild(removeBtn.parentNode.parentNode);
+    document.querySelector('#floatFilters').removeChild(thisFilterDiv);
 
-    // remove it from the arrays
+    // Remove it from the arrays
+    let filterID = filterStrings.indexOf(expression.trim());
+
+    if (filterID === -1) return;
+    
     filterStrings.splice(filterID, 1);
     filters.splice(filterID, 1);
     
@@ -226,11 +237,12 @@ const addFilterUI = function(expression) {
 
     let thisDiv = document.createElement('div');
     thisDiv.innerText = expression;
-    thisDiv.id = filterStrings.length-1;
 
     // Add remove filter btn
     let removeFilterBtn = createButton('Remove Filter', removeFilter, 'grey');
-    removeFilterBtn.style.marginLeft = '10px';
+    removeFilterBtn.style.marginLeft = '0px';
+    removeFilterBtn.style.marginTop = '-3px';
+    removeFilterBtn.style.float = 'right';
     thisDiv.appendChild(removeFilterBtn);
 
     // Add line break
@@ -313,6 +325,7 @@ const addFloatUtilities = function() {
 
     // Add get all floats button
     let allFloatButton = createButton('Get All Floats', getAllFloats, 'green');
+    allFloatButton.style.marginLeft = '0px';
     parentDiv.appendChild(allFloatButton);
 
     // Add github link
