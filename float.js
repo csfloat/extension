@@ -67,6 +67,22 @@ const showFloat = function(listingId) {
         // Add the paint seed
         let seedDiv = floatDiv.querySelector('.itemseed');
         if (seedDiv) seedDiv.innerText = `Paint Seed: ${itemInfo.paintseed}`;
+
+        let vars = {
+            'float': itemInfo.floatvalue,
+            'seed': itemInfo.paintseed,
+            'minfloat': itemInfo.min,
+            'maxfloat': itemInfo.max
+        };
+
+        // Check to see if there is a filter match
+        for (let filter of filters) {
+            if (filter(vars) === 1) {
+                // highlight the div
+                floatDiv.parentNode.parentNode.style.backgroundColor = 'rgb(53, 73, 8)';
+                break;
+            }
+        }
     }
 };
 
@@ -166,7 +182,7 @@ const removeFilter = function(e) {
     let filterID = filterStrings.indexOf(expression.trim());
 
     if (filterID === -1) return;
-    
+
     filterStrings.splice(filterID, 1);
     filters.splice(filterID, 1);
     
