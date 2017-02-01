@@ -256,7 +256,6 @@ const addFilterUI = function(expression) {
 
     // Add remove filter btn
     let removeFilterBtn = createButton('Remove Filter', removeFilter, 'grey');
-    removeFilterBtn.style.marginLeft = '0px';
     removeFilterBtn.style.marginTop = '-3px';
     removeFilterBtn.style.float = 'right';
     thisDiv.appendChild(removeFilterBtn);
@@ -272,7 +271,6 @@ const createButton = function(text, eventListener, colour) {
     let btn = document.createElement('a');
     btn.classList.add(`btn_${colour}_white_innerfade`);
     btn.classList.add('btn_small');
-    btn.style.marginLeft = '10px';
     btn.classList.add('float-btn');
     btn.addEventListener('click', eventListener);
 
@@ -341,7 +339,6 @@ const addFloatUtilities = function() {
 
     // Add get all floats button
     let allFloatButton = createButton('Get All Floats', getAllFloats, 'green');
-    allFloatButton.style.marginLeft = '0px';
     parentDiv.appendChild(allFloatButton);
 
     // Add github link
@@ -387,13 +384,13 @@ const addButtons = function() {
 
         let listingNameElement = row.querySelector(`#listing_${id}_name`);
 
-        let buttonDiv = document.createElement('div');
-        buttonDiv.classList.add('float-btn');
-        buttonDiv.id = `item_${id}_floatdiv`;
-        listingNameElement.parentElement.appendChild(buttonDiv);
+        let floatDiv = document.createElement('div');
+        floatDiv.classList.add('float-div');
+        floatDiv.id = `item_${id}_floatdiv`;
+        listingNameElement.parentElement.appendChild(floatDiv);
 
         let getFloatButton = createButton('Get Float', getFloatButtonClicked, 'green');
-        buttonDiv.appendChild(getFloatButton);
+        floatDiv.appendChild(getFloatButton);
 
         // Create divs the following class names and append them to the button div
         let divClassNames = ['floatmessage', 'itemfloat', 'itemseed'];
@@ -401,7 +398,7 @@ const addButtons = function() {
         for (let className of divClassNames) {
             let div = document.createElement('div');
             div.classList.add(className);
-            buttonDiv.appendChild(div);
+            floatDiv.appendChild(div);
         }
 
         // check if we already have the float for this item
