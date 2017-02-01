@@ -1,8 +1,10 @@
 let floatQueue = [];
 let floatData = {};
 let floatTimer;
+let expressionTimer;
 let steamListingInfo = {};
 let listingInfoPromises = [];
+let validExpressionVars = ['float', 'seed', 'minfloat', 'maxfloat'];
 
 // retrieve g_rgListingInfo from page script
 window.addEventListener('message', (e) => {
@@ -15,6 +17,78 @@ window.addEventListener('message', (e) => {
         listingInfoPromises = [];
     }
 });
+
+/*
+    >>> Modification of compileExpression in Filtrex.js
+
+    Overwrites compileExpression in Filtrex to allow specification of only certain variable names
+
+    If the user uses a variable name that is not in the passed in validVars array, throws an error
+*/
+compileExpression = function(expression, extraFunctions, validVars) {
+    let functions = {
+        abs: Math.abs,
+        ceil: Math.ceil,
+        floor: Math.floor,
+        log: Math.log,
+        max: Math.max,
+        min: Math.min,
+        random: Math.random,
+        round: Math.round,
+        sqrt: Math.sqrt,
+    };
+    if (extraFunctions) {
+        for (let name in extraFunctions) {
+            if (extraFunctions.hasOwnProperty(name)) {
+                functions[name] = extraFunctions[name];
+            }
+        }
+    }
+    if (!compileExpression.parser) {
+        // Building the original parser is the heaviest part. Do it
+        // once and cache the result in our own function.
+        compileExpression.parser = filtrexParser();
+    }
+    let tree = compileExpression.parser.parse(expression);
+
+    let js = [];
+    js.push('return ');
+    function toJs(node) {
+        if (Array.isArray(node)) {
+            node.forEach(toJs);
+        } else {
+            js.push(node);
+        }
+    }
+    tree.forEach(toJs);
+    js.push(';');
+
+    js = js.join('');
+
+    // check if each var is proper in the js
+    if (validVars) {
+        let reg = /data\[\"(.+?)\"\]/g;
+        let match = reg.exec(js);
+
+        while (match !== null) {
+            let dataVar = match[1];
+
+            if (validVars.indexOf(dataVar) === -1) {
+                throw new Error(`'${dataVar}' is an improper variable name`);
+            }
+
+            match = reg.exec(js);
+        }
+    }
+
+    function unknown(funcName) {
+        throw 'Unknown function: ' + funcName + '()';
+    }
+    var func = new Function('functions', 'data', 'unknown', js);
+    return function(data) {
+        return func(functions, data, unknown);
+    };
+}
 
 const retrieveListingInfoFromPage = function(listingId) {
     if (listingId != null && (listingId in steamListingInfo)) {
@@ -126,21 +200,28 @@ const getAllFloats = function() {
 };
 
 const filterKeyPress = function () {
-    let input = document.querySelector('#float_expression_filter');
-    let expression = input.value;
+    if (expressionTimer) clearTimeout(expressionTimer);
 
-    let status = document.querySelector('#compile-status');
+    expressionTimer = setTimeout(() => {
+        let input = document.querySelector('#float_expression_filter');
+        let compileError = document.querySelector('#compileError');
+        let status = document.querySelector('#compileStatus');
 
-    // try to compile the expression
-    try {
-        compileExpression(expression);
-        status.setAttribute('error', 'false');
-        status.innerText = '✓';
-    }
-    catch (e) {
-        status.setAttribute('error', 'true');
-        status.innerText = '✗';
-    }
+        let expression = input.value;
+
+        // try to compile the expression
+        try {
+            compileExpression(expression, {}, validExpressionVars);
+            status.setAttribute('error', 'false');
+            status.innerText = '✓';
+            compileError.innerText = '';
+        }
+        catch (e) {
+            status.setAttribute('error', 'true');
+            status.innerText = '✗';
+            compileError.innerText = e.message;
+        }
+    }, 250);
 }
 
 const addFilterDiv = function (parent) {
@@ -163,8 +244,12 @@ const addFilterDiv = function (parent) {
 
     // Add compile status indicator
     let status = document.createElement('div');
-    status.id = 'compile-status';
+    status.id = 'compileStatus';
     filterdiv.appendChild(status);
+
+    let compileError = document.createElement('div');
+    compileError.id = 'compileError';
+    filterdiv.appendChild(compileError);
 }
 
 // Adds float utilities

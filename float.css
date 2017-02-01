@@ -12,18 +12,23 @@
 	background-color: rgba(0, 0, 0, 0.2);
 }
 
-#compile-status {
+#compileStatus {
 	display: inline;
 	text-align: left;
 	margin-left: 5px;
 }
 
-#compile-status[error="false"] {
+#compileStatus[error="false"] {
 	color: green;
 }
 
-#compile-status[error="true"] {
+#compileStatus[error="true"] {
 	color: red;
+}
+
+#compileError {
+	font-family: Consolas;
+	margin-top: 5px;
 }
 
 .float-github {
