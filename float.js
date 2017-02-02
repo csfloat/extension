@@ -288,7 +288,6 @@ const addFilterUI = function(filter) {
     let thisDiv = document.createElement('div');
     thisDiv.innerText = filter.expression;
 
-    // btn.addEventListener('click', eventListener);
     let colourDiv = document.createElement('input');
     colourDiv.type = 'color';
     colourDiv.value = filter.colour;
@@ -325,6 +324,62 @@ const createButton = function(text, eventListener, colour) {
     return btn;
 };
 
+const onHelpClick = function () {
+    let filterdiv = document.querySelector('#floatFilter');
+
+    let helpdiv = filterdiv.querySelector('#filterHelp');
+    if (helpdiv) filterdiv.removeChild(helpdiv);
+    else {
+        // create it
+        helpdiv = document.createElement('div');
+        helpdiv.id = 'filterHelp';
+        helpdiv.style.fontFamily = 'Consolas';
+
+        helpdiv.innerHTML = `
+            <hr></hr>
+            Filters will highlight matching items with the specified colour<br><br>
+            
+            <b>Examples: </b>
+            <ul>
+              <li>float < 0.3</li>
+                <ul>
+                    <li>Matches items with floats less than 0.3</li>
+                </ul>
+              <li>float >= 0.112 and float < 0.2</li>
+                <ul>
+                    <li>Matches items with floats greater than or equal to 0.112 and less than 0.2</li>
+                </ul>
+              <li>float == 0.2 or (seed > 500 and float < 0.15)</li>
+                <ul>
+                    <li>Matches items with floats of 0.2 or paint seeds greater than 500 and floats less than 0.15</li>
+                </ul>
+            </ul>
+            
+            <b>Variables</b>
+            <ul>
+              <li>float</li>
+                <ul>
+                    <li>The float value of the item</li>
+                </ul>
+              <li>seed</li>
+                <ul>
+                    <li>The paint seed of the item</li>
+                </ul>
+              <li>minfloat</li>
+                <ul>
+                    <li>The minimum float the skin can have (regardless of wear)</li>
+                </ul>
+              <li>maxfloat</li>
+                <ul>
+                    <li>The maximum float the skin can have (regardless of wear)</li>
+                </ul>
+            </ul>
+        `;
+
+        filterdiv.appendChild(helpdiv);
+    }
+};
+
 const addFiltersDiv = function(parent) {
     let filterdiv = document.createElement('div');
     filterdiv.id = 'floatFilter';
@@ -357,6 +412,16 @@ const addFiltersDiv = function(parent) {
     input.style.marginLeft = '10px';
     input.addEventListener('keyup', filterKeyPress);
     filterdiv.appendChild(input);
+
+    // Add filter help link
+    let helpText = document.createElement('a');
+    helpText.innerText = 'ⓘ';
+    helpText.style.fontSize = '18px';
+    helpText.title = 'Filter Help';
+    helpText.style.marginLeft = '5px';
+    helpText.href = 'javascript:void(0)';
+    helpText.addEventListener('click', onHelpClick);
+    filterdiv.appendChild(helpText);
 
     // Add compile status indicator
     let status = document.createElement('div');
