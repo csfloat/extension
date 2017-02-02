@@ -232,7 +232,10 @@ const getSavedFilters = function(cb) {
     let syncFilters = {};
     syncFilters[key] = [];
 
-    chrome.storage.sync.get(syncFilters, (items) => {
+    let storageType = chrome.storage.sync;
+    if (!storageType) storageType = chrome.storage.local;
+
+    storageType.get(syncFilters, (items) => {
         cb(items[key]);
     });
 };
@@ -245,7 +248,10 @@ const saveFilters = function() {
     let syncFilters = {};
     syncFilters[key] = filterStrings;
 
-    chrome.storage.sync.set(syncFilters);
+    let storageType = chrome.storage.sync;
+    if (!storageType) storageType = chrome.storage.local;
+
+    storageType.set(syncFilters);
 };
 
 const addFilterUI = function(expression) {
