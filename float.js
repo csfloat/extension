@@ -168,7 +168,7 @@ const addFilter = function () {
 };
 
 const removeFilter = function(e) {
-    let removeBtn = e.srcElement;
+    let removeBtn = e.target || e.srcElement;
 
     // get the parent
     let thisFilterDiv = removeBtn.parentNode.parentNode;
@@ -262,7 +262,7 @@ const saveFilters = function() {
 };
 
 const onFilterColourChange = function (e) {
-    let filter = e.srcElement;
+    let filter = e.target || e.srcElement;
 
     // get the parent
     let thisFilterDiv = filter.parentNode;
