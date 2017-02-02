@@ -5,7 +5,6 @@ let expressionTimer;
 let steamListingInfo = {};
 let listingInfoPromises = [];
 let validExpressionVars = ['float', 'seed', 'minfloat', 'maxfloat'];
-let filterStrings = [];
 let filters = [];
 
 // retrieve g_rgListingInfo from page script
@@ -77,9 +76,9 @@ const showFloat = function(listingId) {
 
         // Check to see if there is a filter match
         for (let filter of filters) {
-            if (filter(vars) === 1) {
+            if (filter.func(vars) === 1) {
                 // highlight the div
-                floatDiv.parentNode.parentNode.style.backgroundColor = 'rgb(53, 73, 8)';
+                floatDiv.parentNode.parentNode.style.backgroundColor = filter.colour;
                 break;
             }
         }
@@ -147,15 +146,17 @@ const getAllFloats = function() {
 
 const addFilter = function () {
     let filter = document.querySelector('#float_expression_filter').value;
+    let colour = document.querySelector('#floatFilterColour').value;
 
     try {
         let compiled = compileExpression(filter, {}, validExpressionVars);
 
         // We know it is a valid expression
-        filterStrings.push(filter);
-        filters.push(compiled);
+        let thisFilter = {"expression": filter, "func": compiled, "colour": colour};
 
-        addFilterUI(filter);
+        filters.push(thisFilter);
+
+        addFilterUI(thisFilter);
         saveFilters();
     }
     catch (e) {
@@ -173,17 +174,18 @@ const removeFilter = function(e) {
     thisFilterDiv.removeChild(removeBtn.parentNode);
 
     // get the expression string
-    let expression = thisFilterDiv.innerText;
+    let expression = thisFilterDiv.innerText.trim();
 
     // remove the div
     document.querySelector('#floatFilters').removeChild(thisFilterDiv);
 
     // Remove it from the arrays
-    let filterID = filterStrings.indexOf(expression.trim());
+    let filterID = filters.findIndex((element) => {
+        if (element.expression === expression) return true;
+    });
 
     if (filterID === -1) return;
 
-    filterStrings.splice(filterID, 1);
     filters.splice(filterID, 1);
     
     saveFilters();
@@ -218,10 +220,9 @@ const filterKeyPress = function() {
 };
 
 const getSaveKey = function() {
-    let itemname = document.querySelector('.market_listing_nav a:nth-child(2)');
+    let itemName = document.querySelector('.market_listing_nav a:nth-child(2)');
 
-    if (!itemname) return;
-    else return itemname.innerText + '_expressions';
+    if (itemName) return itemName.innerText + '_expressions';
 };
 
 const getSavedFilters = function(cb) {
@@ -246,7 +247,7 @@ const saveFilters = function() {
     if (!key) return;
 
     let syncFilters = {};
-    syncFilters[key] = filterStrings;
+    syncFilters[key] = filters;
 
     let storageType = chrome.storage.sync;
     if (!storageType) storageType = chrome.storage.local;
@@ -254,11 +255,42 @@ const saveFilters = function() {
     storageType.set(syncFilters);
 };
 
-const addFilterUI = function(expression) {
+const onFilterColourChange = function (e) {
+    let filter = e.srcElement;
+
+    // get the parent
+    let thisFilterDiv = filter.parentNode;
+
+    // get the expression string
+    let expression = thisFilterDiv.innerText.split('\n')[0].trim();
+
+    // Get the filter id
+    let filterID = filters.findIndex((element) => {
+        if (element.expression === expression) return true;
+    });
+
+    if (filterID === -1) return;
+
+    // Set the colour and save
+    filters[filterID].colour = filter.value;
+    saveFilters();
+};
+
+const addFilterUI = function(filter) {
     let parentDiv = document.querySelector('#floatFilters');
 
     let thisDiv = document.createElement('div');
-    thisDiv.innerText = expression;
+    thisDiv.innerText = filter.expression;
+
+    // btn.addEventListener('click', eventListener);
+    let colourDiv = document.createElement('input');
+    colourDiv.type = 'color';
+    colourDiv.value = filter.colour;
+    colourDiv.style.float = 'left';
+    colourDiv.style.marginRight = '10px';
+    colourDiv.style.marginTop = '-3px';
+    colourDiv.addEventListener('change', onFilterColourChange);
+    thisDiv.appendChild(colourDiv);
 
     // Add remove filter btn
     let removeFilterBtn = createButton('Remove Filter', removeFilter, 'grey');
@@ -301,12 +333,22 @@ const addFiltersDiv = function(parent) {
     filtersdiv.id = 'floatFilters';
     filterdiv.appendChild(filtersdiv);
 
+    // Adds colour picker
+    let colourDiv = document.createElement('input');
+    colourDiv.id = 'floatFilterColour';
+    colourDiv.type = 'color';
+    colourDiv.value = '#354908';
+    colourDiv.style.float = 'left';
+    colourDiv.style.marginTop = '2px';
+    filterdiv.appendChild(colourDiv);
+
     // Add new filter input box
     let input = document.createElement('input');
     input.id = 'float_expression_filter';
     input.classList.add('filter_search_box');
     input.placeholder = 'Add Float Highlight Filter';
     input.style.width = '350px';
+    input.style.marginLeft = '10px';
     input.addEventListener('keyup', filterKeyPress);
     filterdiv.appendChild(input);
 
@@ -329,11 +371,11 @@ const addFiltersDiv = function(parent) {
     filterdiv.appendChild(compileError);
 
     // Add any saved filters
-    getSavedFilters((expressions) => {
-        for (let expression of expressions) {
-            filterStrings.push(expression);
-            filters.push(compileExpression(expression, {}, validExpressionVars));
-            addFilterUI(expression);
+    getSavedFilters((savedFilters) => {
+        for (let filter of savedFilters) {
+            filter['func'] = compileExpression(filter.expression, {}, validExpressionVars)
+            filters.push(filter);
+            addFilterUI(filter);
         }
     });
 };
