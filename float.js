@@ -19,6 +19,13 @@ window.addEventListener('message', (e) => {
     }
 });
 
+const filtrexMatch = function (str, reg) {
+    let thisMatch = str.toString().match(reg);
+
+    if (thisMatch !== null) return thisMatch.length;
+    else return 0;
+};
+
 const retrieveListingInfoFromPage = function(listingId) {
     if (listingId != null && (listingId in steamListingInfo)) {
         return Promise.resolve(steamListingInfo);
@@ -149,10 +156,10 @@ const addFilter = function () {
     let colour = document.querySelector('#floatFilterColour').value;
 
     try {
-        let compiled = compileExpression(filter, {}, validExpressionVars);
+        let compiled = compileExpression(filter, {match: filtrexMatch}, validExpressionVars);
 
         // We know it is a valid expression
-        let thisFilter = {"expression": filter, "func": compiled, "colour": colour};
+        let thisFilter = {'expression': filter, 'func': compiled, 'colour': colour};
 
         filters.push(thisFilter);
 
@@ -210,7 +217,7 @@ const filterKeyPress = function() {
 
         // try to compile the expression
         try {
-            compileExpression(expression, {}, validExpressionVars);
+            compileExpression(expression, {match: filtrexMatch}, validExpressionVars);
             status.setAttribute('error', 'false');
             status.innerText = '✓';
             compileError.innerText = '';
@@ -355,6 +362,11 @@ const onHelpClick = function () {
                 <ul>
                     <li>Matches items with floats of 0.2 or paint seeds greater than 500 and floats less than 0.15</li>
                 </ul>
+               <li>match(float, "7355608") >= 1</li>
+                <ul>
+                    <li>Matches items with floats that contain at least one match of the CS bomb code</li>
+                    <li>Example Match: 0.234327355608454</li>
+                </ul>
             </ul>
             
             <b>Variables</b>
@@ -374,6 +386,50 @@ const onHelpClick = function () {
               <li>maxfloat</li>
                 <ul>
                     <li>The maximum float the skin can have (regardless of wear)</li>
+                </ul>
+            </ul>
+            
+            <b>Functions:</b>
+            <ul>
+              <li>match(x, regex)</li>
+                <ul>
+                    <li>Performs a regex match on 'x' and returns the amount of matches</li>
+                </ul>
+              <li>abs(x)</li>
+                <ul>
+                    <li>Absolute value</li>
+                </ul>
+              <li>ceil(x)</li>
+                <ul>
+                    <li>Round floating point up</li>
+                </ul>
+              <li>floor(x)</li>
+                <ul>
+                    <li>Round floating point down</li>
+                </ul>
+              <li>log(x)</li>
+                <ul>
+                    <li>Natural logarithm</li>
+                </ul>
+              <li>max(a, b, c...)</li>
+                <ul>
+                    <li>Max value (variable length of args)</li>
+                </ul>
+              <li>min(a, b, c...)</li>
+                <ul>
+                    <li>Min value (variable length of args)</li>
+                </ul>
+              <li>random()</li>
+                <ul>
+                    <li>Random floating point from 0.0 to 1.0</li>
+                </ul>
+              <li>round(x)</li>
+                <ul>
+                    <li>Round floating point</li>
+                </ul>
+              <li>sqrt(x)</li>
+                <ul>
+                    <li>Square root</li>
                 </ul>
             </ul>
         `;
@@ -446,7 +502,7 @@ const addFiltersDiv = function(parent) {
     // Add any saved filters
     getSavedFilters((savedFilters) => {
         for (let filter of savedFilters) {
-            filter['func'] = compileExpression(filter.expression, {}, validExpressionVars)
+            filter['func'] = compileExpression(filter.expression, {match: filtrexMatch}, validExpressionVars)
             filters.push(filter);
             addFilterUI(filter);
         }
