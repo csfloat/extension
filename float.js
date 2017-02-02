@@ -158,6 +158,9 @@ const addFilter = function () {
 
         addFilterUI(thisFilter);
         saveFilters();
+
+        // redraw the highlights by removing the buttons
+        removeButtons();
     }
     catch (e) {
         return;
@@ -189,6 +192,9 @@ const removeFilter = function(e) {
     filters.splice(filterID, 1);
     
     saveFilters();
+
+    // redraw the highlights by removing the buttons
+    removeButtons();
 };
 
 const filterKeyPress = function() {
@@ -458,6 +464,22 @@ const addButtons = function() {
     // Add float utilities if it doesn't exist and we have valid items
     if (!document.querySelector('#floatUtilities') && listingRows.length > 0) {
         addFloatUtilities();
+    }
+};
+
+const removeButtons = function() {
+    // Iterate through each item on the page
+    let listingRows = document.querySelectorAll('.market_listing_row.market_recent_listing_row');
+
+    for (let row of listingRows) {
+        let id = row.id.replace('listing_', '');
+
+        let floatdiv = row.querySelector(`#item_${id}_floatdiv`);
+
+        if (floatdiv) {
+            row.style.backgroundColor = '';
+            floatdiv.parentNode.removeChild(floatdiv);
+        }
     }
 };
 
