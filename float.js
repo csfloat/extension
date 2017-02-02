@@ -280,6 +280,8 @@ const onFilterColourChange = function (e) {
     // Set the colour and save
     filters[filterID].colour = filter.value;
     saveFilters();
+
+    removeButtons();
 };
 
 const addFilterUI = function(filter) {
