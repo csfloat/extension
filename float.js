@@ -1,11 +1,9 @@
 let floatQueue = [];
 let floatData = {};
 let floatTimer;
-let expressionTimer;
 let steamListingInfo = {};
 let listingInfoPromises = [];
-let validExpressionVars = ['float', 'seed', 'minfloat', 'maxfloat'];
-let filters = [];
+let filters = new Filters();
 
 // retrieve g_rgListingInfo from page script
 window.addEventListener('message', (e) => {
@@ -19,12 +17,6 @@ window.addEventListener('message', (e) => {
     }
 });
 
-const filtrexMatch = function (str, reg) {
-    let thisMatch = str.toString().match(reg);
-
-    if (thisMatch !== null) return thisMatch.length;
-    else return 0;
-};
 
 const retrieveListingInfoFromPage = function(listingId) {
     if (listingId != null && (listingId in steamListingInfo)) {
@@ -82,12 +74,9 @@ const showFloat = function(listingId) {
         };
 
         // Check to see if there is a filter match
-        for (let filter of filters) {
-            if (filter.func(vars) === 1) {
-                // highlight the div
-                floatDiv.parentNode.parentNode.style.backgroundColor = filter.colour;
-                break;
-            }
+        let filter = filters.isMatch(vars);
+        if (filter) {
+            floatDiv.parentNode.parentNode.style.backgroundColor = filter.colour;
         }
     }
 };
@@ -151,371 +140,14 @@ const getAllFloats = function() {
     });
 };
 
-const addFilter = function () {
-    let filter = document.querySelector('#float_expression_filter').value;
-    let colour = document.querySelector('#floatFilterColour').value;
-
-    try {
-        let compiled = compileExpression(filter, {match: filtrexMatch}, validExpressionVars);
-
-        // We know it is a valid expression
-        let thisFilter = {'expression': filter, 'func': compiled, 'colour': colour};
-
-        filters.push(thisFilter);
-
-        addFilterUI(thisFilter);
-        saveFilters();
-
-        // redraw the highlights by removing the buttons
-        removeButtons();
-    }
-    catch (e) {
-        return;
-    }
-};
-
-const removeFilter = function(e) {
-    let removeBtn = e.target || e.srcElement;
-
-    // get the parent
-    let thisFilterDiv = removeBtn.parentNode.parentNode;
-
-    // Remove the button
-    thisFilterDiv.removeChild(removeBtn.parentNode);
-
-    // get the expression string
-    let expression = thisFilterDiv.innerText.trim();
-
-    // remove the div
-    document.querySelector('#floatFilters').removeChild(thisFilterDiv);
-
-    // Remove it from the arrays
-    let filterID = filters.findIndex((element) => {
-        if (element.expression === expression) return true;
-    });
-
-    if (filterID === -1) return;
-
-    filters.splice(filterID, 1);
-    
-    saveFilters();
-
-    // redraw the highlights by removing the buttons
-    removeButtons();
-};
-
-const filterKeyPress = function() {
-    if (expressionTimer) clearTimeout(expressionTimer);
-
-    expressionTimer = setTimeout(() => {
-        let input = document.querySelector('#float_expression_filter');
-        let compileError = document.querySelector('#compileError');
-        let status = document.querySelector('#compileStatus');
-        let addFilterBtn = document.querySelector('#addFloatFilter');
-
-        let expression = input.value;
-
-        // try to compile the expression
-        try {
-            compileExpression(expression, {match: filtrexMatch}, validExpressionVars);
-            status.setAttribute('error', 'false');
-            status.innerText = '✓';
-            compileError.innerText = '';
-            addFilterBtn.style.display = '';
-        }
-        catch (e) {
-            status.setAttribute('error', 'true');
-            status.innerText = '✗';
-            compileError.innerText = e.message;
-            addFilterBtn.style.display = 'none';
-        }
-    }, 250);
-};
-
-const getSaveKey = function() {
-    let itemName = document.querySelector('.market_listing_nav a:nth-child(2)');
-
-    if (itemName) return itemName.innerText + '_expressions';
-};
-
-const getSavedFilters = function(cb) {
-    let key = getSaveKey();
-
-    if (!key) cb([]);
-
-    let syncFilters = {};
-    syncFilters[key] = [];
-
-    let storageType = chrome.storage.sync;
-    if (!storageType) storageType = chrome.storage.local;
-
-    storageType.get(syncFilters, (items) => {
-        cb(items[key]);
-    });
-};
-
-const saveFilters = function() {
-    let key = getSaveKey();
-
-    if (!key) return;
-
-    let syncFilters = {};
-    syncFilters[key] = filters;
-
-    let storageType = chrome.storage.sync;
-    if (!storageType) storageType = chrome.storage.local;
-
-    storageType.set(syncFilters);
-};
-
-const onFilterColourChange = function (e) {
-    let filter = e.target || e.srcElement;
-
-    // get the parent
-    let thisFilterDiv = filter.parentNode;
-
-    // get the expression string
-    let expression = thisFilterDiv.innerText.split('\n')[0].trim();
-
-    // Get the filter id
-    let filterID = filters.findIndex((element) => {
-        if (element.expression === expression) return true;
-    });
-
-    if (filterID === -1) return;
-
-    // Set the colour and save
-    filters[filterID].colour = filter.value;
-    saveFilters();
-
-    removeButtons();
-};
-
-const addFilterUI = function(filter) {
-    let parentDiv = document.querySelector('#floatFilters');
-
-    let thisDiv = document.createElement('div');
-    thisDiv.innerText = filter.expression;
-
-    let colourDiv = document.createElement('input');
-    colourDiv.type = 'color';
-    colourDiv.value = filter.colour;
-    colourDiv.style.float = 'left';
-    colourDiv.style.marginRight = '10px';
-    colourDiv.style.marginTop = '-3px';
-    colourDiv.addEventListener('change', onFilterColourChange);
-    thisDiv.appendChild(colourDiv);
-
-    // Add remove filter btn
-    let removeFilterBtn = createButton('Remove Filter', removeFilter, 'grey');
-    removeFilterBtn.style.marginTop = '-3px';
-    removeFilterBtn.style.float = 'right';
-    thisDiv.appendChild(removeFilterBtn);
-
-    // Add line break
-    let hr = document.createElement('hr');
-    thisDiv.appendChild(hr);
-
-    parentDiv.appendChild(thisDiv);
-};
-
-const createButton = function(text, eventListener, colour) {
-    let btn = document.createElement('a');
-    btn.classList.add(`btn_${colour}_white_innerfade`);
-    btn.classList.add('btn_small');
-    btn.classList.add('float-btn');
-    btn.addEventListener('click', eventListener);
-
-    let span = document.createElement('span');
-    span.innerText = text;
-    btn.appendChild(span);
-
-    return btn;
-};
-
-const onHelpClick = function () {
-    let filterdiv = document.querySelector('#floatFilter');
-
-    let helpdiv = filterdiv.querySelector('#filterHelp');
-    if (helpdiv) filterdiv.removeChild(helpdiv);
-    else {
-        // create it
-        helpdiv = document.createElement('div');
-        helpdiv.id = 'filterHelp';
-        helpdiv.style.fontFamily = 'Consolas';
-
-        helpdiv.innerHTML = `
-            <hr></hr>
-            Filters will highlight matching items with the specified colour<br><br>
-            
-            <b>Examples: </b>
-            <ul>
-              <li>float < 0.3</li>
-                <ul>
-                    <li>Matches items with floats less than 0.3</li>
-                </ul>
-              <li>float >= 0.112 and float < 0.2</li>
-                <ul>
-                    <li>Matches items with floats greater than or equal to 0.112 and less than 0.2</li>
-                </ul>
-              <li>float == 0.2 or (seed > 500 and float < 0.15)</li>
-                <ul>
-                    <li>Matches items with floats of 0.2 or paint seeds greater than 500 and floats less than 0.15</li>
-                </ul>
-               <li>match(float, "7355608") >= 1</li>
-                <ul>
-                    <li>Matches items with floats that contain at least one match of the CS bomb code</li>
-                    <li>Example Match: 0.234327355608454</li>
-                </ul>
-            </ul>
-            
-            <b>Variables</b>
-            <ul>
-              <li>float</li>
-                <ul>
-                    <li>The float value of the item</li>
-                </ul>
-              <li>seed</li>
-                <ul>
-                    <li>The paint seed of the item</li>
-                </ul>
-              <li>minfloat</li>
-                <ul>
-                    <li>The minimum float the skin can have (regardless of wear)</li>
-                </ul>
-              <li>maxfloat</li>
-                <ul>
-                    <li>The maximum float the skin can have (regardless of wear)</li>
-                </ul>
-            </ul>
-            
-            <b>Functions:</b>
-            <ul>
-              <li>match(x, regex)</li>
-                <ul>
-                    <li>Performs a regex match on 'x' and returns the amount of matches</li>
-                </ul>
-              <li>abs(x)</li>
-                <ul>
-                    <li>Absolute value</li>
-                </ul>
-              <li>ceil(x)</li>
-                <ul>
-                    <li>Round floating point up</li>
-                </ul>
-              <li>floor(x)</li>
-                <ul>
-                    <li>Round floating point down</li>
-                </ul>
-              <li>log(x)</li>
-                <ul>
-                    <li>Natural logarithm</li>
-                </ul>
-              <li>max(a, b, c...)</li>
-                <ul>
-                    <li>Max value (variable length of args)</li>
-                </ul>
-              <li>min(a, b, c...)</li>
-                <ul>
-                    <li>Min value (variable length of args)</li>
-                </ul>
-              <li>random()</li>
-                <ul>
-                    <li>Random floating point from 0.0 to 1.0</li>
-                </ul>
-              <li>round(x)</li>
-                <ul>
-                    <li>Round floating point</li>
-                </ul>
-              <li>sqrt(x)</li>
-                <ul>
-                    <li>Square root</li>
-                </ul>
-            </ul>
-        `;
-
-        filterdiv.appendChild(helpdiv);
-    }
-};
-
-const addFiltersDiv = function(parent) {
-    let filterdiv = document.createElement('div');
-    filterdiv.id = 'floatFilter';
-    parent.appendChild(filterdiv);
-
-    // Add separator
-    let hr = document.createElement('hr');
-    filterdiv.appendChild(hr);
-
-    // Adds filters div
-    let filtersdiv = document.createElement('div');
-    filtersdiv.id = 'floatFilters';
-    filterdiv.appendChild(filtersdiv);
-
-    // Adds colour picker
-    let colourDiv = document.createElement('input');
-    colourDiv.id = 'floatFilterColour';
-    colourDiv.type = 'color';
-    colourDiv.value = '#354908';
-    colourDiv.style.float = 'left';
-    colourDiv.style.marginTop = '2px';
-    filterdiv.appendChild(colourDiv);
-
-    // Add new filter input box
-    let input = document.createElement('input');
-    input.id = 'float_expression_filter';
-    input.classList.add('filter_search_box');
-    input.placeholder = 'Add Float Highlight Filter';
-    input.style.width = '350px';
-    input.style.marginLeft = '10px';
-    input.addEventListener('keyup', filterKeyPress);
-    filterdiv.appendChild(input);
-
-    // Add filter help link
-    let helpText = document.createElement('a');
-    helpText.innerText = 'ⓘ';
-    helpText.style.fontSize = '18px';
-    helpText.title = 'Filter Help';
-    helpText.style.marginLeft = '5px';
-    helpText.href = 'javascript:void(0)';
-    helpText.addEventListener('click', onHelpClick);
-    filterdiv.appendChild(helpText);
-
-    // Add compile status indicator
-    let status = document.createElement('div');
-    status.id = 'compileStatus';
-    filterdiv.appendChild(status);
-
-    // Add new filter btn
-    let addFilterBtn = createButton('Add Filter', addFilter, 'green');
-    addFilterBtn.id = 'addFloatFilter';
-    addFilterBtn.style.display = 'none';
-    addFilterBtn.style.marginLeft = '10px';
-
-    filterdiv.appendChild(addFilterBtn);
-
-    // Compile error div
-    let compileError = document.createElement('div');
-    compileError.id = 'compileError';
-    filterdiv.appendChild(compileError);
-
-    // Add any saved filters
-    getSavedFilters((savedFilters) => {
-        for (let filter of savedFilters) {
-            filter['func'] = compileExpression(filter.expression, {match: filtrexMatch}, validExpressionVars)
-            filters.push(filter);
-            addFilterUI(filter);
-        }
-    });
-};
-
 // Adds float utilities
 const addFloatUtilities = function() {
     let parentDiv = document.createElement('div');
     parentDiv.id = 'floatUtilities';
 
     // Add get all floats button
-    let allFloatButton = createButton('Get All Floats', getAllFloats, 'green');
+    let allFloatButton = createButton('Get All Floats', 'green');
+    allFloatButton.addEventListener('click', getAllFloats);
     parentDiv.appendChild(allFloatButton);
 
     // Add github link
@@ -526,7 +158,7 @@ const addFloatUtilities = function() {
     parentDiv.appendChild(githubLink);
 
     // Add filter div
-    addFiltersDiv(parentDiv);
+    filters.addFilterUI(parentDiv);
 
     document.querySelector('#searchResultsTable').insertBefore(parentDiv, document.querySelector('#searchResultsRows'));
 };
@@ -566,7 +198,8 @@ const addButtons = function() {
         floatDiv.id = `item_${id}_floatdiv`;
         listingNameElement.parentElement.appendChild(floatDiv);
 
-        let getFloatButton = createButton('Get Float', getFloatButtonClicked, 'green');
+        let getFloatButton = createButton('Get Float', 'green');
+        getFloatButton.addEventListener('click', getFloatButtonClicked);
         floatDiv.appendChild(getFloatButton);
 
         // Create divs the following class names and append them to the button div
@@ -590,21 +223,6 @@ const addButtons = function() {
     }
 };
 
-const removeButtons = function() {
-    // Iterate through each item on the page
-    let listingRows = document.querySelectorAll('.market_listing_row.market_recent_listing_row');
-
-    for (let row of listingRows) {
-        let id = row.id.replace('listing_', '');
-
-        let floatdiv = row.querySelector(`#item_${id}_floatdiv`);
-
-        if (floatdiv) {
-            row.style.backgroundColor = '';
-            floatdiv.parentNode.removeChild(floatdiv);
-        }
-    }
-};
 
 // register the message listener in the page scope
 let script = document.createElement('script');

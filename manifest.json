@@ -14,6 +14,8 @@
             "matches": ["*://*.steamcommunity.com/market/listings/730/*"],
             "js": [
                 "lib/filtrex.js",
+                "lib/utils.js",
+                "lib/filters.js",
                 "float.js"
             ],
             "css": [
