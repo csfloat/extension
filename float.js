@@ -74,9 +74,10 @@ const showFloat = function(listingId) {
         };
 
         // Check to see if there is a filter match
-        let filter = filters.isMatch(vars);
-        if (filter) {
-            floatDiv.parentNode.parentNode.style.backgroundColor = filter.colour;
+        let filterColour = filters.getMatchColour(vars);
+        
+        if (filterColour) {
+            floatDiv.parentNode.parentNode.style.backgroundColor = filterColour;
         }
     }
 };
