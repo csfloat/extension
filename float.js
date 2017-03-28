@@ -35,9 +35,13 @@ const getFloatData = function(listingId, inspectLink) {
         return Promise.resolve({ iteminfo: floatData[listingId] });
     }
 
-    return browser.runtime.sendMessage({'inspectLink': inspectLink}).then((data) => {
-        if (!data) throw data;
-        else return data;
+    return new Promise((resolve, reject) => {
+        let thisBrowser = (window.browser) ? browser: chrome;
+
+        thisBrowser.runtime.sendMessage({'inspectLink': inspectLink}, (data) => {
+            if (data && data.iteminfo) resolve(data);
+            else reject(data);
+        });
     });
 };
 
