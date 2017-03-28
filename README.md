@@ -58,3 +58,6 @@ v1.1.1
 
 v1.1.2
 * Implements proper sanitization of injected HTML during float retrieval
+
+v1.1.3
+* Fixes 'Unknown Error' on Firefox
