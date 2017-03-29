@@ -36,9 +36,7 @@ const getFloatData = function(listingId, inspectLink) {
     }
 
     return new Promise((resolve, reject) => {
-        let thisBrowser = (window.browser) ? browser: chrome;
-
-        thisBrowser.runtime.sendMessage({'inspectLink': inspectLink}, (data) => {
+        chrome.runtime.sendMessage({'inspectLink': inspectLink}, (data) => {
             if (data && data.iteminfo) resolve(data);
             else reject(data);
         });

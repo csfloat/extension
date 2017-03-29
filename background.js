@@ -1,6 +1,4 @@
-let thisBrowser = (window.browser) ? browser: chrome;
-
-thisBrowser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     fetch(`https://api.csgofloat.com:1738/?url=${request.inspectLink}`)
     .then((response) => {
         response.json().then((data) => sendResponse(data));
