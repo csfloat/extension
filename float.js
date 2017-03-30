@@ -35,10 +35,11 @@ const getFloatData = function(listingId, inspectLink) {
         return Promise.resolve({ iteminfo: floatData[listingId] });
     }
 
-    return fetch(`https://api.csgofloat.com:1738/?url=${inspectLink}`)
-    .then((response) => {
-        if (response.ok) return response.json();
-        return response.json().then((err) => { throw err; });
+    return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({'inspectLink': inspectLink}, (data) => {
+            if (data && data.iteminfo) resolve(data);
+            else reject(data);
+        });
     });
 };
 
@@ -242,5 +243,5 @@ floatTimer = setInterval(() => { addButtons(); }, 500);
 processFloatQueue();
 
 const logStyle = 'background: #222; color: #fff;';
-console.log('%c CSGOFloat Market Checker (v1.1.2) by Step7750 ', logStyle);
+console.log('%c CSGOFloat Market Checker (v1.1.3) by Step7750 ', logStyle);
 console.log('%c Changelog can be found here: https://github.com/Step7750/CSGOFloat-Extension ', logStyle);
