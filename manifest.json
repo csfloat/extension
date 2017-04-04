@@ -23,6 +23,9 @@
             ]
         }
     ],
+    "background": {
+        "scripts": ["background.js"]
+    },
     "permissions": [
         "https://api.csgofloat.com:1738/*",
         "*://*.steamcommunity.com/market/listings/730/*",

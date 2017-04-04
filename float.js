@@ -37,10 +37,11 @@ const getFloatData = function(listingId, inspectLink) {
         return Promise.resolve({ iteminfo: floatData[listingId] });
     }
 
-    return fetch(`https://api.csgofloat.com:1738/?url=${inspectLink}`)
-    .then((response) => {
-        if (response.ok) return response.json();
-        return response.json().then((err) => { throw err; });
+    return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({'inspectLink': inspectLink}, (data) => {
+            if (data && data.iteminfo) resolve(data);
+            else reject(data);
+        });
     });
 };
 
