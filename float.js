@@ -110,7 +110,7 @@ const getAllFloats = function() {
     retrieveListingInfoFromPage()
     .then((steamListingData) => {
         // Get all current items on the page (in proper order)
-        let listingRows = document.querySelectorAll('.market_listing_row.market_recent_listing_row');
+        let listingRows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
 
         for (let row of listingRows) {
             let id = row.id.replace('listing_', '');
@@ -176,7 +176,7 @@ const getFloatButtonClicked = function(e) {
 // If an item on the current page doesn't have the float div/buttons, this function adds it
 const addButtons = function() {
     // Iterate through each item on the page
-    let listingRows = document.querySelectorAll('.market_listing_row.market_recent_listing_row');
+    let listingRows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
 
     for (let row of listingRows) {
         let id = row.id.replace('listing_', '');
