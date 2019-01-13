@@ -13,7 +13,8 @@ class Queue {
 
     addJob(link, listingId) {
         if (listingId in floatData) {
-            return Promise.resolve({ iteminfo: floatData[listingId] });
+            showFloat(listingId);
+            return;
         }
 
         const job = {
