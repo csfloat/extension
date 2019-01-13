@@ -141,9 +141,11 @@ const showFloat = function(listingId) {
 
         // Check to see if there is a filter match
         let filterColour = filters.getMatchColour(vars);
-        
+
         if (filterColour) {
+            const textColour = pickTextColour(filterColour, '#8F98A0', '#484848');
             floatDiv.parentNode.parentNode.style.backgroundColor = filterColour;
+            floatDiv.style.color = textColour;
         }
     }
 };
