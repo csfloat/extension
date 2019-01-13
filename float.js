@@ -1,9 +1,87 @@
-let floatQueue = [];
 let floatData = {};
 let floatTimer;
 let steamListingInfo = {};
 let listingInfoPromises = [];
 let filters = new Filters();
+
+class Queue {
+    constructor() {
+        this.queue = [];
+        this.running = false;
+        this.concurrency = 10;
+        this.processing = 0;
+    }
+
+    addJob(link, listingId) {
+        if (listingId in floatData) {
+            showFloat(listingId);
+            return;
+        }
+
+        const job = {
+            link,
+            listingId
+        };
+
+        const promise = new Promise((resolve, reject) => {
+            job.resolve = resolve;
+            job.reject = reject;
+        });
+
+        this.queue.push(job);
+        this.checkQueue();
+
+        return promise;
+    }
+
+    checkQueue() {
+        if (!this.running) return;
+
+        if (this.queue.length > 0 && this.processing < this.concurrency) {
+            // there is a free bot, process the job
+            let job = this.queue.shift();
+
+            this.processing += 1;
+
+            const floatDiv = document.querySelector(`#item_${job.listingId}_floatdiv`);
+
+            // Changed pages, cancel request
+            if (!floatDiv) {
+                this.processing -= 1;
+                this.checkQueue();
+                return;
+            }
+
+            const buttonText = floatDiv.querySelector('span');
+            if (buttonText) buttonText.innerText = 'Fetching';
+
+            chrome.runtime.sendMessage({'inspectLink': job.link}, (data) => {
+                if (data && data.iteminfo) {
+                    floatData[job.listingId] = data.iteminfo;
+                    showFloat(job.listingId);
+                } else {
+                    // Reset the button text for this itemid
+                    if (buttonText) buttonText.innerText = 'Get Float';
+
+                    // Change the message div for this item to the error
+                    if (floatDiv) {
+                        floatDiv.querySelector('.floatmessage').innerText = data.error || 'Unknown Error';
+                    }
+                }
+
+                this.processing -= 1;
+                this.checkQueue();
+            });
+        }
+    }
+
+    start() {
+        if (!this.running) {
+            this.running = true;
+            this.checkQueue();
+        }
+    }
+}
 
 // retrieve g_rgListingInfo from page script
 window.addEventListener('message', (e) => {
@@ -29,19 +107,6 @@ const retrieveListingInfoFromPage = function(listingId) {
 
     return new Promise((resolve) => {
         listingInfoPromises.push(resolve);
-    });
-};
-
-const getFloatData = function(listingId, inspectLink) {
-    if (listingId in floatData) {
-        return Promise.resolve({ iteminfo: floatData[listingId] });
-    }
-
-    return new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({'inspectLink': inspectLink}, (data) => {
-            if (data && data.iteminfo) resolve(data);
-            else reject(data);
-        });
     });
 };
 
@@ -83,50 +148,13 @@ const showFloat = function(listingId) {
     }
 };
 
-const processFloatQueue = function() {
-    if (floatQueue.length === 0) { return setTimeout(processFloatQueue, 100); }
-
-    let lastItem = floatQueue.shift();
-
-    let floatDiv = document.querySelector(`#item_${lastItem.listingId}_floatdiv`);
-
-    if (!floatDiv) {
-        // they have switched pages since initiating the request, so continue
-        processFloatQueue();
-        return;
-    }
-
-    let buttonText = floatDiv.querySelector('span');
-
-    if (buttonText) buttonText.innerText = 'Fetching';
-
-    getFloatData(lastItem.listingId, lastItem.inspectLink)
-    .then((data) => {
-        floatData[lastItem.listingId] = data.iteminfo;
-
-        showFloat(lastItem.listingId);
-
-        processFloatQueue();
-    })
-    .catch((err) => {
-        // Reset the button text for this itemid
-        if (buttonText) buttonText.innerText = 'Get Float';
-
-        // Change the message div for this item to the error
-        if (floatDiv) {
-            floatDiv.querySelector('.floatmessage').innerText = err.error || 'Unknown Error';
-        }
-
-        processFloatQueue();
-    });
-};
 
 // Puts all of the available items on the page into the queue for float retrieval
 const getAllFloats = function() {
     retrieveListingInfoFromPage()
     .then((steamListingData) => {
         // Get all current items on the page (in proper order)
-        let listingRows = document.querySelectorAll('.market_listing_row.market_recent_listing_row');
+        let listingRows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
 
         for (let row of listingRows) {
             let id = row.id.replace('listing_', '');
@@ -137,7 +165,7 @@ const getAllFloats = function() {
             .replace('%listingid%', id)
             .replace('%assetid%', listingData.asset.id);
 
-            floatQueue.push({ listingId: id, inspectLink: inspectLink });
+            queue.addJob(inspectLink, id);
         }
     });
 };
@@ -179,14 +207,14 @@ const getFloatButtonClicked = function(e) {
         .replace('%listingid%', id)
         .replace('%assetid%', listingData.asset.id);
 
-        floatQueue.push({ listingId: id, inspectLink: inspectLink });
+        queue.addJob(inspectLink, id);
     });
 };
 
 // If an item on the current page doesn't have the float div/buttons, this function adds it
 const addButtons = function() {
     // Iterate through each item on the page
-    let listingRows = document.querySelectorAll('.market_listing_row.market_recent_listing_row');
+    let listingRows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
 
     for (let row of listingRows) {
         let id = row.id.replace('listing_', '');
@@ -240,10 +268,10 @@ script.innerText = `
 `;
 document.head.appendChild(script);
 
-floatTimer = setInterval(() => { addButtons(); }, 500);
+const queue = new Queue();
+queue.start();
 
-// start the queue processing loop
-processFloatQueue();
+floatTimer = setInterval(() => { addButtons(); }, 250);
 
 const logStyle = 'background: #222; color: #fff;';
 console.log('%c CSGOFloat Market Checker (v1.2.0) by Step7750 ', logStyle);

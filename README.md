@@ -61,3 +61,7 @@ v1.1.2
 
 v1.1.3
 * Fixes 'Unknown Error' on Firefox
+
+v1.1.4
+* Updates API Endpoint Port
+* Fixes float selector when the user has items on sale (thanks @z32nissan)
