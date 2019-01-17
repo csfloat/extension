@@ -2,6 +2,7 @@ let floatData = {};
 let floatTimer;
 let steamListingInfo = {};
 let listingInfoPromises = [];
+let filters = new Filters();
 
 class Queue {
     constructor() {
@@ -94,6 +95,7 @@ window.addEventListener('message', (e) => {
     }
 });
 
+
 const retrieveListingInfoFromPage = function(listingId) {
     if (listingId != null && (listingId in steamListingInfo)) {
         return Promise.resolve(steamListingInfo);
@@ -103,7 +105,7 @@ const retrieveListingInfoFromPage = function(listingId) {
         type: 'requestListingInfo'
     }, '*');
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         listingInfoPromises.push(resolve);
     });
 };
@@ -115,7 +117,7 @@ const showFloat = function(listingId) {
 
     if (floatDiv) {
         // Remove the "get float" button
-        let floatButton = floatDiv.querySelector('.floatbutton');
+        let floatButton = floatDiv.querySelector('.float-btn');
         if (floatButton) floatDiv.removeChild(floatButton);
 
         // Remove message div
@@ -129,6 +131,22 @@ const showFloat = function(listingId) {
         // Add the paint seed
         let seedDiv = floatDiv.querySelector('.itemseed');
         if (seedDiv) seedDiv.innerText = `Paint Seed: ${itemInfo.paintseed}`;
+
+        let vars = {
+            'float': itemInfo.floatvalue,
+            'seed': itemInfo.paintseed,
+            'minfloat': itemInfo.min,
+            'maxfloat': itemInfo.max
+        };
+
+        // Check to see if there is a filter match
+        let filterColour = filters.getMatchColour(vars);
+
+        if (filterColour) {
+            const textColour = pickTextColour(filterColour, '#8F98A0', '#484848');
+            floatDiv.parentNode.parentNode.style.backgroundColor = filterColour;
+            floatDiv.style.color = textColour;
+        }
     }
 };
 
@@ -154,31 +172,25 @@ const getAllFloats = function() {
     });
 };
 
-// Adds the "Get all floats" button
-const addAllFloatButton = function() {
+// Adds float utilities
+const addFloatUtilities = function() {
     let parentDiv = document.createElement('div');
-    parentDiv.style.padding = '10px';
-    parentDiv.style.marginTop = '10px';
-    parentDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+    parentDiv.id = 'floatUtilities';
 
-    let allFloatButton = document.createElement('a');
-    allFloatButton.id = 'allfloatbutton';
-    allFloatButton.classList.add('btn_green_white_innerfade');
-    allFloatButton.classList.add('btn_small');
+    // Add get all floats button
+    let allFloatButton = createButton('Get All Floats', 'green');
     allFloatButton.addEventListener('click', getAllFloats);
     parentDiv.appendChild(allFloatButton);
 
-    let allFloatSpan = document.createElement('span');
-    allFloatSpan.innerText = 'Get All Floats';
-    allFloatButton.appendChild(allFloatSpan);
-
+    // Add github link
     let githubLink = document.createElement('a');
-    githubLink.style.marginLeft = '10px';
-    githubLink.style.textDecoration = 'underline';
-    githubLink.style.fontFamily = `'Motiva Sans', sans-serif`;
+    githubLink.classList.add('float-github');
     githubLink.href = 'https://github.com/Step7750/CSGOFloat';
     githubLink.innerText = 'Powered by CSGOFloat';
     parentDiv.appendChild(githubLink);
+
+    // Add filter div
+    filters.addFilterUI(parentDiv);
 
     document.querySelector('#searchResultsTable').insertBefore(parentDiv, document.querySelector('#searchResultsRows'));
 };
@@ -213,22 +225,14 @@ const addButtons = function() {
 
         let listingNameElement = row.querySelector(`#listing_${id}_name`);
 
-        let buttonDiv = document.createElement('div');
-        buttonDiv.style.display = 'inline';
-        buttonDiv.style.textAlign = 'left';
-        buttonDiv.id = `item_${id}_floatdiv`;
-        listingNameElement.parentElement.appendChild(buttonDiv);
+        let floatDiv = document.createElement('div');
+        floatDiv.classList.add('float-div');
+        floatDiv.id = `item_${id}_floatdiv`;
+        listingNameElement.parentElement.appendChild(floatDiv);
 
-        let getFloatButton = document.createElement('a');
-        getFloatButton.classList.add('btn_green_white_innerfade');
-        getFloatButton.classList.add('btn_small');
-        getFloatButton.classList.add('floatbutton');
+        let getFloatButton = createButton('Get Float', 'green');
         getFloatButton.addEventListener('click', getFloatButtonClicked);
-        buttonDiv.appendChild(getFloatButton);
-
-        let buttonText = document.createElement('span');
-        buttonText.innerText = 'Get Float';
-        getFloatButton.appendChild(buttonText);
+        floatDiv.appendChild(getFloatButton);
 
         // Create divs the following class names and append them to the button div
         let divClassNames = ['floatmessage', 'itemfloat', 'itemseed'];
@@ -236,7 +240,7 @@ const addButtons = function() {
         for (let className of divClassNames) {
             let div = document.createElement('div');
             div.classList.add(className);
-            buttonDiv.appendChild(div);
+            floatDiv.appendChild(div);
         }
 
         // check if we already have the float for this item
@@ -245,11 +249,12 @@ const addButtons = function() {
         }
     }
 
-    // Add show all button if it doesn't exist and we have valid items
-    if (!document.querySelector('#allfloatbutton') && listingRows.length > 0) {
-        addAllFloatButton();
+    // Add float utilities if it doesn't exist and we have valid items
+    if (!document.querySelector('#floatUtilities') && listingRows.length > 0) {
+        addFloatUtilities();
     }
 };
+
 
 // register the message listener in the page scope
 let script = document.createElement('script');
@@ -271,5 +276,5 @@ queue.start();
 floatTimer = setInterval(() => { addButtons(); }, 250);
 
 const logStyle = 'background: #222; color: #fff;';
-console.log('%c CSGOFloat Market Checker (v1.1.4) by Step7750 ', logStyle);
+console.log('%c CSGOFloat Market Checker (v1.2.0) by Step7750 ', logStyle);
 console.log('%c Changelog can be found here: https://github.com/Step7750/CSGOFloat-Extension ', logStyle);

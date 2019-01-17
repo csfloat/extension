@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "CSGOFloat Market Checker",
     "short_name": "CSGOFloat",
-    "version": "1.1.4",
+    "version": "1.2.0",
     "description": "Dedicated API for fetching the float value and paint seed of CSGO items on the market",
     "icons": {
         "16": "icons/16.png",
@@ -12,7 +12,15 @@
     "content_scripts": [
         {
             "matches": ["*://*.steamcommunity.com/market/listings/730/*"],
-            "js": ["float.js"]
+            "js": [
+                "lib/filtrex.js",
+                "lib/utils.js",
+                "lib/filters.js",
+                "float.js"
+            ],
+            "css": [
+                "float.css"
+            ]
         }
     ],
     "background": {
@@ -20,6 +28,7 @@
     },
     "permissions": [
         "https://api.csgofloat.com:1738/*",
-        "*://*.steamcommunity.com/market/listings/730/*"
+        "*://*.steamcommunity.com/market/listings/730/*",
+        "storage"
     ]
 }
