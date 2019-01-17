@@ -66,7 +66,7 @@ v1.1.4
 * Updates API Endpoint Port
 * Fixes float selector when the user has items on sale (thanks @z32nissan)
 
-v2.0.0
+v1.2.0
 
 * Adds simultaneous request functionality (up to 10)
 * Adds Filtrex user-defined filters with highlight colours
