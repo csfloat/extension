@@ -12,6 +12,10 @@
 	background-color: rgba(0, 0, 0, 0.2);
 }
 
+#pageSize {
+	margin-left: 10px;
+}
+
 #compileStatus {
 	display: inline;
 	text-align: left;
