@@ -172,8 +172,23 @@ const getAllFloats = function() {
     });
 };
 
+const getSavedPageSize = function() {
+    return new Promise((resolve, reject) => {
+        const storageType = chrome.storage.sync ? chrome.storage.sync : chrome.storage.local;
+
+        storageType.get(['pageSize'], (size) => {
+            resolve(size && size.pageSize);
+        });
+    });
+};
+
+const savePageSize = function (size) {
+    const storageType = chrome.storage.sync ? chrome.storage.sync : chrome.storage.local;
+    storageType.set({pageSize: size});
+};
+
 // Adds float utilities
-const addFloatUtilities = function() {
+const addFloatUtilities = async function() {
     let parentDiv = document.createElement('div');
     parentDiv.id = 'floatUtilities';
 
@@ -181,6 +196,49 @@ const addFloatUtilities = function() {
     let allFloatButton = createButton('Get All Floats', 'green');
     allFloatButton.addEventListener('click', getAllFloats);
     parentDiv.appendChild(allFloatButton);
+
+    let savedPageSize = await getSavedPageSize();
+    if (!savedPageSize) savedPageSize = 10;
+
+    // Create page size dropdown
+    const pageSize = document.createElement('select');
+    pageSize.id = 'pageSize';
+
+    const option = document.createElement('option');
+    option.innerText = 'Per Page';
+    option.setAttribute('disabled', '');
+    pageSize.appendChild(option);
+
+    for (const i of [10, 25, 50, 100]) {
+        const option = document.createElement('option');
+        option.innerText = i;
+        option.value = i;
+
+        if (i === savedPageSize) {
+            option.setAttribute('selected', '');
+        }
+
+        pageSize.appendChild(option);
+    }
+
+    pageSize.addEventListener('change', (e) => {
+        const newSize = parseInt(e.srcElement.value);
+        window.postMessage({
+            type: 'changePageSize',
+            pageSize: newSize
+        }, '*');
+        savePageSize(newSize);
+    });
+
+    parentDiv.appendChild(pageSize);
+
+    // Change the page size on first load
+    if (savedPageSize && savedPageSize !== 10) {
+        window.postMessage({
+            type: 'changePageSize',
+            pageSize: savedPageSize
+        }, '*');
+    }
 
     // Add github link
     let githubLink = document.createElement('a');
@@ -265,6 +323,9 @@ script.innerText = `
                 type: 'listingInfo',
                 listingInfo: g_rgListingInfo
             }, '*');
+        } else if (e.data.type == 'changePageSize') {
+            g_oSearchResults.m_cPageSize = e.data.pageSize;
+            g_oSearchResults.GoToPage(0, true);
         }
     });
 `;
