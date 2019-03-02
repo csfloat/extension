@@ -70,3 +70,8 @@ v1.2.0
 
 * Adds simultaneous request functionality (up to 10)
 * Adds Filtrex user-defined filters with highlight colours
+
+v1.2.1
+
+* Adds user-definable page size (up to 100)
+* Page size is stored in sync storage
