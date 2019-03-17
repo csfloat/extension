@@ -75,3 +75,7 @@ v1.2.1
 
 * Adds user-definable page size (up to 100)
 * Page size is stored in sync storage
+
+v1.2.2
+
+* Fixes deletion of filter keys without any filters (applicable if you've put filters on 512 items)
