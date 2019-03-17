@@ -4,6 +4,8 @@ let steamListingInfo = {};
 let listingInfoPromises = [];
 let filters = new Filters();
 
+const version = chrome.runtime.getManifest().version;
+
 class Queue {
     constructor() {
         this.queue = [];
@@ -329,13 +331,52 @@ script.innerText = `
         }
     });
 `;
+
+const getStorageVersion = async function(storageType) {
+    return new Promise((resolve, reject) => {
+        storageType.get(["version"], (items) => {
+            resolve(items["version"] || "0.0.0");
+        });
+    });
+};
+
+const migrateStorage = async function() {
+    let storageType = chrome.storage.sync;
+    if (!storageType) storageType = chrome.storage.local;
+
+    const storageVersion = await getStorageVersion(storageType);
+
+    if (versionCompare(storageVersion, "1.2.2") === -1) {
+        // storageVersion < 1.2.2
+        console.log("Migrating storage to 1.2.2");
+        storageType.get(null, (items) => {
+            // Want to remove all keys that are empty arrays
+            // #20
+            const keys = Object.keys(items);
+            const emptyKeys = [];
+
+            for (const key of keys) {
+                if (Array.isArray(items[key]) && items[key].length === 0) {
+                    emptyKeys.push(key);
+                }
+            }
+
+            storageType.remove(emptyKeys);
+        });
+    }
+
+    storageType.set({version});
+};
+
+migrateStorage();
+
 document.head.appendChild(script);
 
 const queue = new Queue();
 queue.start();
-
 floatTimer = setInterval(() => { addButtons(); }, 250);
 
 const logStyle = 'background: #222; color: #fff;';
-console.log('%c CSGOFloat Market Checker (v1.2.1) by Step7750 ', logStyle);
+
+console.log(`%c CSGOFloat Market Checker (v${version}) by Step7750 `, logStyle);
 console.log('%c Changelog can be found here: https://github.com/Step7750/CSGOFloat-Extension ', logStyle);
