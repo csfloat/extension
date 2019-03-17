@@ -134,11 +134,15 @@ const showFloat = function(listingId) {
         let seedDiv = floatDiv.querySelector('.itemseed');
         if (seedDiv) seedDiv.innerText = `Paint Seed: ${itemInfo.paintseed}`;
 
+        const wearRange = rangeFromWear(itemInfo.wear_name) || [0, 1];
+
         let vars = {
             'float': itemInfo.floatvalue,
             'seed': itemInfo.paintseed,
             'minfloat': itemInfo.min,
-            'maxfloat': itemInfo.max
+            'maxfloat': itemInfo.max,
+            'minwearfloat': wearRange[0],
+            'maxwearfloat': wearRange[1]
         };
 
         // Check to see if there is a filter match
