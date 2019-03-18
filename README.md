@@ -79,3 +79,8 @@ v1.2.1
 v1.2.2
 
 * Fixes deletion of filter keys without any filters (applicable if you've put filters on 512 items)
+
+v1.3.0
+
+* Implements global filters: filters can now be toggled to apply to all skins
+* Implements percentile and percentileRange filter functions
