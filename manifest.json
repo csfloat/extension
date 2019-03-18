@@ -30,6 +30,5 @@
         "https://api.csgofloat.com:1738/*",
         "*://*.steamcommunity.com/market/listings/730/*",
         "storage"
-    ],
-    "key": "jjicbefpemnphinccgikpdaagjebbnhg"
+    ]
 }
