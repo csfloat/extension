@@ -61,3 +61,29 @@ input[type="color"]::-webkit-color-swatch {
 	display: inline;
 	text-align: left;
 }
+
+.float-tooltip {
+	position: relative;
+	display: inline-block;
+}
+
+.float-tooltip .tiptext {
+	visibility: hidden;
+	width: 200px;
+	color: #ffffff;
+	text-align: center;
+
+	padding: 5px 0;
+	border-radius: 4px;
+	bottom: 100%;
+	left: 50%;
+	margin-left: -100px;
+	margin-bottom: 5px;
+
+	position: absolute;
+	z-index: 1;
+}
+
+.float-tooltip:hover .tiptext {
+	visibility: visible;
+}
