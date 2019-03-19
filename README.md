@@ -84,3 +84,7 @@ v1.3.0
 
 * Implements global filters: filters can now be toggled to apply to all skins
 * Implements percentile and percentileRange filter functions
+
+v1.3.1
+
+* Implements sorting listings by float value
