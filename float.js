@@ -2,6 +2,7 @@ let floatData = {};
 let floatTimer;
 let steamListingInfo = {};
 let listingInfoPromises = [];
+let sortTypeAsc = true;
 let filters = new Filters();
 
 const version = chrome.runtime.getManifest().version;
@@ -181,6 +182,8 @@ const getAllFloats = function() {
 const sortByFloat = function () {
     const listingRows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
 
+    document.querySelector('#csgofloat_sort_by_float span').textContent = `Sort by Float ${sortTypeAsc ? '▲' : '▼'}`;
+
     const items = {};
 
     for (const row of listingRows) {
@@ -191,8 +194,11 @@ const sortByFloat = function () {
         }
     }
 
+    const sortAsc = (a, b) => items[a].floatvalue - items[b].floatvalue;
+    const sortDesc = (a, b) => items[b].floatvalue - items[a].floatvalue;
+
     // Only items that have floats fetched
-    const sortedItems = Object.keys(items).sort((a, b) => items[a].floatvalue - items[b].floatvalue);
+    const sortedItems = Object.keys(items).sort(sortTypeAsc ? sortAsc : sortDesc);
 
     let lastItem = document.querySelector('.market_listing_table_header');
 
@@ -201,6 +207,8 @@ const sortByFloat = function () {
         const newElem = itemElement.parentNode.insertBefore(itemElement, lastItem.nextSibling);
         lastItem = newElem;
     }
+
+    sortTypeAsc = !sortTypeAsc;
 };
 
 const getSavedPageSize = function() {
@@ -229,6 +237,7 @@ const addFloatUtilities = async function() {
     parentDiv.appendChild(allFloatButton);
 
     let sortByFloatsButton = createButton('Sort by Float', 'green');
+    sortByFloatsButton.id = 'csgofloat_sort_by_float';
     sortByFloatsButton.style.marginLeft = '10px';
     sortByFloatsButton.addEventListener('click', sortByFloat);
     parentDiv.appendChild(sortByFloatsButton);
