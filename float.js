@@ -178,6 +178,31 @@ const getAllFloats = function() {
     });
 };
 
+const sortByFloat = function () {
+    const listingRows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
+
+    const items = {};
+
+    for (const row of listingRows) {
+        const id = row.id.replace('listing_', '');
+
+        if (floatData[id] && floatData[id].floatvalue) {
+            items[id] = floatData[id];
+        }
+    }
+
+    // Only items that have floats fetched
+    const sortedItems = Object.keys(items).sort((a, b) => items[a].floatvalue - items[b].floatvalue);
+
+    let lastItem = document.querySelector('.market_listing_table_header');
+
+    for (const itemId of sortedItems) {
+        const itemElement = document.querySelector(`#listing_${itemId}`);
+        const newElem = itemElement.parentNode.insertBefore(itemElement, lastItem.nextSibling);
+        lastItem = newElem;
+    }
+};
+
 const getSavedPageSize = function() {
     return new Promise((resolve, reject) => {
         const storageType = chrome.storage.sync ? chrome.storage.sync : chrome.storage.local;
@@ -202,6 +227,11 @@ const addFloatUtilities = async function() {
     let allFloatButton = createButton('Get All Floats', 'green');
     allFloatButton.addEventListener('click', getAllFloats);
     parentDiv.appendChild(allFloatButton);
+
+    let sortByFloatsButton = createButton('Sort by Float', 'green');
+    sortByFloatsButton.style.marginLeft = '10px';
+    sortByFloatsButton.addEventListener('click', sortByFloat);
+    parentDiv.appendChild(sortByFloatsButton);
 
     let savedPageSize = await getSavedPageSize();
     if (!savedPageSize) savedPageSize = 10;
