@@ -88,3 +88,7 @@ v1.3.0
 v1.3.1
 
 * Implements sorting listings by float value
+
+v1.3.2
+
+* Fixes float value sorting on pages where the user has items listed
