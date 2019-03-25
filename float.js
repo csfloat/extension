@@ -200,7 +200,7 @@ const sortByFloat = function () {
     // Only items that have floats fetched
     const sortedItems = Object.keys(items).sort(sortTypeAsc ? sortAsc : sortDesc);
 
-    let lastItem = document.querySelector('.market_listing_table_header');
+    let lastItem = document.querySelector('#searchResultsRows .market_listing_table_header');
 
     for (const itemId of sortedItems) {
         const itemElement = document.querySelector(`#listing_${itemId}`);
