@@ -1,89 +1,89 @@
 #floatFilter hr {
-	background-color: #1b2939;
-	border-style: solid none none;
-	border-color: black;
-	border-width: 1px 0 0;
-	height: 2px;
+    background-color: #1b2939;
+    border-style: solid none none;
+    border-color: black;
+    border-width: 1px 0 0;
+    height: 2px;
 }
 
 #floatUtilities {
-	padding: 10px;
-	margin-top: 10px;
-	background-color: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    margin-top: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
 }
 
 #pageSize {
-	margin-left: 10px;
+    margin-left: 10px;
 }
 
 #compileStatus {
-	display: inline;
-	text-align: left;
-	margin-left: 5px;
+    display: inline;
+    text-align: left;
+    margin-left: 5px;
 }
 
-#compileStatus[error="false"] {
-	color: green;
+#compileStatus[error='false'] {
+    color: green;
 }
 
-#compileStatus[error="true"] {
-	color: red;
+#compileStatus[error='true'] {
+    color: red;
 }
 
 #compileError {
-	font-family: Consolas;
-	margin-top: 5px;
+    font-family: Consolas;
+    margin-top: 5px;
 }
 
-input[type="color"] {
-	-webkit-appearance: none;
-	border: none;
-	width: 20px;
-	height: 20px;
-	padding: 0;
+input[type='color'] {
+    -webkit-appearance: none;
+    border: none;
+    width: 20px;
+    height: 20px;
+    padding: 0;
 }
 
-input[type="color"]::-webkit-color-swatch-wrapper {
-	padding: 0;
+input[type='color']::-webkit-color-swatch-wrapper {
+    padding: 0;
 }
 
-input[type="color"]::-webkit-color-swatch {
-	border: none;
+input[type='color']::-webkit-color-swatch {
+    border: none;
 }
 
 .float-github {
-	margin-left: 10px;
-	text-decoration: underline;
-	font-family: 'Motiva Sans', sans-serif;
+    margin-left: 10px;
+    text-decoration: underline;
+    font-family: 'Motiva Sans', sans-serif;
 }
 
 .float-div {
-	display: inline;
-	text-align: left;
+    display: inline;
+    text-align: left;
 }
 
 .float-tooltip {
-	position: relative;
-	display: inline-block;
+    position: relative;
+    display: inline-block;
 }
 
 .float-tooltip .tiptext {
-	visibility: hidden;
-	width: 200px;
-	color: #ffffff;
-	text-align: center;
+    visibility: hidden;
+    width: 200px;
+    color: #ffffff;
+    text-align: center;
 
-	padding: 5px 0;
-	border-radius: 4px;
-	bottom: 100%;
-	left: 50%;
-	margin-left: -100px;
-	margin-bottom: 5px;
+    padding: 5px 0;
+    border-radius: 4px;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -100px;
+    margin-bottom: 5px;
 
-	position: absolute;
-	z-index: 1;
+    position: absolute;
+    z-index: 1;
 }
 
 .float-tooltip:hover .tiptext {
-	visibility: visible;
+    visibility: visible;
 }
