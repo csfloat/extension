@@ -11,7 +11,11 @@
     },
     "content_scripts": [
         {
-            "matches": ["*://*.steamcommunity.com/market/listings/730/*"],
+            "matches": [
+                "*://*.steamcommunity.com/market/listings/730/*",
+                "*://*.steamcommunity.com/id/*/inventory*",
+                "*://*.steamcommunity.com/profiles/*/inventory*"
+            ],
             "js": [
                 "lib/filtrex.js",
                 "lib/utils.js",
@@ -27,6 +31,8 @@
     "permissions": [
         "https://api.csgofloat.com:1738/*",
         "*://*.steamcommunity.com/market/listings/730/*",
+        "*://*.steamcommunity.com/id/*/inventory*",
+        "*://*.steamcommunity.com/profiles/*/inventory*",
         "storage"
     ]
 }
