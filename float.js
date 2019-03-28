@@ -46,7 +46,9 @@ class Queue {
 
             this.processing += 1;
 
-            const floatDiv = document.querySelector(`#item_${job.listingId}_floatdiv`);
+            const floatDiv = document.querySelector(
+                `#item_${job.listingId}_floatdiv`
+            );
 
             // Changed pages, cancel request
             if (!floatDiv) {
@@ -58,7 +60,7 @@ class Queue {
             const buttonText = floatDiv.querySelector('span');
             if (buttonText) buttonText.innerText = 'Fetching';
 
-            chrome.runtime.sendMessage({'inspectLink': job.link}, (data) => {
+            chrome.runtime.sendMessage({ inspectLink: job.link }, data => {
                 if (data && data.iteminfo) {
                     floatData[job.listingId] = data.iteminfo;
                     showFloat(job.listingId);
@@ -68,7 +70,8 @@ class Queue {
 
                     // Change the message div for this item to the error
                     if (floatDiv) {
-                        floatDiv.querySelector('.floatmessage').innerText = data.error || 'Unknown Error';
+                        floatDiv.querySelector('.floatmessage').innerText =
+                            data.error || 'Unknown Error';
                     }
                 }
 
@@ -87,7 +90,7 @@ class Queue {
 }
 
 // retrieve g_rgListingInfo from page script
-window.addEventListener('message', (e) => {
+window.addEventListener('message', e => {
     if (e.data.type == 'listingInfo') {
         steamListingInfo = e.data.listingInfo;
 
@@ -98,17 +101,19 @@ window.addEventListener('message', (e) => {
     }
 });
 
-
 const retrieveListingInfoFromPage = function(listingId) {
-    if (listingId != null && (listingId in steamListingInfo)) {
+    if (listingId != null && listingId in steamListingInfo) {
         return Promise.resolve(steamListingInfo);
     }
 
-    window.postMessage({
-        type: 'requestListingInfo'
-    }, '*');
+    window.postMessage(
+        {
+            type: 'requestListingInfo'
+        },
+        '*'
+    );
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         listingInfoPromises.push(resolve);
     });
 };
@@ -129,7 +134,8 @@ const showFloat = function(listingId) {
 
         // Add the float value
         let itemFloatDiv = floatDiv.querySelector('.itemfloat');
-        if (itemFloatDiv) itemFloatDiv.innerText = `Float: ${itemInfo.floatvalue}`;
+        if (itemFloatDiv)
+            itemFloatDiv.innerText = `Float: ${itemInfo.floatvalue}`;
 
         // Add the paint seed
         let seedDiv = floatDiv.querySelector('.itemseed');
@@ -138,32 +144,36 @@ const showFloat = function(listingId) {
         const wearRange = rangeFromWear(itemInfo.wear_name) || [0, 1];
 
         let vars = {
-            'float': itemInfo.floatvalue,
-            'seed': itemInfo.paintseed,
-            'minfloat': itemInfo.min,
-            'maxfloat': itemInfo.max,
-            'minwearfloat': wearRange[0],
-            'maxwearfloat': wearRange[1]
+            float: itemInfo.floatvalue,
+            seed: itemInfo.paintseed,
+            minfloat: itemInfo.min,
+            maxfloat: itemInfo.max,
+            minwearfloat: wearRange[0],
+            maxwearfloat: wearRange[1]
         };
 
         // Check to see if there is a filter match
         let filterColour = filters.getMatchColour(vars);
 
         if (filterColour) {
-            const textColour = pickTextColour(filterColour, '#8F98A0', '#484848');
+            const textColour = pickTextColour(
+                filterColour,
+                '#8F98A0',
+                '#484848'
+            );
             floatDiv.parentNode.parentNode.style.backgroundColor = filterColour;
             floatDiv.style.color = textColour;
         }
     }
 };
 
-
 // Puts all of the available items on the page into the queue for float retrieval
 const getAllFloats = function() {
-    retrieveListingInfoFromPage()
-    .then((steamListingData) => {
+    retrieveListingInfoFromPage().then(steamListingData => {
         // Get all current items on the page (in proper order)
-        let listingRows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
+        let listingRows = document.querySelectorAll(
+            '#searchResultsRows .market_listing_row.market_recent_listing_row'
+        );
 
         for (let row of listingRows) {
             let id = row.id.replace('listing_', '');
@@ -171,18 +181,22 @@ const getAllFloats = function() {
             let listingData = steamListingData[id];
 
             let inspectLink = listingData.asset.market_actions[0].link
-            .replace('%listingid%', id)
-            .replace('%assetid%', listingData.asset.id);
+                .replace('%listingid%', id)
+                .replace('%assetid%', listingData.asset.id);
 
             queue.addJob(inspectLink, id);
         }
     });
 };
 
-const sortByFloat = function () {
-    const listingRows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
+const sortByFloat = function() {
+    const listingRows = document.querySelectorAll(
+        '#searchResultsRows .market_listing_row.market_recent_listing_row'
+    );
 
-    document.querySelector('#csgofloat_sort_by_float span').textContent = `Sort by Float ${sortTypeAsc ? '▲' : '▼'}`;
+    document.querySelector(
+        '#csgofloat_sort_by_float span'
+    ).textContent = `Sort by Float ${sortTypeAsc ? '▲' : '▼'}`;
 
     const items = {};
 
@@ -198,13 +212,20 @@ const sortByFloat = function () {
     const sortDesc = (a, b) => items[b].floatvalue - items[a].floatvalue;
 
     // Only items that have floats fetched
-    const sortedItems = Object.keys(items).sort(sortTypeAsc ? sortAsc : sortDesc);
+    const sortedItems = Object.keys(items).sort(
+        sortTypeAsc ? sortAsc : sortDesc
+    );
 
-    let lastItem = document.querySelector('#searchResultsRows .market_listing_table_header');
+    let lastItem = document.querySelector(
+        '#searchResultsRows .market_listing_table_header'
+    );
 
     for (const itemId of sortedItems) {
         const itemElement = document.querySelector(`#listing_${itemId}`);
-        const newElem = itemElement.parentNode.insertBefore(itemElement, lastItem.nextSibling);
+        const newElem = itemElement.parentNode.insertBefore(
+            itemElement,
+            lastItem.nextSibling
+        );
         lastItem = newElem;
     }
 
@@ -213,17 +234,21 @@ const sortByFloat = function () {
 
 const getSavedPageSize = function() {
     return new Promise((resolve, reject) => {
-        const storageType = chrome.storage.sync ? chrome.storage.sync : chrome.storage.local;
+        const storageType = chrome.storage.sync
+            ? chrome.storage.sync
+            : chrome.storage.local;
 
-        storageType.get(['pageSize'], (size) => {
+        storageType.get(['pageSize'], size => {
             resolve(size && size.pageSize);
         });
     });
 };
 
-const savePageSize = function (size) {
-    const storageType = chrome.storage.sync ? chrome.storage.sync : chrome.storage.local;
-    storageType.set({pageSize: size});
+const savePageSize = function(size) {
+    const storageType = chrome.storage.sync
+        ? chrome.storage.sync
+        : chrome.storage.local;
+    storageType.set({ pageSize: size });
 };
 
 // Adds float utilities
@@ -266,12 +291,15 @@ const addFloatUtilities = async function() {
         pageSize.appendChild(option);
     }
 
-    pageSize.addEventListener('change', (e) => {
+    pageSize.addEventListener('change', e => {
         const newSize = parseInt(e.srcElement.value);
-        window.postMessage({
-            type: 'changePageSize',
-            pageSize: newSize
-        }, '*');
+        window.postMessage(
+            {
+                type: 'changePageSize',
+                pageSize: newSize
+            },
+            '*'
+        );
         savePageSize(newSize);
     });
 
@@ -279,10 +307,13 @@ const addFloatUtilities = async function() {
 
     // Change the page size on first load
     if (savedPageSize && savedPageSize !== 10) {
-        window.postMessage({
-            type: 'changePageSize',
-            pageSize: savedPageSize
-        }, '*');
+        window.postMessage(
+            {
+                type: 'changePageSize',
+                pageSize: savedPageSize
+            },
+            '*'
+        );
     }
 
     // Add github link
@@ -295,22 +326,23 @@ const addFloatUtilities = async function() {
     // Add filter div
     filters.addFilterUI(parentDiv);
 
-    document.querySelector('#searchResultsTable').insertBefore(parentDiv, document.querySelector('#searchResultsRows'));
+    document
+        .querySelector('#searchResultsTable')
+        .insertBefore(parentDiv, document.querySelector('#searchResultsRows'));
 };
 
 const getFloatButtonClicked = function(e) {
     let row = e.currentTarget.parentElement.parentElement.parentElement;
     let id = row.id.replace('listing_', '');
 
-    retrieveListingInfoFromPage(id)
-    .then((steamListingData) => {
+    retrieveListingInfoFromPage(id).then(steamListingData => {
         let listingData = steamListingData[id];
 
         if (!listingData) return;
 
         let inspectLink = listingData.asset.market_actions[0].link
-        .replace('%listingid%', id)
-        .replace('%assetid%', listingData.asset.id);
+            .replace('%listingid%', id)
+            .replace('%assetid%', listingData.asset.id);
 
         queue.addJob(inspectLink, id);
     });
@@ -319,12 +351,16 @@ const getFloatButtonClicked = function(e) {
 // If an item on the current page doesn't have the float div/buttons, this function adds it
 const addButtons = function() {
     // Iterate through each item on the page
-    let listingRows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
+    let listingRows = document.querySelectorAll(
+        '#searchResultsRows .market_listing_row.market_recent_listing_row'
+    );
 
     for (let row of listingRows) {
         let id = row.id.replace('listing_', '');
 
-        if (row.querySelector(`#item_${id}_floatdiv`)) { continue; }
+        if (row.querySelector(`#item_${id}_floatdiv`)) {
+            continue;
+        }
 
         let listingNameElement = row.querySelector(`#listing_${id}_name`);
 
@@ -358,7 +394,6 @@ const addButtons = function() {
     }
 };
 
-
 // register the message listener in the page scope
 let script = document.createElement('script');
 script.innerText = `
@@ -377,8 +412,8 @@ script.innerText = `
 
 const getStorageVersion = async function(storageType) {
     return new Promise((resolve, reject) => {
-        storageType.get(["version"], (items) => {
-            resolve(items["version"] || "0.0.0");
+        storageType.get(['version'], items => {
+            resolve(items['version'] || '0.0.0');
         });
     });
 };
@@ -389,10 +424,10 @@ const migrateStorage = async function() {
 
     const storageVersion = await getStorageVersion(storageType);
 
-    if (versionCompare(storageVersion, "1.2.2") === -1) {
+    if (versionCompare(storageVersion, '1.2.2') === -1) {
         // storageVersion < 1.2.2
-        console.log("Migrating storage to 1.2.2");
-        storageType.get(null, (items) => {
+        console.log('Migrating storage to 1.2.2');
+        storageType.get(null, items => {
             // Want to remove all keys that are empty arrays
             // #20
             const keys = Object.keys(items);
@@ -408,7 +443,7 @@ const migrateStorage = async function() {
         });
     }
 
-    storageType.set({version});
+    storageType.set({ version });
 };
 
 migrateStorage();
@@ -417,9 +452,14 @@ document.head.appendChild(script);
 
 const queue = new Queue();
 queue.start();
-floatTimer = setInterval(() => { addButtons(); }, 250);
+floatTimer = setInterval(() => {
+    addButtons();
+}, 250);
 
 const logStyle = 'background: #222; color: #fff;';
 
 console.log(`%c CSGOFloat Market Checker (v${version}) by Step7750 `, logStyle);
-console.log('%c Changelog can be found here: https://github.com/Step7750/CSGOFloat-Extension ', logStyle);
+console.log(
+    '%c Changelog can be found here: https://github.com/Step7750/CSGOFloat-Extension ',
+    logStyle
+);

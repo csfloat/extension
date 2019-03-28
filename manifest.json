@@ -18,9 +18,7 @@
                 "lib/filters.js",
                 "float.js"
             ],
-            "css": [
-                "float.css"
-            ]
+            "css": ["float.css"]
         }
     ],
     "background": {
