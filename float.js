@@ -131,7 +131,7 @@ const retrieveListingInfoFromPage = function(listingId) {
     });
 };
 
-const retrieveInventoryItemDescription = function (assetId) {
+const retrieveInventoryItemDescription = function(assetId) {
     window.postMessage(
         {
             type: 'requestInventoryItemDescription',
@@ -141,7 +141,7 @@ const retrieveInventoryItemDescription = function (assetId) {
     );
 
     return new Promise(resolve => {
-        inventoryItemRequests.push({promise: resolve, assetId});
+        inventoryItemRequests.push({ promise: resolve, assetId });
     });
 };
 
@@ -364,7 +364,7 @@ const addButtons = function() {
     }
 };
 
-const removeInventoryButtons = function (parent) {
+const removeInventoryButtons = function(parent) {
     const floatDivs = parent.querySelectorAll('div[id*="floatdiv"]');
 
     for (const div of floatDivs) {
@@ -376,7 +376,9 @@ const addInventoryFloat = async function(boxContent) {
     removeInventoryButtons(boxContent);
 
     // Get the inspect link
-    const inspectButton = boxContent.querySelector('div.item_actions a.btn_small');
+    const inspectButton = boxContent.querySelector(
+        'div.item_actions a.btn_small'
+    );
 
     if (!inspectButton || !extractInspectAssetId(inspectButton.href)) {
         return;
@@ -392,8 +394,14 @@ const addInventoryFloat = async function(boxContent) {
 
     // Check if this is a weapon
     const description = await retrieveInventoryItemDescription(id);
-    console.log(description)
-    if (!description || !description.tags.find((a) => a.category === 'Weapon' || (a.category === 'Type' && a.internal_name === 'Type_Hands'))) {
+    if (
+        !description ||
+        !description.tags.find(
+            a =>
+                a.category === 'Weapon' ||
+                (a.category === 'Type' && a.internal_name === 'Type_Hands')
+        )
+    ) {
         return;
     }
 
@@ -546,7 +554,7 @@ const migrateStorage = async function() {
 const TargetMutationObserver = function(target, cb) {
     return new MutationObserver(() => {
         cb(target);
-    }).observe(target, {childList: true, subtree: true})
+    }).observe(target, { childList: true, subtree: true });
 };
 
 migrateStorage();
@@ -560,8 +568,12 @@ if (isInventoryPage()) {
     const action0 = document.querySelector('#iteminfo0_item_actions');
     const action1 = document.querySelector('#iteminfo1_item_actions');
 
-    TargetMutationObserver(action0, (t) => addInventoryFloat(t.parentElement.parentElement));
-    TargetMutationObserver(action1, (t) => addInventoryFloat(t.parentElement.parentElement));
+    TargetMutationObserver(action0, t =>
+        addInventoryFloat(t.parentElement.parentElement)
+    );
+    TargetMutationObserver(action1, t =>
+        addInventoryFloat(t.parentElement.parentElement)
+    );
 } else {
     floatTimer = setInterval(() => {
         addButtons();
