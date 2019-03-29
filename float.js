@@ -372,7 +372,7 @@ const removeInventoryButtons = function (parent) {
     }
 };
 
-const showInventoryFloat = async function(boxContent) {
+const addInventoryFloat = async function(boxContent) {
     removeInventoryButtons(boxContent);
 
     // Get the inspect link
@@ -392,7 +392,8 @@ const showInventoryFloat = async function(boxContent) {
 
     // Check if this is a weapon
     const description = await retrieveInventoryItemDescription(id);
-    if (!description || !description.tags.find((a) => a.category === 'Weapon')) {
+    console.log(description)
+    if (!description || !description.tags.find((a) => a.category === 'Weapon' || (a.category === 'Type' && a.internal_name === 'Type_Hands'))) {
         return;
     }
 
@@ -559,8 +560,8 @@ if (isInventoryPage()) {
     const action0 = document.querySelector('#iteminfo0_item_actions');
     const action1 = document.querySelector('#iteminfo1_item_actions');
 
-    TargetMutationObserver(action0, (t) => showInventoryFloat(t.parentElement.parentElement));
-    TargetMutationObserver(action1, (t) => showInventoryFloat(t.parentElement.parentElement));
+    TargetMutationObserver(action0, (t) => addInventoryFloat(t.parentElement.parentElement));
+    TargetMutationObserver(action1, (t) => addInventoryFloat(t.parentElement.parentElement));
 } else {
     floatTimer = setInterval(() => {
         addButtons();
