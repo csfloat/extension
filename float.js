@@ -148,9 +148,9 @@ const retrieveInventoryItemDescription = function (assetId) {
 const showFloat = function(listingId) {
     let itemInfo = floatData[listingId];
 
-    let floatDiv = document.querySelector(`#item_${listingId}_floatdiv`);
+    let floatDivs = document.querySelectorAll(`#item_${listingId}_floatdiv`);
 
-    if (floatDiv) {
+    for (const floatDiv of floatDivs) {
         // Remove the "get float" button
         let floatButton = floatDiv.querySelector('.float-btn');
         if (floatButton) floatDiv.removeChild(floatButton);
