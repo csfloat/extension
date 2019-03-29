@@ -2,6 +2,7 @@ let floatData = {};
 let floatTimer;
 let steamListingInfo = {};
 let listingInfoPromises = [];
+let inventoryItemRequests = [];
 let sortTypeAsc = true;
 let filters = new Filters();
 
@@ -91,13 +92,25 @@ class Queue {
 
 // retrieve g_rgListingInfo from page script
 window.addEventListener('message', e => {
-    if (e.data.type == 'listingInfo') {
+    if (e.data.type === 'listingInfo') {
         steamListingInfo = e.data.listingInfo;
 
         // resolve listingInfoPromises
         for (let promise of listingInfoPromises) promise(steamListingInfo);
 
         listingInfoPromises = [];
+    } else if (e.data.type === 'inventoryItemDescription') {
+        const unfulfilledRequests = [];
+
+        for (const request of inventoryItemRequests) {
+            if (request.assetId === e.data.assetId) {
+                request.promise(e.data.description);
+            } else {
+                unfulfilledRequests.push(request);
+            }
+        }
+
+        inventoryItemRequests = unfulfilledRequests;
     }
 });
 
@@ -118,12 +131,26 @@ const retrieveListingInfoFromPage = function(listingId) {
     });
 };
 
+const retrieveInventoryItemDescription = function(assetId) {
+    window.postMessage(
+        {
+            type: 'requestInventoryItemDescription',
+            assetId
+        },
+        '*'
+    );
+
+    return new Promise(resolve => {
+        inventoryItemRequests.push({ promise: resolve, assetId });
+    });
+};
+
 const showFloat = function(listingId) {
     let itemInfo = floatData[listingId];
 
-    let floatDiv = document.querySelector(`#item_${listingId}_floatdiv`);
+    let floatDivs = document.querySelectorAll(`#item_${listingId}_floatdiv`);
 
-    if (floatDiv) {
+    for (const floatDiv of floatDivs) {
         // Remove the "get float" button
         let floatButton = floatDiv.querySelector('.float-btn');
         if (floatButton) floatDiv.removeChild(floatButton);
@@ -331,25 +358,81 @@ const addFloatUtilities = async function() {
         .insertBefore(parentDiv, document.querySelector('#searchResultsRows'));
 };
 
-const getFloatButtonClicked = function(e) {
-    let row = e.currentTarget.parentElement.parentElement.parentElement;
-    let id = row.id.replace('listing_', '');
+const addButtons = function() {
+    if (!isInventoryPage()) {
+        addMarketButtons();
+    }
+};
 
-    retrieveListingInfoFromPage(id).then(steamListingData => {
-        let listingData = steamListingData[id];
+const removeInventoryButtons = function(parent) {
+    const floatDivs = parent.querySelectorAll('div[id*="floatdiv"]');
 
-        if (!listingData) return;
+    for (const div of floatDivs) {
+        div.parentElement.removeChild(div);
+    }
+};
 
-        let inspectLink = listingData.asset.market_actions[0].link
-            .replace('%listingid%', id)
-            .replace('%assetid%', listingData.asset.id);
+const addInventoryFloat = async function(boxContent) {
+    removeInventoryButtons(boxContent);
 
+    // Get the inspect link
+    const inspectButton = boxContent.querySelector(
+        'div.item_actions a.btn_small'
+    );
+
+    if (!inspectButton || !extractInspectAssetId(inspectButton.href)) {
+        return;
+    }
+
+    const inspectLink = inspectButton.href;
+    const id = extractInspectAssetId(inspectLink);
+
+    // Check if we already placed the button
+    if (boxContent.querySelector(`#item_${id}_floatdiv`)) {
+        return;
+    }
+
+    // Check if this is a weapon
+    const description = await retrieveInventoryItemDescription(id);
+    if (
+        !description ||
+        !description.tags.find(
+            a =>
+                a.category === 'Weapon' ||
+                (a.category === 'Type' && a.internal_name === 'Type_Hands')
+        )
+    ) {
+        return;
+    }
+
+    const floatDiv = document.createElement('div');
+    floatDiv.style.marginBottom = '10px';
+    floatDiv.id = `item_${id}_floatdiv`;
+
+    const gameInfo = boxContent.querySelector('.item_desc_game_info');
+    gameInfo.parentElement.insertBefore(floatDiv, gameInfo.nextSibling);
+
+    const getFloatButton = createButton('Fetching...', 'green');
+    getFloatButton.inspectLink = inspectLink;
+    floatDiv.appendChild(getFloatButton);
+
+    // Create divs the following class names and append them to the button div
+    for (let className of ['floatmessage', 'itemfloat', 'itemseed']) {
+        let div = document.createElement('div');
+        div.classList.add(className);
+        floatDiv.appendChild(div);
+    }
+
+    // check if we already have the float for this item
+    if (id in floatData) {
+        showFloat(id);
+    } else {
         queue.addJob(inspectLink, id);
-    });
+    }
 };
 
 // If an item on the current page doesn't have the float div/buttons, this function adds it
-const addButtons = function() {
+const addMarketButtons = function() {
     // Iterate through each item on the page
     let listingRows = document.querySelectorAll(
         '#searchResultsRows .market_listing_row.market_recent_listing_row'
@@ -370,7 +453,19 @@ const addButtons = function() {
         listingNameElement.parentElement.appendChild(floatDiv);
 
         let getFloatButton = createButton('Get Float', 'green');
-        getFloatButton.addEventListener('click', getFloatButtonClicked);
+        getFloatButton.addEventListener('click', () => {
+            retrieveListingInfoFromPage(id).then(steamListingData => {
+                let listingData = steamListingData[id];
+
+                if (!listingData) return;
+
+                let inspectLink = listingData.asset.market_actions[0].link
+                    .replace('%listingid%', id)
+                    .replace('%assetid%', listingData.asset.id);
+
+                queue.addJob(inspectLink, id);
+            });
+        });
         floatDiv.appendChild(getFloatButton);
 
         // Create divs the following class names and append them to the button div
@@ -402,6 +497,16 @@ script.innerText = `
             window.postMessage({
                 type: 'listingInfo',
                 listingInfo: g_rgListingInfo
+            }, '*');
+        } else if (e.data.type == 'requestInventoryItemDescription') {
+            const asset = g_ActiveInventory.m_rgAssets[e.data.assetId];
+            const key = asset.instanceid == "0" ? asset.classid : asset.classid + '_' + asset.instanceid;
+            const description = g_ActiveInventory.m_rgDescriptions[key];
+
+            window.postMessage({
+                type: 'inventoryItemDescription',
+                assetId: e.data.assetId,
+                description: g_ActiveInventory.m_rgDescriptions[key]
             }, '*');
         } else if (e.data.type == 'changePageSize') {
             g_oSearchResults.m_cPageSize = e.data.pageSize;
@@ -446,15 +551,34 @@ const migrateStorage = async function() {
     storageType.set({ version });
 };
 
+const TargetMutationObserver = function(target, cb) {
+    return new MutationObserver(() => {
+        cb(target);
+    }).observe(target, { childList: true, subtree: true });
+};
+
 migrateStorage();
 
 document.head.appendChild(script);
 
 const queue = new Queue();
 queue.start();
-floatTimer = setInterval(() => {
-    addButtons();
-}, 250);
+
+if (isInventoryPage()) {
+    const action0 = document.querySelector('#iteminfo0_item_actions');
+    const action1 = document.querySelector('#iteminfo1_item_actions');
+
+    TargetMutationObserver(action0, t =>
+        addInventoryFloat(t.parentElement.parentElement)
+    );
+    TargetMutationObserver(action1, t =>
+        addInventoryFloat(t.parentElement.parentElement)
+    );
+} else {
+    floatTimer = setInterval(() => {
+        addButtons();
+    }, 250);
+}
 
 const logStyle = 'background: #222; color: #fff;';
 
