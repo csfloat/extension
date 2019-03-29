@@ -358,12 +358,6 @@ const addFloatUtilities = async function() {
         .insertBefore(parentDiv, document.querySelector('#searchResultsRows'));
 };
 
-const addButtons = function() {
-    if (!isInventoryPage()) {
-        addMarketButtons();
-    }
-};
-
 const removeInventoryButtons = function(parent) {
     const floatDivs = parent.querySelectorAll('div[id*="floatdiv"]');
 
@@ -576,7 +570,7 @@ if (isInventoryPage()) {
     );
 } else {
     floatTimer = setInterval(() => {
-        addButtons();
+        addMarketButtons();
     }, 250);
 }
 
