@@ -359,9 +359,7 @@ const addFloatUtilities = async function() {
 };
 
 const addButtons = function() {
-    if (isInventoryPage()) {
-        addInventoryButton();
-    } else {
+    if (!isInventoryPage()) {
         addMarketButtons();
     }
 };
@@ -374,58 +372,53 @@ const removeInventoryButtons = function (parent) {
     }
 };
 
-const addInventoryButton = async function() {
-    const itemBoxes = document.querySelectorAll('div.inventory_iteminfo div.item_desc_content.app730');
+const showInventoryFloat = async function(boxContent) {
+    removeInventoryButtons(boxContent);
 
-    for (const itemBox of itemBoxes) {
-        // Get the inspect link
-        const inspectButton = itemBox.querySelector('div.item_actions a.btn_small');
+    // Get the inspect link
+    const inspectButton = boxContent.querySelector('div.item_actions a.btn_small');
 
-        if (!inspectButton || !extractInspectAssetId(inspectButton.href)) {
-            removeInventoryButtons(itemBox);
-            continue;
-        }
+    if (!inspectButton || !extractInspectAssetId(inspectButton.href)) {
+        return;
+    }
 
-        const inspectLink = inspectButton.href;
-        const id = extractInspectAssetId(inspectLink);
+    const inspectLink = inspectButton.href;
+    const id = extractInspectAssetId(inspectLink);
 
-        // Check if we already placed the button
-        if (itemBox.querySelector(`#item_${id}_floatdiv`)) {
-            continue;
-        }
+    // Check if we already placed the button
+    if (boxContent.querySelector(`#item_${id}_floatdiv`)) {
+        return;
+    }
 
-        // Remove any previous inventory buttons since Valve reuses the same div
-        removeInventoryButtons(itemBox);
+    // Check if this is a weapon
+    const description = await retrieveInventoryItemDescription(id);
+    if (!description || !description.tags.find((a) => a.category === 'Weapon')) {
+        return;
+    }
 
-        // Check if this is a weapon
-        const description = await retrieveInventoryItemDescription(id);
-        if (!description || !description.tags.find((a) => a.category === 'Weapon')) {
-            continue;
-        }
+    const floatDiv = document.createElement('div');
+    floatDiv.style.marginBottom = '10px';
+    floatDiv.id = `item_${id}_floatdiv`;
 
-        const floatDiv = document.createElement('div');
-        floatDiv.style.marginBottom = '10px';
-        floatDiv.id = `item_${id}_floatdiv`;
-        const itemDescription = itemBox.querySelector('.item_desc_description .item_desc_descriptors');
-        itemDescription.parentElement.insertBefore(floatDiv, itemDescription);
+    const gameInfo = boxContent.querySelector('.item_desc_game_info');
+    gameInfo.parentElement.insertBefore(floatDiv, gameInfo.nextSibling);
 
-        const getFloatButton = createButton('Fetching...', 'green');
-        getFloatButton.inspectLink = inspectLink;
-        floatDiv.appendChild(getFloatButton);
+    const getFloatButton = createButton('Fetching...', 'green');
+    getFloatButton.inspectLink = inspectLink;
+    floatDiv.appendChild(getFloatButton);
 
-        // Create divs the following class names and append them to the button div
-        for (let className of ['floatmessage', 'itemfloat', 'itemseed']) {
-            let div = document.createElement('div');
-            div.classList.add(className);
-            floatDiv.appendChild(div);
-        }
+    // Create divs the following class names and append them to the button div
+    for (let className of ['floatmessage', 'itemfloat', 'itemseed']) {
+        let div = document.createElement('div');
+        div.classList.add(className);
+        floatDiv.appendChild(div);
+    }
 
-        // check if we already have the float for this item
-        if (id in floatData) {
-            showFloat(id);
-        } else {
-            queue.addJob(inspectLink, id);
-        }
+    // check if we already have the float for this item
+    if (id in floatData) {
+        showFloat(id);
+    } else {
+        queue.addJob(inspectLink, id);
     }
 };
 
@@ -549,15 +542,30 @@ const migrateStorage = async function() {
     storageType.set({ version });
 };
 
+const TargetMutationObserver = function(target, cb) {
+    return new MutationObserver(() => {
+        cb(target);
+    }).observe(target, {childList: true, subtree: true})
+};
+
 migrateStorage();
 
 document.head.appendChild(script);
 
 const queue = new Queue();
 queue.start();
-floatTimer = setInterval(() => {
-    addButtons();
-}, 250);
+
+if (isInventoryPage()) {
+    const action0 = document.querySelector('#iteminfo0_item_actions');
+    const action1 = document.querySelector('#iteminfo1_item_actions');
+
+    TargetMutationObserver(action0, (t) => showInventoryFloat(t.parentElement.parentElement));
+    TargetMutationObserver(action1, (t) => showInventoryFloat(t.parentElement.parentElement));
+} else {
+    floatTimer = setInterval(() => {
+        addButtons();
+    }, 250);
+}
 
 const logStyle = 'background: #222; color: #fff;';
 
