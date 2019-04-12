@@ -509,28 +509,19 @@ const addMarketButtons = function() {
                 const asset = steamListingAssets[assetID];
                 const lastDescription = asset.descriptions[asset.descriptions.length - 1];
                 if (lastDescription.type === 'html' && lastDescription.value.includes('sticker')) {
-                    let imgs = lastDescription.value.replace(/^.*?<center>(.*?)<br>.*?$/g, '$1');
-                    const stickerNames = lastDescription.value.slice(lastDescription.value.search("Sticker: ")+9, -15).split(", ");
+                    const imgs = lastDescription.value.match(/(<img .*?>)/g);
+                    const stickerNames = lastDescription.value.match(/Sticker: (.*?)</)[1].split(", ");
 
                     // Adds href link to sticker
-                    let pos = 0;
-                    for (const sticker of stickerNames){
-                        pos = imgs.indexOf("<", pos);
-
-                        const link = '<a target="_blank" href="https://steamcommunity.com/market/listings/730/Sticker | ' + sticker + '">';
-                        imgs = imgs.slice(0, pos) + link + imgs.slice(pos);
-
-                        pos += link.length + 1;
-
-                        pos = imgs.indexOf(">", pos) + 1;
-                        imgs = imgs.slice(0, pos) + "</a>" + imgs.slice(pos);
-
-                        pos += 3;
+                    let html = "";
+                    for (let i=0; i < stickerNames.length; i++){
+                        const link = '<a target="_blank" href="https://steamcommunity.com/market/listings/730/Sticker | ' + stickerNames[i] + '">';
+                        html += link + imgs[i] + "</a>";
                     }
-
+                    
                     const imgContainers = document.createElement('div');
                     imgContainers.classList.add('stickers-container');
-                    imgContainers.innerHTML = imgs;
+                    imgContainers.innerHTML = html;
                     row.appendChild(imgContainers)
                 }
             });
