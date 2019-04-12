@@ -528,10 +528,10 @@ const addMarketButtons = function() {
 
                     // Adds href link to sticker
                     let pos = 0;
-                    for (let i=0; i < stickerNames.length; i++){
+                    for (const sticker of stickerNames){
                         pos = imgs.indexOf("<", pos);
 
-                        const link = '<a target="_blank" href="https://steamcommunity.com/market/listings/730/Sticker | ' + stickerNames[i] + '">';
+                        const link = '<a target="_blank" href="https://steamcommunity.com/market/listings/730/Sticker | ' + sticker + '">';
                         imgs = imgs.slice(0, pos) + link + imgs.slice(pos);
 
                         pos += link.length + 1;
