@@ -117,7 +117,6 @@ window.addEventListener('message', e => {
         steamListingAssets = e.data.assets[730][2];
         for (let promise of listingAssetPromises) promise(steamListingAssets);
     }
-
 });
 
 const retrieveListingInfoFromPage = function(listingId) {
@@ -137,7 +136,7 @@ const retrieveListingInfoFromPage = function(listingId) {
     });
 };
 
-const retrieveListingAssets = function (assetId) {
+const retrieveListingAssets = function(assetId) {
     if (assetId != null && assetId in steamListingAssets) {
         return Promise.resolve(steamListingAssets);
     }
@@ -481,7 +480,6 @@ const addMarketButtons = function() {
                     .replace('%assetid%', listingData.asset.id);
 
                 queue.addJob(inspectLink, id);
-
             });
         });
         floatDiv.appendChild(getFloatButton);
@@ -505,24 +503,33 @@ const addMarketButtons = function() {
             if (!listingData) return;
 
             let assetID = listingData.asset.id;
-            retrieveListingAssets(assetID).then((steamListingAssets) => {
+            retrieveListingAssets(assetID).then(steamListingAssets => {
                 const asset = steamListingAssets[assetID];
-                const lastDescription = asset.descriptions[asset.descriptions.length - 1];
-                if (lastDescription.type === 'html' && lastDescription.value.includes('sticker')) {
+                const lastDescription =
+                    asset.descriptions[asset.descriptions.length - 1];
+                if (
+                    lastDescription.type === 'html' &&
+                    lastDescription.value.includes('sticker')
+                ) {
                     const imgs = lastDescription.value.match(/(<img .*?>)/g);
-                    const stickerNames = lastDescription.value.match(/Sticker: (.*?)</)[1].split(", ");
+                    const stickerNames = lastDescription.value
+                        .match(/Sticker: (.*?)</)[1]
+                        .split(', ');
 
                     // Adds href link to sticker
-                    let html = "";
-                    for (let i=0; i < stickerNames.length; i++){
-                        const link = '<a target="_blank" href="https://steamcommunity.com/market/listings/730/Sticker | ' + stickerNames[i] + '">';
-                        html += link + imgs[i] + "</a>";
+                    let html = '';
+                    for (let i = 0; i < stickerNames.length; i++) {
+                        const link =
+                            '<a target="_blank" href="https://steamcommunity.com/market/listings/730/Sticker | ' +
+                            stickerNames[i] +
+                            '">';
+                        html += link + imgs[i] + '</a>';
                     }
-                    
+
                     const imgContainers = document.createElement('div');
                     imgContainers.classList.add('stickers-container');
                     imgContainers.innerHTML = html;
-                    row.appendChild(imgContainers)
+                    row.appendChild(imgContainers);
                 }
             });
         });
