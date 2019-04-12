@@ -2,6 +2,8 @@ let floatData = {};
 let floatTimer;
 let steamListingInfo = {};
 let listingInfoPromises = [];
+let steamListingAssets = {};
+let listingAssetPromises = [];
 let inventoryItemRequests = [];
 let sortTypeAsc = true;
 let filters = new Filters();
@@ -111,7 +113,12 @@ window.addEventListener('message', e => {
         }
 
         inventoryItemRequests = unfulfilledRequests;
+    } else if (e.data.type === 'listingAssets') {
+        steamListingAssets = e.data.assets[730][2];
+
+        for (let promise of listingAssetPromises) promise(steamListingAssets);
     }
+
 });
 
 const retrieveListingInfoFromPage = function(listingId) {
@@ -128,6 +135,23 @@ const retrieveListingInfoFromPage = function(listingId) {
 
     return new Promise(resolve => {
         listingInfoPromises.push(resolve);
+    });
+};
+
+const retrieveListingAssets = function (assetId) {
+    if (assetId != null && assetId in steamListingAssets) {
+        return Promise.resolve(steamListingAssets);
+    }
+
+    window.postMessage(
+        {
+            type: 'requestAssets'
+        },
+        '*'
+    );
+
+    return new Promise(resolve => {
+        listingAssetPromises.push(resolve);
     });
 };
 
@@ -212,6 +236,20 @@ const getAllFloats = function() {
                 .replace('%assetid%', listingData.asset.id);
 
             queue.addJob(inspectLink, id);
+
+            const assetID = listingData.asset.id;
+            retrieveListingAssets(assetID).then((steamListingAssets) => {
+                const asset = steamListingAssets[assetID];
+
+                const lastDescription = asset.descriptions[asset.descriptions.length - 1];
+                if (lastDescription.type === 'html' && lastDescription.value.includes('sticker')) {
+                    const imgs = lastDescription.value.replace(/^.*?<center>(.*?)<br>.*?$/g, '$1');
+                    const imgContainers = document.createElement('div');
+                    imgContainers.classList.add('stickers-container');
+                    imgContainers.innerHTML = imgs;
+                    row.appendChild(imgContainers)
+                }
+            });
         }
     });
 };
@@ -458,6 +496,20 @@ const addMarketButtons = function() {
                     .replace('%assetid%', listingData.asset.id);
 
                 queue.addJob(inspectLink, id);
+
+                const assetID = listingData.asset.id;
+                retrieveListingAssets(assetID).then((steamListingAssets) => {
+                    const asset = steamListingAssets[assetID];
+
+                    const lastDescription = asset.descriptions[asset.descriptions.length - 1];
+                    if (lastDescription.type === 'html' && lastDescription.value.includes('sticker')) {
+                        const imgs = lastDescription.value.replace(/^.*?<center>(.*?)<br>.*?$/g, '$1');
+                        const imgContainers = document.createElement('div');
+                        imgContainers.classList.add('stickers-container');
+                        imgContainers.innerHTML = imgs;
+                        row.appendChild(imgContainers)
+                    }
+                });
             });
         });
         floatDiv.appendChild(getFloatButton);
@@ -475,6 +527,7 @@ const addMarketButtons = function() {
         if (id in floatData) {
             showFloat(id);
         }
+
     }
 
     // Add float utilities if it doesn't exist and we have valid items
@@ -491,6 +544,11 @@ script.innerText = `
             window.postMessage({
                 type: 'listingInfo',
                 listingInfo: g_rgListingInfo
+            }, '*');
+        } else if (e.data.type == 'requestAssets') {
+            window.postMessage({
+                type: 'listingAssets',
+                assets: g_rgAssets
             }, '*');
         } else if (e.data.type == 'requestInventoryItemDescription') {
             const asset = g_ActiveInventory.m_rgAssets[e.data.assetId];
