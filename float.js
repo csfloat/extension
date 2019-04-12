@@ -235,20 +235,6 @@ const getAllFloats = function() {
                 .replace('%assetid%', listingData.asset.id);
 
             queue.addJob(inspectLink, id);
-
-            const assetID = listingData.asset.id;
-            retrieveListingAssets(assetID).then((steamListingAssets) => {
-                const asset = steamListingAssets[assetID];
-
-                const lastDescription = asset.descriptions[asset.descriptions.length - 1];
-                if (lastDescription.type === 'html' && lastDescription.value.includes('sticker')) {
-                    const imgs = lastDescription.value.replace(/^.*?<center>(.*?)<br>.*?$/g, '$1');
-                    const imgContainers = document.createElement('div');
-                    imgContainers.classList.add('stickers-container');
-                    imgContainers.innerHTML = imgs;
-                    row.appendChild(imgContainers)
-                }
-            });
         }
     });
 };
