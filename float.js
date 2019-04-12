@@ -115,7 +115,6 @@ window.addEventListener('message', e => {
         inventoryItemRequests = unfulfilledRequests;
     } else if (e.data.type === 'listingAssets') {
         steamListingAssets = e.data.assets[730][2];
-
         for (let promise of listingAssetPromises) promise(steamListingAssets);
     }
 
@@ -522,10 +521,27 @@ const addMarketButtons = function() {
             let assetID = listingData.asset.id;
             retrieveListingAssets(assetID).then((steamListingAssets) => {
                 const asset = steamListingAssets[assetID];
-
                 const lastDescription = asset.descriptions[asset.descriptions.length - 1];
                 if (lastDescription.type === 'html' && lastDescription.value.includes('sticker')) {
-                    const imgs = lastDescription.value.replace(/^.*?<center>(.*?)<br>.*?$/g, '$1');
+                    let imgs = lastDescription.value.replace(/^.*?<center>(.*?)<br>.*?$/g, '$1');
+                    const stickerNames = lastDescription.value.slice(lastDescription.value.search("Sticker: ")+9, -15).split(", ");
+
+                    // Adds href link to sticker
+                    let pos = 0;
+                    for (let i=0; i < stickerNames.length; i++){
+                        pos = imgs.indexOf("<", pos);
+
+                        const link = '<a target="_blank" href="https://steamcommunity.com/market/listings/730/Sticker | ' + stickerNames[i] + '">';
+                        imgs = imgs.slice(0, pos) + link + imgs.slice(pos);
+
+                        pos += link.length + 1;
+
+                        pos = imgs.indexOf(">", pos) + 1;
+                        imgs = imgs.slice(0, pos) + "</a>" + imgs.slice(pos);
+
+                        pos += 3;
+                    }
+
                     const imgContainers = document.createElement('div');
                     imgContainers.classList.add('stickers-container');
                     imgContainers.innerHTML = imgs;
