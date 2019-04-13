@@ -190,6 +190,17 @@ const showFloat = function(listingId) {
         let seedDiv = floatDiv.querySelector('.itemseed');
         if (seedDiv) seedDiv.innerText = `Paint Seed: ${itemInfo.paintseed}`;
 
+        // Set the wear value for each sticker
+        for (const stickerIndex in itemInfo.stickers) {
+            const sticker = itemInfo.stickers[stickerIndex];
+
+            // Check if the sticker div exists
+            const stickerWearDiv = floatDiv.parentNode.querySelector(`#sticker_${stickerIndex}_wear`);
+            if (stickerWearDiv) {
+                stickerWearDiv.innerText = Math.round(100 * (sticker.wear || 0)) + '%';
+            }
+        }
+
         const wearRange = rangeFromWear(itemInfo.wear_name) || [0, 1];
 
         let vars = {
@@ -448,7 +459,7 @@ const addInventoryFloat = async function(boxContent) {
 };
 
 // If an item on the current page doesn't have the float div/buttons, this function adds it
-const addMarketButtons = function() {
+const addMarketButtons = async function() {
     // Iterate through each item on the page
     let listingRows = document.querySelectorAll(
         '#searchResultsRows .market_listing_row.market_recent_listing_row'
@@ -493,47 +504,49 @@ const addMarketButtons = function() {
             floatDiv.appendChild(div);
         }
 
+        const steamListingData = await retrieveListingInfoFromPage(id);
+        const listingData = steamListingData[id];
+        if (!listingData) return;
+
+        const assetID = listingData.asset.id;
+        const steamListingAssets = await retrieveListingAssets(assetID);
+
+        const asset = steamListingAssets[assetID];
+        const lastDescription =
+            asset.descriptions[asset.descriptions.length - 1];
+        if (
+            lastDescription.type === 'html' &&
+            lastDescription.value.includes('sticker')
+        ) {
+            const imagesHtml = lastDescription.value.match(/(<img .*?>)/g);
+            const stickerNames = lastDescription.value
+                .match(/Sticker: (.*?)</)[1]
+                .split(', ');
+
+            // Adds href link to sticker
+            let resHtml = '';
+            for (let i = 0; i < stickerNames.length; i++) {
+                resHtml += `<span style="display: inline-block; text-align: center;">
+                    <a target="_blank" href="https://steamcommunity.com/market/listings/730/Sticker | ${
+                    stickerNames[i]
+                    }">${imagesHtml[i]}</a>
+                    <span style="display: block;" id="sticker_${i}_wear"></span>
+                    </span>`;
+            }
+
+            const imgContainer = document.createElement('div');
+            imgContainer.classList.add('float-stickers-container');
+            imgContainer.innerHTML = resHtml;
+            const itemNameBlock = row.querySelector(
+                '.market_listing_item_name_block'
+            );
+            itemNameBlock.insertBefore(imgContainer, itemNameBlock.firstChild);
+        }
+
         // check if we already have the float for this item
         if (id in floatData) {
             showFloat(id);
         }
-
-        retrieveListingInfoFromPage(id).then(steamListingData => {
-            let listingData = steamListingData[id];
-            if (!listingData) return;
-
-            let assetID = listingData.asset.id;
-            retrieveListingAssets(assetID).then(steamListingAssets => {
-                const asset = steamListingAssets[assetID];
-                const lastDescription =
-                    asset.descriptions[asset.descriptions.length - 1];
-                if (
-                    lastDescription.type === 'html' &&
-                    lastDescription.value.includes('sticker')
-                ) {
-                    const imagesHtml = lastDescription.value.match(
-                        /(<img .*?>)/g
-                    );
-                    const stickerNames = lastDescription.value
-                        .match(/Sticker: (.*?)</)[1]
-                        .split(', ');
-
-                    // Adds href link to sticker
-                    let resHtml = '';
-                    for (let i = 0; i < stickerNames.length; i++) {
-                        resHtml += `<a target="_blank" href="https://steamcommunity.com/market/listings/730/Sticker | ${
-                            stickerNames[i]
-                        }">${imagesHtml[i]}</a>`;
-                    }
-
-                    const imgContainer = document.createElement('div');
-                    imgContainer.classList.add('float-stickers-container');
-                    imgContainer.innerHTML = resHtml;
-                    const itemNameBlock = row.querySelector('.market_listing_item_name_block');
-                    itemNameBlock.insertBefore(imgContainer, itemNameBlock.firstChild);
-                }
-            });
-        });
     }
 
     // Add float utilities if it doesn't exist and we have valid items

@@ -59,6 +59,7 @@ input[type='color']::-webkit-color-swatch {
 
 .float-stickers-container {
     float: right;
+    margin-top: -5px;
 }
 
 .float-div {
