@@ -191,13 +191,16 @@ const showFloat = function(listingId) {
         if (seedDiv) seedDiv.innerText = `Paint Seed: ${itemInfo.paintseed}`;
 
         // Set the wear value for each sticker
-        for (const stickerIndex in itemInfo.stickers) {
+        for (let stickerIndex = 0; stickerIndex < itemInfo.stickers.length; stickerIndex++) {
             const sticker = itemInfo.stickers[stickerIndex];
 
             // Check if the sticker div exists
-            const stickerWearDiv = floatDiv.parentNode.querySelector(`#sticker_${stickerIndex}_wear`);
+            const stickerWearDiv = floatDiv.parentNode.querySelector(
+                `#sticker_${stickerIndex}_wear`
+            );
             if (stickerWearDiv) {
-                stickerWearDiv.innerText = Math.round(100 * (sticker.wear || 0)) + '%';
+                stickerWearDiv.innerText =
+                    Math.round(100 * (sticker.wear || 0)) + '%';
             }
         }
 
@@ -528,7 +531,7 @@ const addMarketButtons = async function() {
             for (let i = 0; i < stickerNames.length; i++) {
                 resHtml += `<span style="display: inline-block; text-align: center;">
                     <a target="_blank" href="https://steamcommunity.com/market/listings/730/Sticker | ${
-                    stickerNames[i]
+                        stickerNames[i]
                     }">${imagesHtml[i]}</a>
                     <span style="display: block;" id="sticker_${i}_wear"></span>
                     </span>`;
