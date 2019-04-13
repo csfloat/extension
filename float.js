@@ -49,9 +49,7 @@ class Queue {
 
             this.processing += 1;
 
-            const floatDiv = document.querySelector(
-                `#item_${job.listingId}_floatdiv`
-            );
+            const floatDiv = document.querySelector(`#item_${job.listingId}_floatdiv`);
 
             // Changed pages, cancel request
             if (!floatDiv) {
@@ -73,8 +71,7 @@ class Queue {
 
                     // Change the message div for this item to the error
                     if (floatDiv) {
-                        floatDiv.querySelector('.floatmessage').innerText =
-                            data.error || 'Unknown Error';
+                        floatDiv.querySelector('.floatmessage').innerText = data.error || 'Unknown Error';
                     }
                 }
 
@@ -183,8 +180,7 @@ const showFloat = function(listingId) {
 
         // Add the float value
         let itemFloatDiv = floatDiv.querySelector('.itemfloat');
-        if (itemFloatDiv)
-            itemFloatDiv.innerText = `Float: ${itemInfo.floatvalue}`;
+        if (itemFloatDiv) itemFloatDiv.innerText = `Float: ${itemInfo.floatvalue}`;
 
         // Add the paint seed
         let seedDiv = floatDiv.querySelector('.itemseed');
@@ -195,12 +191,9 @@ const showFloat = function(listingId) {
             const sticker = itemInfo.stickers[stickerIndex];
 
             // Check if the sticker div exists
-            const stickerWearDiv = floatDiv.parentNode.querySelector(
-                `#sticker_${stickerIndex}_wear`
-            );
+            const stickerWearDiv = floatDiv.parentNode.querySelector(`#sticker_${stickerIndex}_wear`);
             if (stickerWearDiv) {
-                stickerWearDiv.innerText =
-                    Math.round(100 * (sticker.wear || 0)) + '%';
+                stickerWearDiv.innerText = Math.round(100 * (sticker.wear || 0)) + '%';
             }
         }
 
@@ -219,11 +212,7 @@ const showFloat = function(listingId) {
         let filterColour = filters.getMatchColour(vars);
 
         if (filterColour) {
-            const textColour = pickTextColour(
-                filterColour,
-                '#8F98A0',
-                '#484848'
-            );
+            const textColour = pickTextColour(filterColour, '#8F98A0', '#484848');
             floatDiv.parentNode.parentNode.style.backgroundColor = filterColour;
             floatDiv.style.color = textColour;
         }
@@ -234,9 +223,7 @@ const showFloat = function(listingId) {
 const getAllFloats = function() {
     retrieveListingInfoFromPage().then(steamListingData => {
         // Get all current items on the page (in proper order)
-        let listingRows = document.querySelectorAll(
-            '#searchResultsRows .market_listing_row.market_recent_listing_row'
-        );
+        let listingRows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
 
         for (let row of listingRows) {
             let id = row.id.replace('listing_', '');
@@ -253,13 +240,9 @@ const getAllFloats = function() {
 };
 
 const sortByFloat = function() {
-    const listingRows = document.querySelectorAll(
-        '#searchResultsRows .market_listing_row.market_recent_listing_row'
-    );
+    const listingRows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
 
-    document.querySelector(
-        '#csgofloat_sort_by_float span'
-    ).textContent = `Sort by Float ${sortTypeAsc ? '▲' : '▼'}`;
+    document.querySelector('#csgofloat_sort_by_float span').textContent = `Sort by Float ${sortTypeAsc ? '▲' : '▼'}`;
 
     const items = {};
 
@@ -275,20 +258,13 @@ const sortByFloat = function() {
     const sortDesc = (a, b) => items[b].floatvalue - items[a].floatvalue;
 
     // Only items that have floats fetched
-    const sortedItems = Object.keys(items).sort(
-        sortTypeAsc ? sortAsc : sortDesc
-    );
+    const sortedItems = Object.keys(items).sort(sortTypeAsc ? sortAsc : sortDesc);
 
-    let lastItem = document.querySelector(
-        '#searchResultsRows .market_listing_table_header'
-    );
+    let lastItem = document.querySelector('#searchResultsRows .market_listing_table_header');
 
     for (const itemId of sortedItems) {
         const itemElement = document.querySelector(`#listing_${itemId}`);
-        const newElem = itemElement.parentNode.insertBefore(
-            itemElement,
-            lastItem.nextSibling
-        );
+        const newElem = itemElement.parentNode.insertBefore(itemElement, lastItem.nextSibling);
         lastItem = newElem;
     }
 
@@ -297,9 +273,7 @@ const sortByFloat = function() {
 
 const getSavedPageSize = function() {
     return new Promise((resolve, reject) => {
-        const storageType = chrome.storage.sync
-            ? chrome.storage.sync
-            : chrome.storage.local;
+        const storageType = chrome.storage.sync ? chrome.storage.sync : chrome.storage.local;
 
         storageType.get(['pageSize'], size => {
             resolve(size && size.pageSize);
@@ -308,9 +282,7 @@ const getSavedPageSize = function() {
 };
 
 const savePageSize = function(size) {
-    const storageType = chrome.storage.sync
-        ? chrome.storage.sync
-        : chrome.storage.local;
+    const storageType = chrome.storage.sync ? chrome.storage.sync : chrome.storage.local;
     storageType.set({ pageSize: size });
 };
 
@@ -389,9 +361,7 @@ const addFloatUtilities = async function() {
     // Add filter div
     filters.addFilterUI(parentDiv);
 
-    document
-        .querySelector('#searchResultsTable')
-        .insertBefore(parentDiv, document.querySelector('#searchResultsRows'));
+    document.querySelector('#searchResultsTable').insertBefore(parentDiv, document.querySelector('#searchResultsRows'));
 };
 
 const removeInventoryButtons = function(parent) {
@@ -406,9 +376,7 @@ const addInventoryFloat = async function(boxContent) {
     removeInventoryButtons(boxContent);
 
     // Get the inspect link
-    const inspectButton = boxContent.querySelector(
-        'div.item_actions a.btn_small'
-    );
+    const inspectButton = boxContent.querySelector('div.item_actions a.btn_small');
 
     if (!inspectButton || !extractInspectAssetId(inspectButton.href)) {
         return;
@@ -427,9 +395,7 @@ const addInventoryFloat = async function(boxContent) {
     if (
         !description ||
         !description.tags.find(
-            a =>
-                a.category === 'Weapon' ||
-                (a.category === 'Type' && a.internal_name === 'Type_Hands')
+            a => a.category === 'Weapon' || (a.category === 'Type' && a.internal_name === 'Type_Hands')
         )
     ) {
         return;
@@ -464,9 +430,7 @@ const addInventoryFloat = async function(boxContent) {
 // If an item on the current page doesn't have the float div/buttons, this function adds it
 const addMarketButtons = async function() {
     // Iterate through each item on the page
-    let listingRows = document.querySelectorAll(
-        '#searchResultsRows .market_listing_row.market_recent_listing_row'
-    );
+    let listingRows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
 
     for (let row of listingRows) {
         let id = row.id.replace('listing_', '');
@@ -515,16 +479,10 @@ const addMarketButtons = async function() {
         const steamListingAssets = await retrieveListingAssets(assetID);
 
         const asset = steamListingAssets[assetID];
-        const lastDescription =
-            asset.descriptions[asset.descriptions.length - 1];
-        if (
-            lastDescription.type === 'html' &&
-            lastDescription.value.includes('sticker')
-        ) {
+        const lastDescription = asset.descriptions[asset.descriptions.length - 1];
+        if (lastDescription.type === 'html' && lastDescription.value.includes('sticker')) {
             const imagesHtml = lastDescription.value.match(/(<img .*?>)/g);
-            const stickerNames = lastDescription.value
-                .match(/Sticker: (.*?)</)[1]
-                .split(', ');
+            const stickerNames = lastDescription.value.match(/Sticker: (.*?)</)[1].split(', ');
 
             // Adds href link to sticker
             let resHtml = '';
@@ -540,9 +498,7 @@ const addMarketButtons = async function() {
             const imgContainer = document.createElement('div');
             imgContainer.classList.add('float-stickers-container');
             imgContainer.innerHTML = resHtml;
-            const itemNameBlock = row.querySelector(
-                '.market_listing_item_name_block'
-            );
+            const itemNameBlock = row.querySelector('.market_listing_item_name_block');
             itemNameBlock.insertBefore(imgContainer, itemNameBlock.firstChild);
         }
 
@@ -642,12 +598,8 @@ if (isInventoryPage()) {
     const action0 = document.querySelector('#iteminfo0_item_actions');
     const action1 = document.querySelector('#iteminfo1_item_actions');
 
-    TargetMutationObserver(action0, t =>
-        addInventoryFloat(t.parentElement.parentElement)
-    );
-    TargetMutationObserver(action1, t =>
-        addInventoryFloat(t.parentElement.parentElement)
-    );
+    TargetMutationObserver(action0, t => addInventoryFloat(t.parentElement.parentElement));
+    TargetMutationObserver(action1, t => addInventoryFloat(t.parentElement.parentElement));
 } else {
     floatTimer = setInterval(() => {
         addMarketButtons();
@@ -657,7 +609,4 @@ if (isInventoryPage()) {
 const logStyle = 'background: #222; color: #fff;';
 
 console.log(`%c CSGOFloat Market Checker (v${version}) by Step7750 `, logStyle);
-console.log(
-    '%c Changelog can be found here: https://github.com/Step7750/CSGOFloat-Extension ',
-    logStyle
-);
+console.log('%c Changelog can be found here: https://github.com/Step7750/CSGOFloat-Extension ', logStyle);
