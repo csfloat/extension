@@ -526,10 +526,11 @@ const addMarketButtons = function() {
                         }">${imagesHtml[i]}</a>`;
                     }
 
-                    const imgContainers = document.createElement('div');
-                    imgContainers.classList.add('stickers-container');
-                    imgContainers.innerHTML = resHtml;
-                    row.appendChild(imgContainers);
+                    const imgContainer = document.createElement('div');
+                    imgContainer.classList.add('float-stickers-container');
+                    imgContainer.innerHTML = resHtml;
+                    const itemNameBlock = row.querySelector('.market_listing_item_name_block');
+                    itemNameBlock.insertBefore(imgContainer, itemNameBlock.firstChild);
                 }
             });
         });
