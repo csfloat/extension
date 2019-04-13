@@ -57,6 +57,10 @@ input[type='color']::-webkit-color-swatch {
     font-family: 'Motiva Sans', sans-serif;
 }
 
+.float-stickers-container {
+    float: right;
+}
+
 .float-div {
     display: inline;
     text-align: left;

@@ -2,6 +2,8 @@ let floatData = {};
 let floatTimer;
 let steamListingInfo = {};
 let listingInfoPromises = [];
+let steamListingAssets = {};
+let listingAssetPromises = [];
 let inventoryItemRequests = [];
 let sortTypeAsc = true;
 let filters = new Filters();
@@ -111,6 +113,9 @@ window.addEventListener('message', e => {
         }
 
         inventoryItemRequests = unfulfilledRequests;
+    } else if (e.data.type === 'listingAssets') {
+        steamListingAssets = e.data.assets[730][2];
+        for (let promise of listingAssetPromises) promise(steamListingAssets);
     }
 });
 
@@ -128,6 +133,23 @@ const retrieveListingInfoFromPage = function(listingId) {
 
     return new Promise(resolve => {
         listingInfoPromises.push(resolve);
+    });
+};
+
+const retrieveListingAssets = function(assetId) {
+    if (assetId != null && assetId in steamListingAssets) {
+        return Promise.resolve(steamListingAssets);
+    }
+
+    window.postMessage(
+        {
+            type: 'requestAssets'
+        },
+        '*'
+    );
+
+    return new Promise(resolve => {
+        listingAssetPromises.push(resolve);
     });
 };
 
@@ -475,6 +497,43 @@ const addMarketButtons = function() {
         if (id in floatData) {
             showFloat(id);
         }
+
+        retrieveListingInfoFromPage(id).then(steamListingData => {
+            let listingData = steamListingData[id];
+            if (!listingData) return;
+
+            let assetID = listingData.asset.id;
+            retrieveListingAssets(assetID).then(steamListingAssets => {
+                const asset = steamListingAssets[assetID];
+                const lastDescription =
+                    asset.descriptions[asset.descriptions.length - 1];
+                if (
+                    lastDescription.type === 'html' &&
+                    lastDescription.value.includes('sticker')
+                ) {
+                    const imagesHtml = lastDescription.value.match(
+                        /(<img .*?>)/g
+                    );
+                    const stickerNames = lastDescription.value
+                        .match(/Sticker: (.*?)</)[1]
+                        .split(', ');
+
+                    // Adds href link to sticker
+                    let resHtml = '';
+                    for (let i = 0; i < stickerNames.length; i++) {
+                        resHtml += `<a target="_blank" href="https://steamcommunity.com/market/listings/730/Sticker | ${
+                            stickerNames[i]
+                        }">${imagesHtml[i]}</a>`;
+                    }
+
+                    const imgContainer = document.createElement('div');
+                    imgContainer.classList.add('float-stickers-container');
+                    imgContainer.innerHTML = resHtml;
+                    const itemNameBlock = row.querySelector('.market_listing_item_name_block');
+                    itemNameBlock.insertBefore(imgContainer, itemNameBlock.firstChild);
+                }
+            });
+        });
     }
 
     // Add float utilities if it doesn't exist and we have valid items
@@ -491,6 +550,11 @@ script.innerText = `
             window.postMessage({
                 type: 'listingInfo',
                 listingInfo: g_rgListingInfo
+            }, '*');
+        } else if (e.data.type == 'requestAssets') {
+            window.postMessage({
+                type: 'listingAssets',
+                assets: g_rgAssets
             }, '*');
         } else if (e.data.type == 'requestInventoryItemDescription') {
             const asset = g_ActiveInventory.m_rgAssets[e.data.assetId];
