@@ -511,24 +511,24 @@ const addMarketButtons = function() {
                     lastDescription.type === 'html' &&
                     lastDescription.value.includes('sticker')
                 ) {
-                    const imgs = lastDescription.value.match(/(<img .*?>)/g);
+                    const imagesHtml = lastDescription.value.match(
+                        /(<img .*?>)/g
+                    );
                     const stickerNames = lastDescription.value
                         .match(/Sticker: (.*?)</)[1]
                         .split(', ');
 
                     // Adds href link to sticker
-                    let html = '';
+                    let resHtml = '';
                     for (let i = 0; i < stickerNames.length; i++) {
-                        const link =
-                            '<a target="_blank" href="https://steamcommunity.com/market/listings/730/Sticker | ' +
-                            stickerNames[i] +
-                            '">';
-                        html += link + imgs[i] + '</a>';
+                        resHtml += `<a target="_blank" href="https://steamcommunity.com/market/listings/730/Sticker | ${
+                            stickerNames[i]
+                        }">${imagesHtml[i]}</a>`;
                     }
 
                     const imgContainers = document.createElement('div');
                     imgContainers.classList.add('stickers-container');
-                    imgContainers.innerHTML = html;
+                    imgContainers.innerHTML = resHtml;
                     row.appendChild(imgContainers);
                 }
             });
