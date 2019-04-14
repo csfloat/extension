@@ -212,7 +212,8 @@ const showFloat = function(listingId) {
             minfloat: itemInfo.min,
             maxfloat: itemInfo.max,
             minwearfloat: wearRange[0],
-            maxwearfloat: wearRange[1]
+            maxwearfloat: wearRange[1],
+            phase: (getDopplerPhase(itemInfo.paintindex) || '').replace('Phase', '').trim()
         };
 
         // Check to see if there is a filter match
