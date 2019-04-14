@@ -464,7 +464,7 @@ const addInventoryFloat = async function(boxContent) {
     const gameInfo = boxContent.querySelector('.item_desc_game_info');
     gameInfo.parentElement.insertBefore(floatDiv, gameInfo.nextSibling);
 
-    const getFloatButton = createButton('Fetching...', 'green');
+    const getFloatButton = createButton('Fetching...', 'green', 'getFloatBtn');
     getFloatButton.inspectLink = inspectLink;
     floatDiv.appendChild(getFloatButton);
 
