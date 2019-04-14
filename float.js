@@ -58,7 +58,7 @@ class Queue {
                 return;
             }
 
-            const buttonText = floatDiv.querySelector('span');
+            const buttonText = floatDiv.querySelector('#getFloatBtn span');
             if (buttonText) buttonText.innerText = 'Fetching';
 
             chrome.runtime.sendMessage({ inspectLink: job.link }, data => {
@@ -171,7 +171,7 @@ const showFloat = function(listingId) {
 
     for (const floatDiv of floatDivs) {
         // Remove the "get float" button
-        let floatButton = floatDiv.querySelector('.float-btn');
+        let floatButton = floatDiv.querySelector('#getFloatBtn');
         if (floatButton) floatDiv.removeChild(floatButton);
 
         // Remove message div
@@ -229,6 +229,11 @@ const getAllFloats = function() {
         let listingRows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
 
         for (let row of listingRows) {
+            // Check if we already fetched the float
+            if (row.querySelector('.itemfloat').innerText.length > 0) {
+                continue;
+            }
+
             let id = row.id.replace('listing_', '');
 
             let listingData = steamListingData[id];
@@ -506,7 +511,7 @@ const addMarketButtons = async function() {
             floatDiv.appendChild(div);
         }
 
-        let getFloatButton = createButton('Get Float', 'green');
+        let getFloatButton = createButton('Get Float', 'green', 'getFloatBtn');
         getFloatButton.addEventListener('click', () => {
             retrieveListingInfoFromPage(id).then(steamListingData => {
                 let listingData = steamListingData[id];
@@ -598,6 +603,9 @@ const addMarketButtons = async function() {
     if (!document.querySelector('#floatUtilities') && listingRows.length > 0) {
         addFloatUtilities();
     }
+
+    // Automatically retrieve all floats
+    getAllFloats();
 };
 
 // register the message listener in the page scope
