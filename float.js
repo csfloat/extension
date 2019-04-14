@@ -184,7 +184,10 @@ const showFloat = function(listingId) {
 
         // Add the paint seed
         let seedDiv = floatDiv.querySelector('.itemseed');
-        if (seedDiv) seedDiv.innerText = `Paint Seed: ${itemInfo.paintseed}`;
+        if (seedDiv) {
+            seedDiv.innerText = `Paint Seed: ${itemInfo.paintseed}`;
+            seedDiv.style.marginBottom = '10px';
+        }
 
         // Set the wear value for each sticker
         for (let stickerIndex = 0; stickerIndex < itemInfo.stickers.length; stickerIndex++) {
@@ -286,6 +289,19 @@ const savePageSize = function(size) {
     storageType.set({ pageSize: size });
 };
 
+const getPageMarketHashName = async function () {
+    const assets = await retrieveListingAssets();
+    const defaultName = document.querySelector('.market_listing_item_name').innerText;
+
+    try {
+        // Attempts to retrieve the english market hash name regardless of the page language
+        const assetId = Object.keys(assets)[0];
+        return assets[assetId]['market_hash_name'];
+    } catch (e) {
+        return defaultName;
+    }
+};
+
 // Adds float utilities
 const addFloatUtilities = async function() {
     let parentDiv = document.createElement('div');
@@ -362,6 +378,41 @@ const addFloatUtilities = async function() {
     filters.addFilterUI(parentDiv);
 
     document.querySelector('#searchResultsTable').insertBefore(parentDiv, document.querySelector('#searchResultsRows'));
+
+    // Add CS.Money prices
+    const csmoneyDiv = document.createElement('div');
+    csmoneyDiv.id = 'floatMoney';
+
+    const moneyButton = document.createElement('a');
+    const moneyLogo = document.createElement('img');
+    moneyLogo.src = 'https://cs.money/images/logo_icons/logo.svg';
+    moneyLogo.height = 30;
+
+    let text = document.createElement('span');
+    text.innerText = ' Buy for $X.XX, Trade for $X.XX';
+    text.style.verticalAlign = 'bottom';
+    moneyButton.appendChild(moneyLogo);
+    moneyButton.appendChild(text);
+    moneyButton.classList.add('float-money-button');
+    csmoneyDiv.appendChild(moneyButton);
+
+
+    const itemName = await getPageMarketHashName();
+    moneyButton.href = `https://cs.money?s=float#skin_name_buy=${itemName}`;
+    moneyButton.target = '_blank';
+
+    // Fetch the current price on CS.Money
+    chrome.runtime.sendMessage({ name: itemName, price: true }, data => {
+        if (data.trade && data.buy) {
+            text.innerText = ` Buy for $${data.buy.toFixed(2)}, Trade for $${data.trade.toFixed(2)}`;
+        } else {
+            text.innerText = ` Buy and Trade`;
+        }
+    });
+
+    document
+        .querySelector('#searchResultsTable')
+        .insertBefore(csmoneyDiv, document.querySelector('#searchResultsRows'));
 };
 
 const removeInventoryButtons = function(parent) {
@@ -446,6 +497,15 @@ const addMarketButtons = async function() {
         floatDiv.id = `item_${id}_floatdiv`;
         listingNameElement.parentElement.appendChild(floatDiv);
 
+        // Create divs the following class names and append them to the button div
+        let divClassNames = ['floatmessage', 'itemfloat', 'itemseed'];
+
+        for (let className of divClassNames) {
+            let div = document.createElement('div');
+            div.classList.add(className);
+            floatDiv.appendChild(div);
+        }
+
         let getFloatButton = createButton('Get Float', 'green');
         getFloatButton.addEventListener('click', () => {
             retrieveListingInfoFromPage(id).then(steamListingData => {
@@ -460,16 +520,42 @@ const addMarketButtons = async function() {
                 queue.addJob(inspectLink, id);
             });
         });
+        getFloatButton.style.marginRight = '10px';
         floatDiv.appendChild(getFloatButton);
 
-        // Create divs the following class names and append them to the button div
-        let divClassNames = ['floatmessage', 'itemfloat', 'itemseed'];
+        let fetchingModel = false;
+        const modelButton = createButton('CS.Money 3D', 'green');
+        modelButton.addEventListener('click', async () => {
+            if (fetchingModel) return;
 
-        for (let className of divClassNames) {
-            let div = document.createElement('div');
-            div.classList.add(className);
-            floatDiv.appendChild(div);
-        }
+            fetchingModel = true; // prevent from repeatedly clicking the button
+            modelButton.querySelector('span').innerText = 'Fetching 3D Model...';
+
+            const steamListingData = await retrieveListingInfoFromPage(id);
+            let listingData = steamListingData[id];
+
+            if (!listingData) return;
+
+            let inspectLink = listingData.asset.market_actions[0].link
+                .replace('%listingid%', id)
+                .replace('%assetid%', listingData.asset.id);
+
+            chrome.runtime.sendMessage({ inspectLink, model: true }, data => {
+                if (data.modelLink) {
+                    const iframe = document.createElement('iframe');
+                    iframe.src =
+                        chrome.runtime.getURL('model_frame.html') + '?url=' + encodeURIComponent(data.modelLink);
+                    iframe.classList.add('float-model-frame');
+                    floatDiv.parentNode.parentNode.appendChild(iframe);
+                    floatDiv.removeChild(modelButton);
+                } else if (data.error) {
+                    alert(data.error);
+                    modelButton.querySelector('span').innerText = 'CS.Money 3D';
+                    fetchingModel = false;
+                }
+            });
+        });
+        floatDiv.appendChild(modelButton);
 
         const steamListingData = await retrieveListingInfoFromPage(id);
         const listingData = steamListingData[id];
