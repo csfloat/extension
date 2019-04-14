@@ -286,6 +286,19 @@ const savePageSize = function(size) {
     storageType.set({ pageSize: size });
 };
 
+const getPageMarketHashName = async function () {
+    const assets = await retrieveListingAssets();
+    const defaultName = document.querySelector('.market_listing_item_name').innerText;
+
+    try {
+        // Attempts to retrieve the english market hash name regardless of the page language
+        const assetId = Object.keys(assets)[0];
+        return assets[assetId]['market_hash_name'];
+    } catch (e) {
+        return defaultName;
+    }
+};
+
 // Adds float utilities
 const addFloatUtilities = async function() {
     let parentDiv = document.createElement('div');
@@ -380,12 +393,12 @@ const addFloatUtilities = async function() {
     moneyButton.classList.add('float-money-button');
     csmoneyDiv.appendChild(moneyButton);
 
-    const itemName = document.querySelector('.market_listing_item_name').innerText;
+
+    const itemName = await getPageMarketHashName();
     moneyButton.href = `https://cs.money?s=float#skin_name_buy=${itemName}`;
     moneyButton.target = '_blank';
 
     // Fetch the current price on CS.Money
-    // TODO: Support for pages with non-english item names
     chrome.runtime.sendMessage({ name: itemName, price: true }, data => {
         console.log(data);
         if (data.trade && data.buy) {
