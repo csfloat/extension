@@ -230,7 +230,8 @@ const getAllFloats = function() {
 
         for (let row of listingRows) {
             // Check if we already fetched the float
-            if (row.querySelector('.itemfloat').innerText.length > 0) {
+            const itemFloat = row.querySelector('.itemfloat');
+            if (itemFloat && itemFloat.innerText.length > 0) {
                 continue;
             }
 
