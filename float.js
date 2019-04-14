@@ -58,7 +58,7 @@ class Queue {
                 return;
             }
 
-            const buttonText = floatDiv.querySelector('span');
+            const buttonText = floatDiv.querySelector('#getFloatBtn span');
             if (buttonText) buttonText.innerText = 'Fetching';
 
             chrome.runtime.sendMessage({ inspectLink: job.link }, data => {
@@ -171,7 +171,7 @@ const showFloat = function(listingId) {
 
     for (const floatDiv of floatDivs) {
         // Remove the "get float" button
-        let floatButton = floatDiv.querySelector('.float-btn');
+        let floatButton = floatDiv.querySelector('#getFloatBtn');
         if (floatButton) floatDiv.removeChild(floatButton);
 
         // Remove message div
@@ -229,6 +229,11 @@ const getAllFloats = function() {
         let listingRows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
 
         for (let row of listingRows) {
+            // Check if we already fetched the float
+            if (row.querySelector('.itemfloat').innerText.length > 0) {
+                continue;
+            }
+
             let id = row.id.replace('listing_', '');
 
             let listingData = steamListingData[id];
@@ -307,14 +312,8 @@ const addFloatUtilities = async function() {
     let parentDiv = document.createElement('div');
     parentDiv.id = 'floatUtilities';
 
-    // Add get all floats button
-    let allFloatButton = createButton('Get All Floats', 'green');
-    allFloatButton.addEventListener('click', getAllFloats);
-    parentDiv.appendChild(allFloatButton);
-
     let sortByFloatsButton = createButton('Sort by Float', 'green');
     sortByFloatsButton.id = 'csgofloat_sort_by_float';
-    sortByFloatsButton.style.marginLeft = '10px';
     sortByFloatsButton.addEventListener('click', sortByFloat);
     parentDiv.appendChild(sortByFloatsButton);
 
@@ -459,7 +458,7 @@ const addInventoryFloat = async function(boxContent) {
     const gameInfo = boxContent.querySelector('.item_desc_game_info');
     gameInfo.parentElement.insertBefore(floatDiv, gameInfo.nextSibling);
 
-    const getFloatButton = createButton('Fetching...', 'green');
+    const getFloatButton = createButton('Fetching...', 'green', 'getFloatBtn');
     getFloatButton.inspectLink = inspectLink;
     floatDiv.appendChild(getFloatButton);
 
@@ -506,7 +505,7 @@ const addMarketButtons = async function() {
             floatDiv.appendChild(div);
         }
 
-        let getFloatButton = createButton('Get Float', 'green');
+        let getFloatButton = createButton('Get Float', 'green', 'getFloatBtn');
         getFloatButton.addEventListener('click', () => {
             retrieveListingInfoFromPage(id).then(steamListingData => {
                 let listingData = steamListingData[id];
@@ -598,6 +597,9 @@ const addMarketButtons = async function() {
     if (!document.querySelector('#floatUtilities') && listingRows.length > 0) {
         addFloatUtilities();
     }
+
+    // Automatically retrieve all floats
+    getAllFloats();
 };
 
 // register the message listener in the page scope
