@@ -312,14 +312,8 @@ const addFloatUtilities = async function() {
     let parentDiv = document.createElement('div');
     parentDiv.id = 'floatUtilities';
 
-    // Add get all floats button
-    let allFloatButton = createButton('Get All Floats', 'green');
-    allFloatButton.addEventListener('click', getAllFloats);
-    parentDiv.appendChild(allFloatButton);
-
     let sortByFloatsButton = createButton('Sort by Float', 'green');
     sortByFloatsButton.id = 'csgofloat_sort_by_float';
-    sortByFloatsButton.style.marginLeft = '10px';
     sortByFloatsButton.addEventListener('click', sortByFloat);
     parentDiv.appendChild(sortByFloatsButton);
 
