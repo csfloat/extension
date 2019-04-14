@@ -184,7 +184,10 @@ const showFloat = function(listingId) {
 
         // Add the paint seed
         let seedDiv = floatDiv.querySelector('.itemseed');
-        if (seedDiv) seedDiv.innerText = `Paint Seed: ${itemInfo.paintseed}`;
+        if (seedDiv) {
+            seedDiv.innerText = `Paint Seed: ${itemInfo.paintseed}`;
+            seedDiv.style.marginBottom = '10px';
+        }
 
         // Set the wear value for each sticker
         for (let stickerIndex = 0; stickerIndex < itemInfo.stickers.length; stickerIndex++) {
@@ -495,6 +498,15 @@ const addMarketButtons = async function() {
         floatDiv.id = `item_${id}_floatdiv`;
         listingNameElement.parentElement.appendChild(floatDiv);
 
+        // Create divs the following class names and append them to the button div
+        let divClassNames = ['floatmessage', 'itemfloat', 'itemseed'];
+
+        for (let className of divClassNames) {
+            let div = document.createElement('div');
+            div.classList.add(className);
+            floatDiv.appendChild(div);
+        }
+
         let getFloatButton = createButton('Get Float', 'green');
         getFloatButton.addEventListener('click', () => {
             retrieveListingInfoFromPage(id).then(steamListingData => {
@@ -545,15 +557,6 @@ const addMarketButtons = async function() {
             });
         });
         floatDiv.appendChild(modelButton);
-
-        // Create divs the following class names and append them to the button div
-        let divClassNames = ['floatmessage', 'itemfloat', 'itemseed'];
-
-        for (let className of divClassNames) {
-            let div = document.createElement('div');
-            div.classList.add(className);
-            floatDiv.appendChild(div);
-        }
 
         const steamListingData = await retrieveListingInfoFromPage(id);
         const listingData = steamListingData[id];

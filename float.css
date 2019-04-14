@@ -84,6 +84,7 @@ input[type='color']::-webkit-color-swatch {
 .float-div {
     display: block;
     text-align: left;
+    margin-bottom: 5px;
 }
 
 .float-model-frame {
