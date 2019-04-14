@@ -403,7 +403,6 @@ const addFloatUtilities = async function() {
 
     // Fetch the current price on CS.Money
     chrome.runtime.sendMessage({ name: itemName, price: true }, data => {
-        console.log(data);
         if (data.trade && data.buy) {
             text.innerText = ` Buy for $${data.buy.toFixed(2)}, Trade for $${data.trade.toFixed(2)}`;
         } else {
