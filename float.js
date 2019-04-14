@@ -185,7 +185,11 @@ const showFloat = function(listingId) {
         // Add the paint seed
         let seedDiv = floatDiv.querySelector('.itemseed');
         if (seedDiv) {
-            seedDiv.innerText = `Paint Seed: ${itemInfo.paintseed}`;
+            let seedText = `Paint Seed: ${itemInfo.paintseed}`;
+            if (hasDopplerPhase(itemInfo.paintindex)) {
+                seedText += ` (${getDopplerPhase(itemInfo.paintindex)})`;
+            }
+            seedDiv.innerText = seedText;
             seedDiv.style.marginBottom = '10px';
         }
 
