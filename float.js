@@ -528,6 +528,13 @@ const addMarketButtons = async function() {
         modelButton.addEventListener('click', async () => {
             if (fetchingModel) return;
 
+            // Makes iframe togglable
+            const existingFrame = floatDiv.parentNode.parentNode.querySelector('.float-model-frame');
+            if (existingFrame) {
+                existingFrame.parentNode.removeChild(existingFrame);
+                return;
+            }
+
             fetchingModel = true; // prevent from repeatedly clicking the button
             modelButton.querySelector('span').innerText = 'Fetching 3D Model...';
 
@@ -541,17 +548,17 @@ const addMarketButtons = async function() {
                 .replace('%assetid%', listingData.asset.id);
 
             chrome.runtime.sendMessage({ inspectLink, model: true }, data => {
+                fetchingModel = false;
+                modelButton.querySelector('span').innerText = 'CS.Money 3D';
+
                 if (data.modelLink) {
                     const iframe = document.createElement('iframe');
                     iframe.src =
                         chrome.runtime.getURL('model_frame.html') + '?url=' + encodeURIComponent(data.modelLink);
                     iframe.classList.add('float-model-frame');
                     floatDiv.parentNode.parentNode.appendChild(iframe);
-                    floatDiv.removeChild(modelButton);
                 } else if (data.error) {
                     alert(data.error);
-                    modelButton.querySelector('span').innerText = 'CS.Money 3D';
-                    fetchingModel = false;
                 }
             });
         });
