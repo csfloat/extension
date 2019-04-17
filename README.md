@@ -40,55 +40,66 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
-v1.0.0
-* Initial release
+v2.0.0
 
-v1.0.1
-* Implemented support for requesting all floats on the given page
+* Adds integrated screenshot and 3D models for market skins, powered by cs.money
+* Automatically fetches market floats on page load
+* Fetches float and paint seed for inventory skins
+* Shows market skin stickers and their wear
+* Shows doppler phase if applicable
+* Restricts properties saved in global filters to save space
+* Fixes filters using the "X in (Y, Z)" notation
+* Allows filtering on doppler phase
 
-v1.0.2
-* Added "Fetching" status to the "Get Float" button when that item is being processed
-* Cleaned up the code w/ better commenting
+v1.3.2
 
-v1.1
-* Rewrite of the extension to allow greater flexibility in the future
+* Fixes float value sorting on pages where the user has items listed
 
-v1.1.1
-* Fixes Slow Item Info Retrieval Handling
+v1.3.1
 
-v1.1.2
-* Implements proper sanitization of injected HTML during float retrieval
-
-v1.1.3
-* Fixes 'Unknown Error' on Firefox
-
-v1.1.4
-* Updates API Endpoint Port
-* Fixes float selector when the user has items on sale (thanks @z32nissan)
-
-v1.2.0
-
-* Adds simultaneous request functionality (up to 10)
-* Adds Filtrex user-defined filters with highlight colours
-
-v1.2.1
-
-* Adds user-definable page size (up to 100)
-* Page size is stored in sync storage
-
-v1.2.2
-
-* Fixes deletion of filter keys without any filters (applicable if you've put filters on 512 items)
+* Implements sorting listings by float value
 
 v1.3.0
 
 * Implements global filters: filters can now be toggled to apply to all skins
 * Implements percentile and percentileRange filter functions
 
-v1.3.1
+v1.2.2
 
-* Implements sorting listings by float value
+* Fixes deletion of filter keys without any filters (applicable if you've put filters on 512 items)
 
-v1.3.2
+v1.2.1
 
-* Fixes float value sorting on pages where the user has items listed
+* Adds user-definable page size (up to 100)
+* Page size is stored in sync storage
+
+v1.2.0
+
+* Adds simultaneous request functionality (up to 10)
+* Adds Filtrex user-defined filters with highlight colours
+
+v1.1.4
+* Updates API Endpoint Port
+* Fixes float selector when the user has items on sale (thanks @z32nissan)
+
+v1.1.3
+* Fixes 'Unknown Error' on Firefox
+
+v1.1.2
+* Implements proper sanitization of injected HTML during float retrieval
+
+v1.1.1
+* Fixes Slow Item Info Retrieval Handling
+
+v1.1
+* Rewrite of the extension to allow greater flexibility in the future
+
+v1.0.2
+* Added "Fetching" status to the "Get Float" button when that item is being processed
+* Cleaned up the code w/ better commenting
+
+v1.0.1
+* Implemented support for requesting all floats on the given page
+
+v1.0.0
+* Initial release
