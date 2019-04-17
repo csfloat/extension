@@ -391,13 +391,27 @@ const addFloatUtilities = async function() {
     const moneyButton = document.createElement('a');
     const moneyLogo = document.createElement('img');
     moneyLogo.src = 'https://cs.money/images/logo_icons/logo.svg';
-    moneyLogo.height = 30;
+    moneyLogo.height = 32;
 
-    let text = document.createElement('span');
-    text.innerText = ' Buy for $X.XX, Trade for $X.XX';
-    text.style.verticalAlign = 'bottom';
+    const staticText = document.createElement('span');
+    staticText.innerText = 'Get this skin on ';
+    staticText.style.verticalAlign = 'bottom';
+
+    const priceText = document.createElement('span');
+    const price = document.createElement('span');
+    price.innerText = '$X.XX';
+    price.style.fontWeight = 'bold';
+    price.style.verticalAlign = 'bottom';
+
+    priceText.appendChild(price);
+    priceText.insertAdjacentText('afterbegin', ' for ');
+    priceText.insertAdjacentText('beforeend', ' USD');
+
+    priceText.style.verticalAlign = 'bottom';
+
+    moneyButton.appendChild(staticText);
     moneyButton.appendChild(moneyLogo);
-    moneyButton.appendChild(text);
+    moneyButton.appendChild(priceText);
     moneyButton.classList.add('float-money-button');
     csmoneyDiv.appendChild(moneyButton);
 
@@ -409,9 +423,13 @@ const addFloatUtilities = async function() {
     // Fetch the current price on CS.Money
     chrome.runtime.sendMessage({ name: itemName, price: true }, data => {
         if (data.trade && data.buy) {
-            text.innerText = ` Buy for $${data.buy.toFixed(2)}, Trade for $${data.trade.toFixed(2)}`;
+            price.innerText = `$${data.buy.toFixed(2)}`;
         } else {
-            text.innerText = ` Buy and Trade`;
+            priceText.innerText = '';
+        }
+
+        if (data.link) {
+            moneyButton.href = data.link;
         }
     });
 
@@ -530,6 +548,7 @@ const addMarketButtons = async function() {
 
         let fetchingModel = false;
         const modelButton = createButton('CS.Money 3D', 'green');
+        modelButton.style.marginRight = '10px';
         modelButton.addEventListener('click', async () => {
             if (fetchingModel) return;
 
@@ -538,6 +557,12 @@ const addMarketButtons = async function() {
             if (existingFrame) {
                 existingFrame.parentNode.removeChild(existingFrame);
                 return;
+            }
+
+            // If screenshot open, remove it
+            const existingScreenshot = floatDiv.parentNode.parentNode.querySelector('.float-screenshot-frame');
+            if (existingScreenshot) {
+                existingScreenshot.parentNode.removeChild(existingScreenshot);
             }
 
             fetchingModel = true; // prevent from repeatedly clicking the button
@@ -552,7 +577,12 @@ const addMarketButtons = async function() {
                 .replace('%listingid%', id)
                 .replace('%assetid%', listingData.asset.id);
 
+            const hangOn = setTimeout(() => {
+                modelButton.querySelector('span').innerText = 'Fetching 3D Model...hang on...';
+            }, 5000);
+
             chrome.runtime.sendMessage({ inspectLink, model: true }, data => {
+                clearTimeout(hangOn);
                 fetchingModel = false;
                 modelButton.querySelector('span').innerText = 'CS.Money 3D';
 
@@ -568,6 +598,57 @@ const addMarketButtons = async function() {
             });
         });
         floatDiv.appendChild(modelButton);
+
+        let fetchingScreenshot = false;
+        const screenshotButton = createButton('Screenshot', 'green');
+        screenshotButton.addEventListener('click', async () => {
+            if (fetchingScreenshot) return;
+
+            // Makes screenshot togglable
+            const existingScreenshot = floatDiv.parentNode.parentNode.querySelector('.float-screenshot-frame');
+            if (existingScreenshot) {
+                existingScreenshot.parentNode.removeChild(existingScreenshot);
+                return;
+            }
+
+            // If 3D view is open, remove it
+            const existingFrame = floatDiv.parentNode.parentNode.querySelector('.float-model-frame');
+            if (existingFrame) {
+                existingFrame.parentNode.removeChild(existingFrame);
+            }
+
+            fetchingScreenshot = true; // prevent from repeatedly clicking the button
+            screenshotButton.querySelector('span').innerText = 'Fetching Screenshot...';
+
+            const steamListingData = await retrieveListingInfoFromPage(id);
+            const listingData = steamListingData[id];
+
+            if (!listingData) return;
+
+            const inspectLink = listingData.asset.market_actions[0].link
+                .replace('%listingid%', id)
+                .replace('%assetid%', listingData.asset.id);
+
+            const hangOn = setTimeout(() => {
+                screenshotButton.querySelector('span').innerText = 'Fetching Screenshot...hang on...';
+            }, 5000);
+
+            chrome.runtime.sendMessage({ inspectLink, model: true }, data => {
+                clearTimeout(hangOn);
+                fetchingScreenshot = false;
+                screenshotButton.querySelector('span').innerText = 'Screenshot';
+                
+                if (data.screenshotLink) {
+                    const img = document.createElement('img');
+                    img.src = data.screenshotLink;
+                    img.classList.add('float-screenshot-frame');
+                    floatDiv.parentNode.parentNode.appendChild(img);
+                } else if (data.error) {
+                    alert(data.error);
+                }
+            });
+        });
+        floatDiv.appendChild(screenshotButton);
 
         const steamListingData = await retrieveListingInfoFromPage(id);
         const listingData = steamListingData[id];

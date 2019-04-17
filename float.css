@@ -13,7 +13,7 @@
 }
 
 #floatMoney {
-    padding: 15px 10px 15px 10px;
+    padding: 12px 10px 12px 10px;
     margin-top: 10px;
     background-color: rgba(0, 0, 0, 0.2);
     text-align: center;
@@ -93,6 +93,10 @@ input[type='color']::-webkit-color-swatch {
     z-index: 999;
     border-width: 0;
     margin-top: 10px;
+}
+
+.float-screenshot-frame {
+    width: 100%;
 }
 
 .float-tooltip {
