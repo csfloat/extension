@@ -95,6 +95,10 @@ input[type='color']::-webkit-color-swatch {
     margin-top: 10px;
 }
 
+.float-screenshot-frame {
+    width: 100%;
+}
+
 .float-tooltip {
     position: relative;
     display: inline-block;

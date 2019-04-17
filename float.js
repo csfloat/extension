@@ -548,6 +548,7 @@ const addMarketButtons = async function() {
 
         let fetchingModel = false;
         const modelButton = createButton('CS.Money 3D', 'green');
+        modelButton.style.marginRight = '10px';
         modelButton.addEventListener('click', async () => {
             if (fetchingModel) return;
 
@@ -556,6 +557,12 @@ const addMarketButtons = async function() {
             if (existingFrame) {
                 existingFrame.parentNode.removeChild(existingFrame);
                 return;
+            }
+
+            // If screenshot open, remove it
+            const existingScreenshot = floatDiv.parentNode.parentNode.querySelector('.float-screenshot-frame');
+            if (existingScreenshot) {
+                existingScreenshot.parentNode.removeChild(existingScreenshot);
             }
 
             fetchingModel = true; // prevent from repeatedly clicking the button
@@ -591,6 +598,57 @@ const addMarketButtons = async function() {
             });
         });
         floatDiv.appendChild(modelButton);
+
+        let fetchingScreenshot = false;
+        const screenshotButton = createButton('Screenshot', 'green');
+        screenshotButton.addEventListener('click', async () => {
+            if (fetchingScreenshot) return;
+
+            // Makes screenshot togglable
+            const existingScreenshot = floatDiv.parentNode.parentNode.querySelector('.float-screenshot-frame');
+            if (existingScreenshot) {
+                existingScreenshot.parentNode.removeChild(existingScreenshot);
+                return;
+            }
+
+            // If 3D view is open, remove it
+            const existingFrame = floatDiv.parentNode.parentNode.querySelector('.float-model-frame');
+            if (existingFrame) {
+                existingFrame.parentNode.removeChild(existingFrame);
+            }
+
+            fetchingScreenshot = true; // prevent from repeatedly clicking the button
+            screenshotButton.querySelector('span').innerText = 'Fetching Screenshot...';
+
+            const steamListingData = await retrieveListingInfoFromPage(id);
+            const listingData = steamListingData[id];
+
+            if (!listingData) return;
+
+            const inspectLink = listingData.asset.market_actions[0].link
+                .replace('%listingid%', id)
+                .replace('%assetid%', listingData.asset.id);
+
+            const hangOn = setTimeout(() => {
+                screenshotButton.querySelector('span').innerText = 'Fetching Screenshot...hang on...';
+            }, 5000);
+
+            chrome.runtime.sendMessage({ inspectLink, model: true }, data => {
+                clearTimeout(hangOn);
+                fetchingScreenshot = false;
+                screenshotButton.querySelector('span').innerText = 'Screenshot';
+                
+                if (data.screenshotLink) {
+                    const img = document.createElement('img');
+                    img.src = data.screenshotLink;
+                    img.classList.add('float-screenshot-frame');
+                    floatDiv.parentNode.parentNode.appendChild(img);
+                } else if (data.error) {
+                    alert(data.error);
+                }
+            });
+        });
+        floatDiv.appendChild(screenshotButton);
 
         const steamListingData = await retrieveListingInfoFromPage(id);
         const listingData = steamListingData[id];
