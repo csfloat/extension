@@ -179,11 +179,11 @@ const showFloat = function(listingId) {
         if (msgdiv) floatDiv.removeChild(msgdiv);
 
         // Add the float value
-        let itemFloatDiv = floatDiv.querySelector('.itemfloat');
+        let itemFloatDiv = floatDiv.querySelector('.csgofloat-itemfloat');
         if (itemFloatDiv) itemFloatDiv.innerText = `Float: ${itemInfo.floatvalue}`;
 
         // Add the paint seed
-        let seedDiv = floatDiv.querySelector('.itemseed');
+        let seedDiv = floatDiv.querySelector('.csgofloat-itemseed');
         if (seedDiv) {
             let seedText = `Paint Seed: ${itemInfo.paintseed}`;
             if (hasDopplerPhase(itemInfo.paintindex)) {
@@ -235,7 +235,7 @@ const getAllFloats = function() {
 
         for (let row of listingRows) {
             // Check if we already fetched the float
-            const itemFloat = row.querySelector('.itemfloat');
+            const itemFloat = row.querySelector('.csgofloat-itemfloat');
             if (itemFloat && itemFloat.innerText.length > 0) {
                 continue;
             }
@@ -487,7 +487,7 @@ const addInventoryFloat = async function(boxContent) {
     floatDiv.appendChild(getFloatButton);
 
     // Create divs the following class names and append them to the button div
-    for (let className of ['floatmessage', 'itemfloat', 'itemseed']) {
+    for (let className of ['floatmessage', 'csgofloat-itemfloat', 'csgofloat-itemseed']) {
         let div = document.createElement('div');
         div.classList.add(className);
         floatDiv.appendChild(div);
@@ -521,7 +521,7 @@ const addMarketButtons = async function() {
         listingNameElement.parentElement.appendChild(floatDiv);
 
         // Create divs the following class names and append them to the button div
-        let divClassNames = ['floatmessage', 'itemfloat', 'itemseed'];
+        let divClassNames = ['floatmessage', 'csgofloat-itemfloat', 'csgofloat-itemseed'];
 
         for (let className of divClassNames) {
             let div = document.createElement('div');
