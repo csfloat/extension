@@ -40,6 +40,10 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.0.1
+
+* Fixes automatic float fetching when Steam Inventory Helper is installed
+
 v2.0.0
 
 * Adds integrated screenshot and 3D models for market skins, powered by cs.money
