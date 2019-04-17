@@ -391,13 +391,27 @@ const addFloatUtilities = async function() {
     const moneyButton = document.createElement('a');
     const moneyLogo = document.createElement('img');
     moneyLogo.src = 'https://cs.money/images/logo_icons/logo.svg';
-    moneyLogo.height = 30;
+    moneyLogo.height = 32;
 
-    let text = document.createElement('span');
-    text.innerText = ' Buy for $X.XX, Trade for $X.XX';
-    text.style.verticalAlign = 'bottom';
+    const staticText = document.createElement('span');
+    staticText.innerText = 'Get this skin on ';
+    staticText.style.verticalAlign = 'bottom';
+
+    const priceText = document.createElement('span');
+    const price = document.createElement('span');
+    price.innerText = '$X.XX';
+    price.style.fontWeight = 'bold';
+    price.style.verticalAlign = 'bottom';
+
+    priceText.appendChild(price);
+    priceText.insertAdjacentText('afterbegin', ' for ');
+    priceText.insertAdjacentText('beforeend', ' USD');
+
+    priceText.style.verticalAlign = 'bottom';
+
+    moneyButton.appendChild(staticText);
     moneyButton.appendChild(moneyLogo);
-    moneyButton.appendChild(text);
+    moneyButton.appendChild(priceText);
     moneyButton.classList.add('float-money-button');
     csmoneyDiv.appendChild(moneyButton);
 
@@ -409,9 +423,13 @@ const addFloatUtilities = async function() {
     // Fetch the current price on CS.Money
     chrome.runtime.sendMessage({ name: itemName, price: true }, data => {
         if (data.trade && data.buy) {
-            text.innerText = ` Buy for $${data.buy.toFixed(2)}, Trade for $${data.trade.toFixed(2)}`;
+            price.innerText = `$${data.buy.toFixed(2)}`;
         } else {
-            text.innerText = ` Buy and Trade`;
+            priceText.innerText = '';
+        }
+
+        if (data.link) {
+            moneyButton.href = data.link;
         }
     });
 
@@ -552,7 +570,12 @@ const addMarketButtons = async function() {
                 .replace('%listingid%', id)
                 .replace('%assetid%', listingData.asset.id);
 
+            const hangOn = setTimeout(() => {
+                modelButton.querySelector('span').innerText = 'Fetching 3D Model...hang on...';
+            }, 5000);
+
             chrome.runtime.sendMessage({ inspectLink, model: true }, data => {
+                clearTimeout(hangOn);
                 fetchingModel = false;
                 modelButton.querySelector('span').innerText = 'CS.Money 3D';
 
