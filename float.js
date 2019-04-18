@@ -661,24 +661,31 @@ const addMarketButtons = async function() {
         const lastDescription = asset.descriptions[asset.descriptions.length - 1];
         if (lastDescription.type === 'html' && lastDescription.value.includes('sticker')) {
             const imagesHtml = lastDescription.value.match(/(<img .*?>)/g);
-            const stickerNames = lastDescription.value.match(/Sticker: (.*?)</)[1].split(', ');
+            const nameMatch = lastDescription.value.match(/<br>([^<].*?): (.*)<\/center>/);
 
-            // Adds href link to sticker
-            let resHtml = '';
-            for (let i = 0; i < stickerNames.length; i++) {
-                resHtml += `<span style="display: inline-block; text-align: center;">
-                    <a target="_blank" href="https://steamcommunity.com/market/listings/730/Sticker | ${
-                        stickerNames[i]
-                    }">${imagesHtml[i]}</a>
+            if (nameMatch) {
+                const stickerLang = nameMatch[1];
+                const stickerNames = nameMatch[2].split(', ');
+
+                // Adds href link to sticker
+                let resHtml = '';
+                for (let i = 0; i < stickerNames.length; i++) {
+                    const url = stickerLang === 'Sticker' ?
+                        `https://steamcommunity.com/market/listings/730/${stickerLang} | ${stickerNames[i]}` :
+                        `https://steamcommunity.com/market/search?q=${stickerLang} | ${stickerNames[i]}`;
+
+                    resHtml += `<span style="display: inline-block; text-align: center;">
+                    <a target="_blank" href="${url}">${imagesHtml[i]}</a>
                     <span style="display: block;" id="sticker_${i}_wear"></span>
                     </span>`;
-            }
+                }
 
-            const imgContainer = document.createElement('div');
-            imgContainer.classList.add('float-stickers-container');
-            imgContainer.innerHTML = resHtml;
-            const itemNameBlock = row.querySelector('.market_listing_item_name_block');
-            itemNameBlock.insertBefore(imgContainer, itemNameBlock.firstChild);
+                const imgContainer = document.createElement('div');
+                imgContainer.classList.add('float-stickers-container');
+                imgContainer.innerHTML = resHtml;
+                const itemNameBlock = row.querySelector('.market_listing_item_name_block');
+                itemNameBlock.insertBefore(imgContainer, itemNameBlock.firstChild);
+            }
         }
 
         // check if we already have the float for this item
