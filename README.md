@@ -40,6 +40,11 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.0.2
+
+* Fixes sticker parsing on non-english pages
+* Fixes race-condition in Opera for adding the utilities panel
+
 v2.0.1
 
 * Fixes automatic float fetching when Steam Inventory Helper is installed
