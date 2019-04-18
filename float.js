@@ -6,6 +6,7 @@ let steamListingAssets = {};
 let listingAssetPromises = [];
 let inventoryItemRequests = [];
 let sortTypeAsc = true;
+let floatUtilitiesAdded = false;
 let filters = new Filters();
 
 const version = chrome.runtime.getManifest().version;
@@ -436,6 +437,8 @@ const addFloatUtilities = async function() {
     document
         .querySelector('#searchResultsTable')
         .insertBefore(csmoneyDiv, document.querySelector('#searchResultsRows'));
+
+    floatUtilitiesAdded = true;
 };
 
 const removeInventoryButtons = function(parent) {
@@ -695,7 +698,7 @@ const addMarketButtons = async function() {
     }
 
     // Add float utilities if it doesn't exist and we have valid items
-    if (!document.querySelector('#floatUtilities') && listingRows.length > 0) {
+    if (!floatUtilitiesAdded && listingRows.length > 0) {
         addFloatUtilities();
     }
 
