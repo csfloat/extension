@@ -40,6 +40,11 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.0.3
+
+* Fixes sticker image handling with stickers that have commas in the name
+* Fixes cases where the utility bar can be added multiple times
+
 v2.0.2
 
 * Fixes sticker parsing on non-english pages
