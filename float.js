@@ -437,8 +437,6 @@ const addFloatUtilities = async function() {
     document
         .querySelector('#searchResultsTable')
         .insertBefore(csmoneyDiv, document.querySelector('#searchResultsRows'));
-
-    floatUtilitiesAdded = true;
 };
 
 const removeInventoryButtons = function(parent) {
@@ -699,6 +697,7 @@ const addMarketButtons = async function() {
 
     // Add float utilities if it doesn't exist and we have valid items
     if (!floatUtilitiesAdded && listingRows.length > 0) {
+        floatUtilitiesAdded = true;
         addFloatUtilities();
     }
 
