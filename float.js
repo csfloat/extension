@@ -670,7 +670,7 @@ const addMarketButtons = async function() {
 
                 // Adds href link to sticker
                 let resHtml = '';
-                for (let i = 0; i < stickerNames.length; i++) {
+                for (let i = 0; i < imagesHtml.length; i++) {
                     const url = stickerLang === 'Sticker' ?
                         `https://steamcommunity.com/market/listings/730/${stickerLang} | ${stickerNames[i]}` :
                         `https://steamcommunity.com/market/search?q=${stickerLang} | ${stickerNames[i]}`;
