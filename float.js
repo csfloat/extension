@@ -1,5 +1,4 @@
 let floatData = {};
-let floatTimer;
 let steamListingInfo = {};
 let listingInfoPromises = [];
 let steamListingAssets = {};
@@ -31,7 +30,7 @@ class Queue {
         };
 
         // Stop if this item is already in the queue
-        if (this.queue.find((j) => j.listingId === listingId)) {
+        if (this.queue.find(j => j.listingId === listingId)) {
             return;
         }
 
@@ -246,8 +245,7 @@ const getAllFloats = function() {
         for (let row of listingRows) {
             // Check if we already fetched the float or if it is currently being fetched
             const itemFloat = row.querySelector('.csgofloat-itemfloat');
-            if (itemFloat && (itemFloat.innerText.length > 0 ||
-                row.querySelector('#getFloatBtn span').fetching)) {
+            if (itemFloat && (itemFloat.innerText.length > 0 || row.querySelector('#getFloatBtn span').fetching)) {
                 continue;
             }
 
@@ -311,7 +309,7 @@ const savePageSize = function(size) {
     storageType.set({ pageSize: size });
 };
 
-const getPageMarketHashName = async function () {
+const getPageMarketHashName = async function() {
     const assets = await retrieveListingAssets();
     const defaultName = document.querySelector('.market_listing_item_name').innerText;
 
@@ -425,7 +423,6 @@ const addFloatUtilities = async function() {
     moneyButton.appendChild(priceText);
     moneyButton.classList.add('float-money-button');
     csmoneyDiv.appendChild(moneyButton);
-
 
     const itemName = await getPageMarketHashName();
     moneyButton.href = `https://cs.money?s=float#skin_name_buy=${itemName}`;
@@ -648,7 +645,7 @@ const addMarketButtons = async function() {
                 clearTimeout(hangOn);
                 fetchingScreenshot = false;
                 screenshotButton.querySelector('span').innerText = 'Screenshot';
-                
+
                 if (data.screenshotLink) {
                     const img = document.createElement('img');
                     img.src = data.screenshotLink;
@@ -668,6 +665,8 @@ const addMarketButtons = async function() {
         const assetID = listingData.asset.id;
         const steamListingAssets = await retrieveListingAssets(assetID);
 
+        // Show inline stickers
+
         const asset = steamListingAssets[assetID];
         const lastDescription = asset.descriptions[asset.descriptions.length - 1];
         if (lastDescription.type === 'html' && lastDescription.value.includes('sticker')) {
@@ -681,9 +680,10 @@ const addMarketButtons = async function() {
                 // Adds href link to sticker
                 let resHtml = '';
                 for (let i = 0; i < imagesHtml.length; i++) {
-                    const url = stickerLang === 'Sticker' ?
-                        `https://steamcommunity.com/market/listings/730/${stickerLang} | ${stickerNames[i]}` :
-                        `https://steamcommunity.com/market/search?q=${stickerLang} | ${stickerNames[i]}`;
+                    const url =
+                        stickerLang === 'Sticker'
+                            ? `https://steamcommunity.com/market/listings/730/${stickerLang} | ${stickerNames[i]}`
+                            : `https://steamcommunity.com/market/search?q=${stickerLang} | ${stickerNames[i]}`;
 
                     resHtml += `<span style="display: inline-block; text-align: center;">
                     <a target="_blank" href="${url}">${imagesHtml[i]}</a>
@@ -697,6 +697,20 @@ const addMarketButtons = async function() {
                 const itemNameBlock = row.querySelector('.market_listing_item_name_block');
                 itemNameBlock.insertBefore(imgContainer, itemNameBlock.firstChild);
             }
+        }
+
+        // Easy inspect link (only if they don't have SIH)
+        if (!row.querySelector('.sih-inspect-magnifier')) {
+            const imageContainer = row.querySelector('.market_listing_item_img_container');
+
+            const easyLink = document.createElement('a');
+            easyLink.href = listingData.asset.market_actions[0].link
+                .replace('%listingid%', id)
+                .replace('%assetid%', listingData.asset.id);
+            easyLink.innerText = '🔍';
+            easyLink.classList.add('easy-inspect');
+
+            imageContainer.appendChild(easyLink);
         }
 
         // check if we already have the float for this item
@@ -802,7 +816,7 @@ if (isInventoryPage()) {
     TargetMutationObserver(action0, t => addInventoryFloat(t.parentElement.parentElement));
     TargetMutationObserver(action1, t => addInventoryFloat(t.parentElement.parentElement));
 } else {
-    floatTimer = setInterval(() => {
+    setInterval(() => {
         addMarketButtons();
     }, 250);
 }
