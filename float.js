@@ -30,6 +30,11 @@ class Queue {
             listingId
         };
 
+        // Stop if this item is already in the queue
+        if (this.queue.find((j) => j.listingId === listingId)) {
+            return;
+        }
+
         const promise = new Promise((resolve, reject) => {
             job.resolve = resolve;
             job.reject = reject;
@@ -60,9 +65,13 @@ class Queue {
             }
 
             const buttonText = floatDiv.querySelector('#getFloatBtn span');
-            if (buttonText) buttonText.innerText = 'Fetching';
+            if (buttonText) {
+                buttonText.fetching = true;
+                buttonText.innerText = 'Fetching';
+            }
 
             chrome.runtime.sendMessage({ inspectLink: job.link }, data => {
+                buttonText.fetching = false;
                 if (data && data.iteminfo) {
                     floatData[job.listingId] = data.iteminfo;
                     showFloat(job.listingId);
@@ -235,9 +244,10 @@ const getAllFloats = function() {
         let listingRows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
 
         for (let row of listingRows) {
-            // Check if we already fetched the float
+            // Check if we already fetched the float or if it is currently being fetched
             const itemFloat = row.querySelector('.csgofloat-itemfloat');
-            if (itemFloat && itemFloat.innerText.length > 0) {
+            if (itemFloat && (itemFloat.innerText.length > 0 ||
+                row.querySelector('#getFloatBtn span').fetching)) {
                 continue;
             }
 
