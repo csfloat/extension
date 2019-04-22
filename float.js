@@ -580,6 +580,12 @@ const addInventoryBoxes = async function() {
                 seedSpan.style.fontSize = '12px';
                 seedSpan.classList.add('csgofloat-itemseed');
 
+                // Adjust styling for users who also use steam inventory helper
+                if (item.querySelector('.p-price')) {
+                    floatSpan.style.top = '3px';
+                    floatSpan.style.bottom = '';
+                    seedSpan.style.top = '17px';
+                }
 
                 s.appendChild(floatSpan);
                 s.appendChild(seedSpan);
