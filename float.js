@@ -32,7 +32,7 @@ class Queue {
         };
 
         // Stop if this item is already in the queue
-        if (this.queue.find((j) => j.listingId === listingId)) {
+        if (this.queue.find(j => j.listingId === listingId)) {
             return;
         }
 
@@ -180,7 +180,7 @@ const retrieveInventoryItemDescription = function(assetId) {
     });
 };
 
-const retrieveInventoryOwner = function () {
+const retrieveInventoryOwner = function() {
     window.postMessage(
         {
             type: 'requestInventoryOwner'
@@ -210,7 +210,9 @@ const showFloat = function(listingId) {
         // Add the float value
         let itemFloatDiv = floatDiv.querySelector('.csgofloat-itemfloat');
         if (itemFloatDiv) {
-            itemFloatDiv.innerText = floatDiv.minimal ? itemInfo.floatvalue.toFixed(6) : `Float: ${itemInfo.floatvalue}`;
+            itemFloatDiv.innerText = floatDiv.minimal
+                ? itemInfo.floatvalue.toFixed(6)
+                : `Float: ${itemInfo.floatvalue}`;
         }
 
         // Add the paint seed
@@ -269,8 +271,7 @@ const getAllFloats = function() {
         for (let row of listingRows) {
             // Check if we already fetched the float or if it is currently being fetched
             const itemFloat = row.querySelector('.csgofloat-itemfloat');
-            if (itemFloat && (itemFloat.innerText.length > 0 ||
-                row.querySelector('#getFloatBtn span').fetching)) {
+            if (itemFloat && (itemFloat.innerText.length > 0 || row.querySelector('#getFloatBtn span').fetching)) {
                 continue;
             }
 
@@ -334,7 +335,7 @@ const savePageSize = function(size) {
     storageType.set({ pageSize: size });
 };
 
-const getPageMarketHashName = async function () {
+const getPageMarketHashName = async function() {
     const assets = await retrieveListingAssets();
     const defaultName = document.querySelector('.market_listing_item_name').innerText;
 
@@ -449,7 +450,6 @@ const addFloatUtilities = async function() {
     moneyButton.classList.add('float-money-button');
     csmoneyDiv.appendChild(moneyButton);
 
-
     const itemName = await getPageMarketHashName();
     moneyButton.href = `https://cs.money?s=float#skin_name_buy=${itemName}`;
     moneyButton.target = '_blank';
@@ -546,7 +546,7 @@ const addInventoryBoxes = async function() {
         }
 
         for (const itemHolder of page.querySelectorAll('.itemHolder')) {
-            const item = itemHolder.querySelector("div.item.app730");
+            const item = itemHolder.querySelector('div.item.app730');
             if (!item) continue;
             const assetId = item.id.split('_')[2]; // TODO: Error check?
 
@@ -559,7 +559,6 @@ const addInventoryBoxes = async function() {
             ) {
                 continue;
             }
-
 
             if (!item.querySelector(`#item_${assetId}_floatdiv`)) {
                 const s = document.createElement('span');
@@ -745,7 +744,7 @@ const addMarketButtons = async function() {
                 clearTimeout(hangOn);
                 fetchingScreenshot = false;
                 screenshotButton.querySelector('span').innerText = 'Screenshot';
-                
+
                 if (data.screenshotLink) {
                     const img = document.createElement('img');
                     img.src = data.screenshotLink;
@@ -778,9 +777,10 @@ const addMarketButtons = async function() {
                 // Adds href link to sticker
                 let resHtml = '';
                 for (let i = 0; i < imagesHtml.length; i++) {
-                    const url = stickerLang === 'Sticker' ?
-                        `https://steamcommunity.com/market/listings/730/${stickerLang} | ${stickerNames[i]}` :
-                        `https://steamcommunity.com/market/search?q=${stickerLang} | ${stickerNames[i]}`;
+                    const url =
+                        stickerLang === 'Sticker'
+                            ? `https://steamcommunity.com/market/listings/730/${stickerLang} | ${stickerNames[i]}`
+                            : `https://steamcommunity.com/market/search?q=${stickerLang} | ${stickerNames[i]}`;
 
                     resHtml += `<span style="display: inline-block; text-align: center;">
                     <a target="_blank" href="${url}">${imagesHtml[i]}</a>
