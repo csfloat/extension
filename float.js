@@ -4,6 +4,7 @@ let listingInfoPromises = [];
 let steamListingAssets = {};
 let listingAssetPromises = [];
 let inventoryItemRequests = [];
+let inventoryOwnerRequests = [];
 let sortTypeAsc = true;
 let floatUtilitiesAdded = false;
 let filters = new Filters();
@@ -56,8 +57,8 @@ class Queue {
 
             const floatDiv = document.querySelector(`#item_${job.listingId}_floatdiv`);
 
-            // Changed pages, cancel request
-            if (!floatDiv) {
+            // Changed pages or div not visible, cancel request
+            if (!floatDiv || floatDiv.offsetParent === null) {
                 this.processing -= 1;
                 this.checkQueue();
                 return;
@@ -70,7 +71,10 @@ class Queue {
             }
 
             chrome.runtime.sendMessage({ inspectLink: job.link }, data => {
-                buttonText.fetching = false;
+                if (buttonText) {
+                    buttonText.fetching = false;
+                }
+
                 if (data && data.iteminfo) {
                     floatData[job.listingId] = data.iteminfo;
                     showFloat(job.listingId);
@@ -121,7 +125,9 @@ window.addEventListener('message', e => {
         inventoryItemRequests = unfulfilledRequests;
     } else if (e.data.type === 'listingAssets') {
         steamListingAssets = e.data.assets[730][2];
-        for (let promise of listingAssetPromises) promise(steamListingAssets);
+        for (const promise of listingAssetPromises) promise(steamListingAssets);
+    } else if (e.data.type === 'inventoryOwner') {
+        for (const promise of inventoryOwnerRequests) promise(e.data.owner);
     }
 });
 
@@ -173,6 +179,19 @@ const retrieveInventoryItemDescription = function(assetId) {
     });
 };
 
+const retrieveInventoryOwner = function() {
+    window.postMessage(
+        {
+            type: 'requestInventoryOwner'
+        },
+        '*'
+    );
+
+    return new Promise(resolve => {
+        inventoryOwnerRequests.push(resolve);
+    });
+};
+
 const showFloat = function(listingId) {
     let itemInfo = floatData[listingId];
 
@@ -189,17 +208,23 @@ const showFloat = function(listingId) {
 
         // Add the float value
         let itemFloatDiv = floatDiv.querySelector('.csgofloat-itemfloat');
-        if (itemFloatDiv) itemFloatDiv.innerText = `Float: ${itemInfo.floatvalue}`;
+        if (itemFloatDiv) {
+            itemFloatDiv.innerText = floatDiv.minimal
+                ? itemInfo.floatvalue.toFixed(6)
+                : `Float: ${itemInfo.floatvalue}`;
+        }
 
         // Add the paint seed
         let seedDiv = floatDiv.querySelector('.csgofloat-itemseed');
         if (seedDiv) {
-            let seedText = `Paint Seed: ${itemInfo.paintseed}`;
+            let seedText = floatDiv.minimal ? itemInfo.paintseed : `Paint Seed: ${itemInfo.paintseed}`;
             if (hasDopplerPhase(itemInfo.paintindex)) {
                 seedText += ` (${getDopplerPhase(itemInfo.paintindex)})`;
             }
             seedDiv.innerText = seedText;
-            seedDiv.style.marginBottom = '10px';
+            if (!floatDiv.minimal) {
+                seedDiv.style.marginBottom = '10px';
+            }
         }
 
         // Set the wear value for each sticker
@@ -509,6 +534,79 @@ const addInventoryFloat = async function(boxContent) {
     }
 };
 
+// Adds float boxes to inventory pages
+const addInventoryBoxes = async function() {
+    const owner = await retrieveInventoryOwner();
+
+    for (const page of document.querySelectorAll('.inventory_page')) {
+        // Don't include non-visible pages
+        if (page.style.display === 'none') {
+            continue;
+        }
+
+        for (const itemHolder of page.querySelectorAll('.itemHolder')) {
+            const item = itemHolder.querySelector('div.item.app730');
+            if (!item) continue;
+            const assetId = item.id.split('_')[2]; // TODO: Error check?
+
+            const description = await retrieveInventoryItemDescription(assetId);
+            if (
+                !description ||
+                !description.tags.find(
+                    a => a.category === 'Weapon' || (a.category === 'Type' && a.internal_name === 'Type_Hands')
+                )
+            ) {
+                continue;
+            }
+
+            if (!item.querySelector(`#item_${assetId}_floatdiv`)) {
+                const s = document.createElement('span');
+                s.id = `item_${assetId}_floatdiv`;
+                s.minimal = true;
+
+                const floatSpan = document.createElement('span');
+                floatSpan.style.position = 'absolute';
+                floatSpan.style.bottom = '3px';
+                floatSpan.style.right = '3px';
+                floatSpan.style.fontSize = '13px';
+                floatSpan.classList.add('csgofloat-itemfloat');
+
+                const seedSpan = document.createElement('span');
+                seedSpan.style.position = 'absolute';
+                seedSpan.style.top = '3px';
+                seedSpan.style.right = '3px';
+                seedSpan.style.fontSize = '12px';
+                seedSpan.classList.add('csgofloat-itemseed');
+
+                // Adjust styling for users who also use steam inventory helper
+                if (item.querySelector('.p-price')) {
+                    floatSpan.style.top = '3px';
+                    floatSpan.style.bottom = '';
+                    seedSpan.style.top = '17px';
+                }
+
+                s.appendChild(floatSpan);
+                s.appendChild(seedSpan);
+
+                item.appendChild(s);
+            }
+
+            const inspectLink = description.actions[0].link
+                .replace('%owner_steamid%', owner)
+                .replace('%assetid%', assetId);
+
+            // If we don't already have data fetched
+            if (!item.querySelector('.csgofloat-itemfloat').innerText) {
+                if (assetId in floatData) {
+                    showFloat(assetId);
+                } else {
+                    queue.addJob(inspectLink, assetId);
+                }
+            }
+        }
+    }
+};
+
 // If an item on the current page doesn't have the float div/buttons, this function adds it
 const addMarketButtons = async function() {
     // Iterate through each item on the page
@@ -745,17 +843,30 @@ script.innerText = `
             }, '*');
         } else if (e.data.type == 'requestInventoryItemDescription') {
             const asset = g_ActiveInventory.m_rgAssets[e.data.assetId];
+            if (!asset) {
+                window.postMessage({
+                    type: 'inventoryItemDescription',
+                    assetId: e.data.assetId,
+                }, '*');
+                return;
+            }
+            
             const key = asset.instanceid == "0" ? asset.classid : asset.classid + '_' + asset.instanceid;
             const description = g_ActiveInventory.m_rgDescriptions[key];
 
             window.postMessage({
                 type: 'inventoryItemDescription',
                 assetId: e.data.assetId,
-                description: g_ActiveInventory.m_rgDescriptions[key]
+                description
             }, '*');
         } else if (e.data.type == 'changePageSize') {
             g_oSearchResults.m_cPageSize = e.data.pageSize;
             g_oSearchResults.GoToPage(0, true);
+        } else if (e.data.type == 'requestInventoryOwner') {
+            window.postMessage({
+                type: 'inventoryOwner',
+                owner: g_ActiveInventory.m_owner.strSteamId
+            }, '*');
         }
     });
 `;
@@ -815,6 +926,10 @@ if (isInventoryPage()) {
 
     TargetMutationObserver(action0, t => addInventoryFloat(t.parentElement.parentElement));
     TargetMutationObserver(action1, t => addInventoryFloat(t.parentElement.parentElement));
+
+    setInterval(() => {
+        addInventoryBoxes();
+    }, 250);
 } else {
     setInterval(() => {
         addMarketButtons();
