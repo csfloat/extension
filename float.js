@@ -12,9 +12,9 @@ let filters = new Filters();
 
 const version = chrome.runtime.getManifest().version;
 
-const sendMessage = function (params) {
-    return new Promise((resolve) => {
-        chrome.runtime.sendMessage(params, (data) => {
+const sendMessage = function(params) {
+    return new Promise(resolve => {
+        chrome.runtime.sendMessage(params, data => {
             resolve(data);
         });
     });
@@ -498,8 +498,8 @@ const getAssetUntradableExpiry = function(assetId) {
     const assetDetails = inventory.rgInventory && inventory.rgInventory[assetId];
     if (!assetDetails) return;
 
-    const description = inventory.rgDescriptions &&
-        inventory.rgDescriptions[`${assetDetails.classid}_${assetDetails.instanceid}`];
+    const description =
+        inventory.rgDescriptions && inventory.rgDescriptions[`${assetDetails.classid}_${assetDetails.instanceid}`];
     if (!description) return;
 
     if (!description.tradable) {
@@ -556,12 +556,13 @@ const addInventoryMods = async function(boxContent) {
 
     // Check if this item is not tradable and if we can figure out when it expires
     const expires = getAssetUntradableExpiry(id);
-    const isOwner = boxContent.querySelector('#iteminfo0_item_owner_descriptors') ||
+    const isOwner =
+        boxContent.querySelector('#iteminfo0_item_owner_descriptors') ||
         boxContent.querySelector('#iteminfo1_item_owner_descriptors');
 
     if (expires && isOwner.style.display === 'none') {
-        const tagDiv = boxContent.querySelector('#iteminfo0_item_tags') ||
-            boxContent.querySelector('#iteminfo1_item_tags');
+        const tagDiv =
+            boxContent.querySelector('#iteminfo0_item_tags') || boxContent.querySelector('#iteminfo1_item_tags');
 
         const descriptionParent = document.createElement('div');
         descriptionParent.classList.add('item_desc_descriptors');
@@ -750,8 +751,7 @@ const addMarketButtons = async function() {
 
             if (data.modelLink) {
                 const iframe = document.createElement('iframe');
-                iframe.src =
-                    chrome.runtime.getURL('model_frame.html') + '?url=' + encodeURIComponent(data.modelLink);
+                iframe.src = chrome.runtime.getURL('model_frame.html') + '?url=' + encodeURIComponent(data.modelLink);
                 iframe.classList.add('float-model-frame');
                 floatDiv.parentNode.parentNode.appendChild(iframe);
             } else if (data.error) {
@@ -975,7 +975,7 @@ const queue = new Queue();
 queue.start();
 
 if (isInventoryPage()) {
-    retrieveInventoryOwner().then(async (ownerId) => {
+    retrieveInventoryOwner().then(async ownerId => {
         inventory = await sendMessage({ steamId: ownerId, inventory: true });
 
         const action0 = document.querySelector('#iteminfo0_item_actions');
