@@ -40,6 +40,14 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.1.0
+
+* Automatically loads floats/paintseeds at a glance in your inventory
+* Allows easy inspecting of items on the market by clicking on their image
+* Shows when an item will be tradable in other inventories
+* Fixes instances of duplicate item data requests
+* Lowers bandwidth used for item data requests
+
 v2.0.3
 
 * Fixes sticker image handling with stickers that have commas in the name
