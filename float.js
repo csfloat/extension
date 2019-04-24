@@ -1,4 +1,5 @@
 let floatData = {};
+let inventory = {};
 let steamListingInfo = {};
 let listingInfoPromises = [];
 let steamListingAssets = {};
@@ -10,6 +11,14 @@ let floatUtilitiesAdded = false;
 let filters = new Filters();
 
 const version = chrome.runtime.getManifest().version;
+
+const sendMessage = function (params) {
+    return new Promise((resolve) => {
+        chrome.runtime.sendMessage(params, (data) => {
+            resolve(data);
+        });
+    });
+};
 
 class Queue {
     constructor() {
@@ -46,7 +55,7 @@ class Queue {
         return promise;
     }
 
-    checkQueue() {
+    async checkQueue() {
         if (!this.running) return;
 
         if (this.queue.length > 0 && this.processing < this.concurrency) {
@@ -70,27 +79,27 @@ class Queue {
                 buttonText.innerText = 'Fetching';
             }
 
-            chrome.runtime.sendMessage({ inspectLink: job.link }, data => {
-                if (buttonText) {
-                    buttonText.fetching = false;
+            const data = await sendMessage({ inspectLink: job.link });
+
+            if (buttonText) {
+                buttonText.fetching = false;
+            }
+
+            if (data && data.iteminfo) {
+                floatData[job.listingId] = data.iteminfo;
+                showFloat(job.listingId);
+            } else {
+                // Reset the button text for this itemid
+                if (buttonText) buttonText.innerText = 'Get Float';
+
+                // Change the message div for this item to the error
+                if (floatDiv) {
+                    floatDiv.querySelector('.floatmessage').innerText = data.error || 'Unknown Error';
                 }
+            }
 
-                if (data && data.iteminfo) {
-                    floatData[job.listingId] = data.iteminfo;
-                    showFloat(job.listingId);
-                } else {
-                    // Reset the button text for this itemid
-                    if (buttonText) buttonText.innerText = 'Get Float';
-
-                    // Change the message div for this item to the error
-                    if (floatDiv) {
-                        floatDiv.querySelector('.floatmessage').innerText = data.error || 'Unknown Error';
-                    }
-                }
-
-                this.processing -= 1;
-                this.checkQueue();
-            });
+            this.processing -= 1;
+            this.checkQueue();
         }
     }
 
@@ -454,33 +463,52 @@ const addFloatUtilities = async function() {
     moneyButton.target = '_blank';
 
     // Fetch the current price on CS.Money
-    chrome.runtime.sendMessage({ name: itemName, price: true }, data => {
-        if (data.trade && data.buy) {
-            price.innerText = `$${data.buy.toFixed(2)}`;
-        } else {
-            priceText.innerText = '';
-        }
+    const data = await sendMessage({ name: itemName, price: true });
+    if (data.trade && data.buy) {
+        price.innerText = `$${data.buy.toFixed(2)}`;
+    } else {
+        priceText.innerText = '';
+    }
 
-        if (data.link) {
-            moneyButton.href = data.link;
-        }
-    });
+    if (data.link) {
+        moneyButton.href = data.link;
+    }
 
     document
         .querySelector('#searchResultsTable')
         .insertBefore(csmoneyDiv, document.querySelector('#searchResultsRows'));
 };
 
-const removeInventoryButtons = function(parent) {
+const removeInventoryMods = function(parent) {
     const floatDivs = parent.querySelectorAll('div[id*="floatdiv"]');
 
     for (const div of floatDivs) {
         div.parentElement.removeChild(div);
     }
+
+    const expiry = parent.querySelector('#csgofloat-owner-description');
+    if (expiry) {
+        expiry.parentElement.removeChild(expiry);
+    }
 };
 
-const addInventoryFloat = async function(boxContent) {
-    removeInventoryButtons(boxContent);
+const getAssetUntradableExpiry = function(assetId) {
+    if (!inventory.success) return;
+
+    const assetDetails = inventory.rgInventory && inventory.rgInventory[assetId];
+    if (!assetDetails) return;
+
+    const description = inventory.rgDescriptions &&
+        inventory.rgDescriptions[`${assetDetails.classid}_${assetDetails.instanceid}`];
+    if (!description) return;
+
+    if (!description.tradable) {
+        return description.cache_expiration;
+    }
+};
+
+const addInventoryMods = async function(boxContent) {
+    removeInventoryMods(boxContent);
 
     // Get the inspect link
     const inspectButton = boxContent.querySelector('div.item_actions a.btn_small');
@@ -524,6 +552,34 @@ const addInventoryFloat = async function(boxContent) {
         let div = document.createElement('div');
         div.classList.add(className);
         floatDiv.appendChild(div);
+    }
+
+    // Check if this item is not tradable and if we can figure out when it expires
+    const expires = getAssetUntradableExpiry(id);
+    const isOwner = boxContent.querySelector('#iteminfo0_item_owner_descriptors') ||
+        boxContent.querySelector('#iteminfo1_item_owner_descriptors');
+
+    if (expires && isOwner.style.display === 'none') {
+        const tagDiv = boxContent.querySelector('#iteminfo0_item_tags') ||
+            boxContent.querySelector('#iteminfo1_item_tags');
+
+        const descriptionParent = document.createElement('div');
+        descriptionParent.classList.add('item_desc_descriptors');
+        descriptionParent.id = 'csgofloat-owner-description';
+
+        const descriptor = document.createElement('div');
+        descriptor.classList.add('descriptor');
+        descriptor.style.color = 'rgb(255, 64, 64)';
+        descriptor.innerText = 'Tradable After ' + new Date(expires).toGMTString();
+
+        const descriptorBreak = document.createElement('div');
+        descriptorBreak.classList.add('descriptor');
+        descriptorBreak.innerHTML = '&nbsp;';
+
+        descriptionParent.appendChild(descriptorBreak);
+        descriptionParent.appendChild(descriptor);
+
+        tagDiv.parentElement.insertBefore(descriptionParent, tagDiv);
     }
 
     // check if we already have the float for this item
@@ -687,21 +743,20 @@ const addMarketButtons = async function() {
                 modelButton.querySelector('span').innerText = 'Fetching 3D Model...hang on...';
             }, 5000);
 
-            chrome.runtime.sendMessage({ inspectLink, model: true }, data => {
-                clearTimeout(hangOn);
-                fetchingModel = false;
-                modelButton.querySelector('span').innerText = 'CS.Money 3D';
+            const data = await sendMessage({ inspectLink, model: true });
+            clearTimeout(hangOn);
+            fetchingModel = false;
+            modelButton.querySelector('span').innerText = 'CS.Money 3D';
 
-                if (data.modelLink) {
-                    const iframe = document.createElement('iframe');
-                    iframe.src =
-                        chrome.runtime.getURL('model_frame.html') + '?url=' + encodeURIComponent(data.modelLink);
-                    iframe.classList.add('float-model-frame');
-                    floatDiv.parentNode.parentNode.appendChild(iframe);
-                } else if (data.error) {
-                    alert(data.error);
-                }
-            });
+            if (data.modelLink) {
+                const iframe = document.createElement('iframe');
+                iframe.src =
+                    chrome.runtime.getURL('model_frame.html') + '?url=' + encodeURIComponent(data.modelLink);
+                iframe.classList.add('float-model-frame');
+                floatDiv.parentNode.parentNode.appendChild(iframe);
+            } else if (data.error) {
+                alert(data.error);
+            }
         });
         floatDiv.appendChild(modelButton);
 
@@ -739,20 +794,19 @@ const addMarketButtons = async function() {
                 screenshotButton.querySelector('span').innerText = 'Fetching Screenshot...hang on...';
             }, 5000);
 
-            chrome.runtime.sendMessage({ inspectLink, model: true }, data => {
-                clearTimeout(hangOn);
-                fetchingScreenshot = false;
-                screenshotButton.querySelector('span').innerText = 'Screenshot';
+            const data = await sendMessage({ inspectLink, model: true });
+            clearTimeout(hangOn);
+            fetchingScreenshot = false;
+            screenshotButton.querySelector('span').innerText = 'Screenshot';
 
-                if (data.screenshotLink) {
-                    const img = document.createElement('img');
-                    img.src = data.screenshotLink;
-                    img.classList.add('float-screenshot-frame');
-                    floatDiv.parentNode.parentNode.appendChild(img);
-                } else if (data.error) {
-                    alert(data.error);
-                }
-            });
+            if (data.screenshotLink) {
+                const img = document.createElement('img');
+                img.src = data.screenshotLink;
+                img.classList.add('float-screenshot-frame');
+                floatDiv.parentNode.parentNode.appendChild(img);
+            } else if (data.error) {
+                alert(data.error);
+            }
         });
         floatDiv.appendChild(screenshotButton);
 
@@ -921,15 +975,21 @@ const queue = new Queue();
 queue.start();
 
 if (isInventoryPage()) {
-    const action0 = document.querySelector('#iteminfo0_item_actions');
-    const action1 = document.querySelector('#iteminfo1_item_actions');
+    retrieveInventoryOwner().then(async (ownerId) => {
+        inventory = await sendMessage({ steamId: ownerId, inventory: true });
 
-    TargetMutationObserver(action0, t => addInventoryFloat(t.parentElement.parentElement));
-    TargetMutationObserver(action1, t => addInventoryFloat(t.parentElement.parentElement));
+        const action0 = document.querySelector('#iteminfo0_item_actions');
+        const action1 = document.querySelector('#iteminfo1_item_actions');
 
-    setInterval(() => {
-        addInventoryBoxes();
-    }, 250);
+        TargetMutationObserver(action0, t => addInventoryMods(t.parentElement.parentElement));
+        TargetMutationObserver(action1, t => addInventoryMods(t.parentElement.parentElement));
+
+        addInventoryMods(action1.parentElement.parentElement);
+
+        setInterval(() => {
+            addInventoryBoxes();
+        }, 250);
+    });
 } else {
     setInterval(() => {
         addMarketButtons();

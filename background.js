@@ -5,8 +5,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         url = `https://money.csgofloat.com/model?url=${request.inspectLink}`;
     } else if (request.price) {
         url = `https://money.csgofloat.com/price?name=${request.name}`;
+    } else if (request.inventory) {
+        url = `https://steamcommunity.com/profiles/${request.steamId}/inventory/json/730/2?l=english`;
     } else {
-        url = `https://api.csgofloat.com/?url=${request.inspectLink}`;
+        url = `https://api.csgofloat.com/?url=${request.inspectLink}&minimal=true`;
     }
 
     fetch(url)
