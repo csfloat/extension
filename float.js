@@ -93,7 +93,7 @@ class Queue {
                 if (buttonText) buttonText.innerText = 'Get Float';
 
                 // Change the message div for this item to the error
-                if (floatDiv) {
+                if (floatDiv && floatDiv.querySelector('.floatmessage')) {
                     floatDiv.querySelector('.floatmessage').innerText = data.error || 'Unknown Error';
                 }
             }
