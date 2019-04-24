@@ -555,6 +555,7 @@ const addInventoryMods = async function(boxContent) {
     }
 
     // Check if this item is not tradable and if we can figure out when it expires
+    // This currently only works for weapons
     const expires = getAssetUntradableExpiry(id);
     const isOwner =
         boxContent.querySelector('#iteminfo0_item_owner_descriptors') ||
@@ -583,7 +584,7 @@ const addInventoryMods = async function(boxContent) {
         tagDiv.parentElement.insertBefore(descriptionParent, tagDiv);
     }
 
-    // check if we already have the float for this item
+    // Check if we already have the float for this item
     if (id in floatData) {
         showFloat(id);
     } else {
@@ -976,14 +977,17 @@ queue.start();
 
 if (isInventoryPage()) {
     retrieveInventoryOwner().then(async ownerId => {
+        // We have to request the inventory from a separate endpoint that includes untradable expiration
         inventory = await sendMessage({ steamId: ownerId, inventory: true });
 
         const action0 = document.querySelector('#iteminfo0_item_actions');
         const action1 = document.querySelector('#iteminfo1_item_actions');
 
+        // Page uses two divs that interchange with another on item change
         TargetMutationObserver(action0, t => addInventoryMods(t.parentElement.parentElement));
         TargetMutationObserver(action1, t => addInventoryMods(t.parentElement.parentElement));
 
+        // Ensure we catch the first item div on page load
         addInventoryMods(action1.parentElement.parentElement);
 
         setInterval(() => {
