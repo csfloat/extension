@@ -40,6 +40,10 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.1.1
+
+* Fixes Wear Range Extraction (fixes `percentile` and `percentileRange` functions)
+
 v2.1.0
 
 * Automatically loads floats/paintseeds at a glance in your inventory
