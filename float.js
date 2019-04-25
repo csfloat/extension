@@ -247,7 +247,7 @@ const showFloat = function(listingId) {
             }
         }
 
-        const wearRange = rangeFromWear(itemInfo.wear_name) || [0, 1];
+        const wearRange = rangeFromWear(itemInfo.floatvalue) || [0, 1];
 
         let vars = {
             float: itemInfo.floatvalue,
