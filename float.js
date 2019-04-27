@@ -201,7 +201,7 @@ const retrieveInventoryOwner = function() {
     });
 };
 
-const showFloat = function(listingId) {
+const showFloat = async function(listingId) {
     let itemInfo = floatData[listingId];
 
     let floatDivs = document.querySelectorAll(`#item_${listingId}_floatdiv`);
@@ -260,7 +260,7 @@ const showFloat = function(listingId) {
         };
 
         // Check to see if there is a filter match
-        let filterColour = filters.getMatchColour(vars);
+        let filterColour = await filters.getMatchColour(vars);
 
         if (filterColour) {
             const textColour = pickTextColour(filterColour, '#8F98A0', '#484848');
