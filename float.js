@@ -866,6 +866,12 @@ const addMarketButtons = async function() {
             imageContainer.appendChild(easyLink);
         }
 
+        // Remove Steam Inventory Helper Stickers (conflicts with ours)
+        const sihStickers = row.querySelector('.sih-images');
+        if (sihStickers) {
+            sihStickers.parentElement.removeChild(sihStickers);
+        }
+
         // check if we already have the float for this item
         if (id in floatData) {
             showFloat(id);
