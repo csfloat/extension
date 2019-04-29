@@ -40,6 +40,11 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.1.2
+
+* Fixes cases where filters would not highlight if loaded slowly
+* Removes Steam Inventory Helper (if installed) market stickers due to a visual conflict
+
 v2.1.1
 
 * Fixes Wear Range Extraction (fixes `percentile` and `percentileRange` functions)
