@@ -290,7 +290,9 @@ const showFloat = async function(listingId) {
             maxfloat: itemInfo.max,
             minwearfloat: wearRange[0],
             maxwearfloat: wearRange[1],
-            phase: (getDopplerPhase(itemInfo.paintindex) || '').replace('Phase', '').trim()
+            phase: (getDopplerPhase(itemInfo.paintindex) || '').replace('Phase', '').trim(),
+            low_rank: parseInt(itemInfo.low_rank),
+            high_rank: parseInt(itemInfo.high_rank)
         };
 
         if (!isInventoryPage()) {
