@@ -40,6 +40,12 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.2.0
+
+* Shows ranks from FloatDB (db.csgofloat.com) if in the top 1000
+* Colours inventory items gold/silver/bronze if ranked #1/#2-3/#4-5 respectively in either low or high float
+* Allows filtering based on rank
+
 v2.1.2
 
 * Fixes cases where filters would not highlight if loaded slowly
