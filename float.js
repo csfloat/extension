@@ -201,6 +201,21 @@ const retrieveInventoryOwner = function() {
     });
 };
 
+const getRankColour = function (rank) {
+    switch (rank) {
+        case 1:
+            return '#c3a508';
+        case 2:
+        case 3:
+            return '#9a9999';
+        case 4:
+        case 5:
+            return '#8a5929';
+        default:
+            return '';
+    }
+};
+
 const showFloat = async function(listingId) {
     let itemInfo = floatData[listingId];
 
@@ -218,9 +233,28 @@ const showFloat = async function(listingId) {
         // Add the float value
         let itemFloatDiv = floatDiv.querySelector('.csgofloat-itemfloat');
         if (itemFloatDiv) {
-            itemFloatDiv.innerText = floatDiv.minimal
+            let floatText = floatDiv.minimal
                 ? itemInfo.floatvalue.toFixed(6)
-                : `Float: ${itemInfo.floatvalue}`;
+                : `Float: ${itemInfo.floatvalue.toFixed(14)}`;
+
+            const rank = itemInfo.low_rank || itemInfo.high_rank;
+
+            if (rank) {
+                if (floatDiv.minimal) {
+                    floatText += ` (#${rank})`;
+                } else {
+                    floatText += ` (Rank #${rank})`;
+                }
+            }
+
+            itemFloatDiv.innerText = floatText;
+
+            if (rank <= 5 && floatDiv.minimal) {
+                // Make the inventory box coloured ;)
+                floatDiv.parentNode.style.color = 'black';
+                floatDiv.parentNode.querySelector('img').style.backgroundColor = getRankColour(rank);
+                floatDiv.parentNode.classList.add('float-shine');
+            }
         }
 
         // Add the paint seed
@@ -626,7 +660,7 @@ const addInventoryBoxes = async function() {
                 floatSpan.style.position = 'absolute';
                 floatSpan.style.bottom = '3px';
                 floatSpan.style.right = '3px';
-                floatSpan.style.fontSize = '13px';
+                floatSpan.style.fontSize = '12px';
                 floatSpan.classList.add('csgofloat-itemfloat');
 
                 const seedSpan = document.createElement('span');
