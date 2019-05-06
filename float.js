@@ -293,13 +293,15 @@ const showFloat = async function(listingId) {
             phase: (getDopplerPhase(itemInfo.paintindex) || '').replace('Phase', '').trim()
         };
 
-        // Check to see if there is a filter match
-        let filterColour = await filters.getMatchColour(vars);
+        if (!isInventoryPage()) {
+            // Check to see if there is a filter match
+            let filterColour = await filters.getMatchColour(vars);
 
-        if (filterColour) {
-            const textColour = pickTextColour(filterColour, '#8F98A0', '#484848');
-            floatDiv.parentNode.parentNode.style.backgroundColor = filterColour;
-            floatDiv.style.color = textColour;
+            if (filterColour) {
+                const textColour = pickTextColour(filterColour, '#8F98A0', '#484848');
+                floatDiv.parentNode.parentNode.style.backgroundColor = filterColour;
+                floatDiv.style.color = textColour;
+            }
         }
     }
 };
