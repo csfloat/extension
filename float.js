@@ -237,9 +237,11 @@ const showFloat = async function(listingId) {
                 ? itemInfo.floatvalue.toFixed(6)
                 : `Float: ${itemInfo.floatvalue.toFixed(14)}`;
 
-            const rank = itemInfo.low_rank || itemInfo.high_rank;
+            // Get whichever is the lower rank
+            const rank = (itemInfo.low_rank || 1001) < (itemInfo.high_rank || 1001) ?
+                itemInfo.low_rank : itemInfo.high_rank;
 
-            if (rank) {
+            if (rank && rank <= 1000) {
                 if (floatDiv.minimal) {
                     floatText += ` (#${rank})`;
                 } else {
