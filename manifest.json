@@ -20,6 +20,8 @@
                 "lib/filtrex.js",
                 "lib/utils.js",
                 "lib/filters.js",
+                "lib/queue.js",
+                "lib/bridge.js",
                 "float.js"
             ],
             "css": ["float.css"]
