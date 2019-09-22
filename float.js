@@ -1,205 +1,11 @@
-let floatData = {};
-let inventory = {};
-let steamListingInfo = {};
-let listingInfoPromises = [];
-let steamListingAssets = {};
-let listingAssetPromises = [];
-let inventoryItemRequests = [];
-let inventoryOwnerRequests = [];
+let floatData = {}, inventory = {};
+let walletInfo = {};
 let sortTypeAsc = true;
 let floatUtilitiesAdded = false;
-let filters = new Filters();
+const filters = new Filters();
+const queue = new Queue();
 
 const version = chrome.runtime.getManifest().version;
-
-const sendMessage = function(params) {
-    return new Promise(resolve => {
-        chrome.runtime.sendMessage(params, data => {
-            resolve(data);
-        });
-    });
-};
-
-class Queue {
-    constructor() {
-        this.queue = [];
-        this.running = false;
-        this.concurrency = 10;
-        this.processing = 0;
-    }
-
-    addJob(link, listingId) {
-        if (listingId in floatData) {
-            showFloat(listingId);
-            return;
-        }
-
-        const job = {
-            link,
-            listingId
-        };
-
-        // Stop if this item is already in the queue
-        if (this.queue.find(j => j.listingId === listingId)) {
-            return;
-        }
-
-        const promise = new Promise((resolve, reject) => {
-            job.resolve = resolve;
-            job.reject = reject;
-        });
-
-        this.queue.push(job);
-        this.checkQueue();
-
-        return promise;
-    }
-
-    async checkQueue() {
-        if (!this.running) return;
-
-        if (this.queue.length > 0 && this.processing < this.concurrency) {
-            // there is a free bot, process the job
-            let job = this.queue.shift();
-
-            this.processing += 1;
-
-            const floatDiv = document.querySelector(`#item_${job.listingId}_floatdiv`);
-
-            // Changed pages or div not visible, cancel request
-            if (!floatDiv || floatDiv.offsetParent === null) {
-                this.processing -= 1;
-                this.checkQueue();
-                return;
-            }
-
-            const buttonText = floatDiv.querySelector('#getFloatBtn span');
-            if (buttonText) {
-                buttonText.fetching = true;
-                buttonText.innerText = 'Fetching';
-            }
-
-            const data = await sendMessage({ inspectLink: job.link });
-
-            if (buttonText) {
-                buttonText.fetching = false;
-            }
-
-            if (data && data.iteminfo) {
-                floatData[job.listingId] = data.iteminfo;
-                showFloat(job.listingId);
-            } else {
-                // Reset the button text for this itemid
-                if (buttonText) buttonText.innerText = 'Get Float';
-
-                // Change the message div for this item to the error
-                if (floatDiv && floatDiv.querySelector('.floatmessage')) {
-                    floatDiv.querySelector('.floatmessage').innerText = data.error || 'Unknown Error';
-                }
-            }
-
-            this.processing -= 1;
-            this.checkQueue();
-        }
-    }
-
-    start() {
-        if (!this.running) {
-            this.running = true;
-            this.checkQueue();
-        }
-    }
-}
-
-// retrieve g_rgListingInfo from page script
-window.addEventListener('message', e => {
-    if (e.data.type === 'listingInfo') {
-        steamListingInfo = e.data.listingInfo;
-
-        // resolve listingInfoPromises
-        for (let promise of listingInfoPromises) promise(steamListingInfo);
-
-        listingInfoPromises = [];
-    } else if (e.data.type === 'inventoryItemDescription') {
-        const unfulfilledRequests = [];
-
-        for (const request of inventoryItemRequests) {
-            if (request.assetId === e.data.assetId) {
-                request.promise(e.data.description);
-            } else {
-                unfulfilledRequests.push(request);
-            }
-        }
-
-        inventoryItemRequests = unfulfilledRequests;
-    } else if (e.data.type === 'listingAssets') {
-        steamListingAssets = e.data.assets[730][2];
-        for (const promise of listingAssetPromises) promise(steamListingAssets);
-    } else if (e.data.type === 'inventoryOwner') {
-        for (const promise of inventoryOwnerRequests) promise(e.data.owner);
-    }
-});
-
-const retrieveListingInfoFromPage = function(listingId) {
-    if (listingId != null && listingId in steamListingInfo) {
-        return Promise.resolve(steamListingInfo);
-    }
-
-    window.postMessage(
-        {
-            type: 'requestListingInfo'
-        },
-        '*'
-    );
-
-    return new Promise(resolve => {
-        listingInfoPromises.push(resolve);
-    });
-};
-
-const retrieveListingAssets = function(assetId) {
-    if (assetId != null && assetId in steamListingAssets) {
-        return Promise.resolve(steamListingAssets);
-    }
-
-    window.postMessage(
-        {
-            type: 'requestAssets'
-        },
-        '*'
-    );
-
-    return new Promise(resolve => {
-        listingAssetPromises.push(resolve);
-    });
-};
-
-const retrieveInventoryItemDescription = function(assetId) {
-    window.postMessage(
-        {
-            type: 'requestInventoryItemDescription',
-            assetId
-        },
-        '*'
-    );
-
-    return new Promise(resolve => {
-        inventoryItemRequests.push({ promise: resolve, assetId });
-    });
-};
-
-const retrieveInventoryOwner = function() {
-    window.postMessage(
-        {
-            type: 'requestInventoryOwner'
-        },
-        '*'
-    );
-
-    return new Promise(resolve => {
-        inventoryOwnerRequests.push(resolve);
-    });
-};
 
 const getRankColour = function (rank) {
     switch (rank) {
@@ -285,7 +91,7 @@ const showFloat = async function(listingId) {
 
         const wearRange = rangeFromWear(itemInfo.floatvalue) || [0, 1];
 
-        let vars = {
+        const vars = {
             float: itemInfo.floatvalue,
             seed: itemInfo.paintseed,
             minfloat: itemInfo.min,
@@ -296,6 +102,19 @@ const showFloat = async function(listingId) {
             low_rank: parseInt(itemInfo.low_rank),
             high_rank: parseInt(itemInfo.high_rank)
         };
+
+        const listingInfo = steamListingInfo[listingId];
+
+        let walletCurrency = walletInfo && walletInfo.wallet_currency;
+
+        // Item currency is formatted as 20XX for most currencies where XX is the account currency
+        if (walletCurrency && walletCurrency < 2000) {
+            walletCurrency += 2000;
+        }
+
+        if (listingInfo && listingInfo.converted_price && listingInfo.converted_currencyid === walletCurrency) {
+            vars.price = (listingInfo.converted_price + listingInfo.converted_fee) / 100;
+        }
 
         if (!isInventoryPage()) {
             // Check to see if there is a filter match
@@ -928,50 +747,6 @@ const addMarketButtons = async function() {
     getAllFloats();
 };
 
-// register the message listener in the page scope
-let script = document.createElement('script');
-script.innerText = `
-    window.addEventListener('message', (e) => {
-        if (e.data.type == 'requestListingInfo') {
-            window.postMessage({
-                type: 'listingInfo',
-                listingInfo: g_rgListingInfo
-            }, '*');
-        } else if (e.data.type == 'requestAssets') {
-            window.postMessage({
-                type: 'listingAssets',
-                assets: g_rgAssets
-            }, '*');
-        } else if (e.data.type == 'requestInventoryItemDescription') {
-            const asset = g_ActiveInventory.m_rgAssets[e.data.assetId];
-            if (!asset) {
-                window.postMessage({
-                    type: 'inventoryItemDescription',
-                    assetId: e.data.assetId,
-                }, '*');
-                return;
-            }
-            
-            const key = asset.instanceid == "0" ? asset.classid : asset.classid + '_' + asset.instanceid;
-            const description = g_ActiveInventory.m_rgDescriptions[key];
-
-            window.postMessage({
-                type: 'inventoryItemDescription',
-                assetId: e.data.assetId,
-                description
-            }, '*');
-        } else if (e.data.type == 'changePageSize') {
-            g_oSearchResults.m_cPageSize = e.data.pageSize;
-            g_oSearchResults.GoToPage(0, true);
-        } else if (e.data.type == 'requestInventoryOwner') {
-            window.postMessage({
-                type: 'inventoryOwner',
-                owner: g_ActiveInventory.m_owner.strSteamId
-            }, '*');
-        }
-    });
-`;
-
 const getStorageVersion = async function(storageType) {
     return new Promise((resolve, reject) => {
         storageType.get(['version'], items => {
@@ -1014,39 +789,41 @@ const TargetMutationObserver = function(target, cb) {
     }).observe(target, { childList: true, subtree: true });
 };
 
-migrateStorage();
 
-document.head.appendChild(script);
+async function main() {
+    migrateStorage();
+    queue.start();
 
-const queue = new Queue();
-queue.start();
+    walletInfo = await retrieveWalletInfo();
 
-if (isInventoryPage()) {
-    retrieveInventoryOwner().then(async ownerId => {
-        // We have to request the inventory from a separate endpoint that includes untradable expiration
-        inventory = await sendMessage({ steamId: ownerId, inventory: true });
+    if (isInventoryPage()) {
+        retrieveInventoryOwner().then(async ownerId => {
+            // We have to request the inventory from a separate endpoint that includes untradable expiration
+            inventory = await sendMessage({ steamId: ownerId, inventory: true });
 
-        const action0 = document.querySelector('#iteminfo0_item_actions');
-        const action1 = document.querySelector('#iteminfo1_item_actions');
+            const action0 = document.querySelector('#iteminfo0_item_actions');
+            const action1 = document.querySelector('#iteminfo1_item_actions');
 
-        // Page uses two divs that interchange with another on item change
-        TargetMutationObserver(action0, t => addInventoryMods(t.parentElement.parentElement));
-        TargetMutationObserver(action1, t => addInventoryMods(t.parentElement.parentElement));
+            // Page uses two divs that interchange with another on item change
+            TargetMutationObserver(action0, t => addInventoryMods(t.parentElement.parentElement));
+            TargetMutationObserver(action1, t => addInventoryMods(t.parentElement.parentElement));
 
-        // Ensure we catch the first item div on page load
-        addInventoryMods(action1.parentElement.parentElement);
+            // Ensure we catch the first item div on page load
+            addInventoryMods(action1.parentElement.parentElement);
 
+            setInterval(() => {
+                addInventoryBoxes();
+            }, 250);
+        });
+    } else {
         setInterval(() => {
-            addInventoryBoxes();
+            addMarketButtons();
         }, 250);
-    });
-} else {
-    setInterval(() => {
-        addMarketButtons();
-    }, 250);
+    }
 }
 
-const logStyle = 'background: #222; color: #fff;';
+main();
 
+const logStyle = 'background: #222; color: #fff;';
 console.log(`%c CSGOFloat Market Checker (v${version}) by Step7750 `, logStyle);
 console.log('%c Changelog can be found here: https://github.com/Step7750/CSGOFloat-Extension ', logStyle);
