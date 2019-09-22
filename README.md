@@ -40,6 +40,12 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.2.1
+
+* FloatDB ranks now link to the relevant db.csgofloat.com page
+* Allows filtering on item `price` (requires user to be logged in to Steam)
+* Fixes link errors on Souvenir Package items
+
 v2.2.0
 
 * Shows ranks from FloatDB (db.csgofloat.com) if in the top 1000
