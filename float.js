@@ -38,10 +38,15 @@ const showFloat = async function(listingId) {
 
         // Add the float value
         let itemFloatDiv = floatDiv.querySelector('.csgofloat-itemfloat');
+
         if (itemFloatDiv) {
-            let floatText = floatDiv.minimal
+            itemFloatDiv.innerHTML = '';
+
+            const floatText = floatDiv.minimal
                 ? itemInfo.floatvalue.toFixed(6)
                 : `Float: ${itemInfo.floatvalue.toFixed(14)}`;
+
+            itemFloatDiv.appendChild(document.createTextNode(floatText));
 
             // Get whichever is the lower rank
             const rank = (itemInfo.low_rank || 1001) < (itemInfo.high_rank || 1001) ?
@@ -49,13 +54,11 @@ const showFloat = async function(listingId) {
 
             if (rank && rank <= 1000) {
                 if (floatDiv.minimal) {
-                    floatText += ` (#${rank})`;
+                    itemFloatDiv.appendChild(document.createTextNode(` (#${rank})`));
                 } else {
-                    floatText += ` (Rank #${rank})`;
+                    itemFloatDiv.appendChild(getRankLink(itemInfo, rank));
                 }
             }
-
-            itemFloatDiv.innerText = floatText;
 
             if (rank <= 5 && floatDiv.minimal) {
                 // Make the inventory box coloured ;)
