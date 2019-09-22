@@ -297,6 +297,12 @@ const showFloat = async function(listingId) {
             high_rank: parseInt(itemInfo.high_rank)
         };
 
+        const listingInfo = steamListingInfo[listingId];
+
+        if (listingInfo && listingInfo.converted_price) {
+            vars.price = (listingInfo.converted_price + listingInfo.converted_fee) / 100;
+        }
+
         if (!isInventoryPage()) {
             // Check to see if there is a filter match
             let filterColour = await filters.getMatchColour(vars);
