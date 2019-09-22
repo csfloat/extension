@@ -149,6 +149,10 @@ const getAllFloats = function() {
 
             let listingData = steamListingData[id];
 
+            if (listingData.asset.market_actions.length === 0) {
+                continue;
+            }
+
             let inspectLink = listingData.asset.market_actions[0].link
                 .replace('%listingid%', id)
                 .replace('%assetid%', listingData.asset.id);
@@ -535,9 +539,18 @@ const addMarketButtons = async function() {
     for (let row of listingRows) {
         let id = row.id.replace('listing_', '');
 
+        const steamListingData = await retrieveListingInfoFromPage(id);
+        const listingData = steamListingData[id];
+
+        if (!listingData || !listingData.asset.market_actions) return;
+
         if (row.querySelector(`#item_${id}_floatdiv`)) {
             continue;
         }
+
+        const inspectLink = listingData.asset.market_actions[0].link
+            .replace('%listingid%', id)
+            .replace('%assetid%', listingData.asset.id);
 
         let listingNameElement = row.querySelector(`#listing_${id}_name`);
 
@@ -557,17 +570,7 @@ const addMarketButtons = async function() {
 
         let getFloatButton = createButton('Get Float', 'green', 'getFloatBtn');
         getFloatButton.addEventListener('click', () => {
-            retrieveListingInfoFromPage(id).then(steamListingData => {
-                let listingData = steamListingData[id];
-
-                if (!listingData) return;
-
-                let inspectLink = listingData.asset.market_actions[0].link
-                    .replace('%listingid%', id)
-                    .replace('%assetid%', listingData.asset.id);
-
-                queue.addJob(inspectLink, id);
-            });
+            queue.addJob(inspectLink, id);
         });
         getFloatButton.style.marginRight = '10px';
         floatDiv.appendChild(getFloatButton);
@@ -593,15 +596,6 @@ const addMarketButtons = async function() {
 
             fetchingModel = true; // prevent from repeatedly clicking the button
             modelButton.querySelector('span').innerText = 'Fetching 3D Model...';
-
-            const steamListingData = await retrieveListingInfoFromPage(id);
-            let listingData = steamListingData[id];
-
-            if (!listingData) return;
-
-            let inspectLink = listingData.asset.market_actions[0].link
-                .replace('%listingid%', id)
-                .replace('%assetid%', listingData.asset.id);
 
             const hangOn = setTimeout(() => {
                 modelButton.querySelector('span').innerText = 'Fetching 3D Model...hang on...';
@@ -644,15 +638,6 @@ const addMarketButtons = async function() {
             fetchingScreenshot = true; // prevent from repeatedly clicking the button
             screenshotButton.querySelector('span').innerText = 'Fetching Screenshot...';
 
-            const steamListingData = await retrieveListingInfoFromPage(id);
-            const listingData = steamListingData[id];
-
-            if (!listingData) return;
-
-            const inspectLink = listingData.asset.market_actions[0].link
-                .replace('%listingid%', id)
-                .replace('%assetid%', listingData.asset.id);
-
             const hangOn = setTimeout(() => {
                 screenshotButton.querySelector('span').innerText = 'Fetching Screenshot...hang on...';
             }, 5000);
@@ -673,15 +658,10 @@ const addMarketButtons = async function() {
         });
         floatDiv.appendChild(screenshotButton);
 
-        const steamListingData = await retrieveListingInfoFromPage(id);
-        const listingData = steamListingData[id];
-        if (!listingData) return;
-
         const assetID = listingData.asset.id;
         const steamListingAssets = await retrieveListingAssets(assetID);
 
         // Show inline stickers
-
         const asset = steamListingAssets[assetID];
         const lastDescription = asset.descriptions[asset.descriptions.length - 1];
         if (lastDescription.type === 'html' && lastDescription.value.includes('sticker')) {
@@ -717,11 +697,8 @@ const addMarketButtons = async function() {
         // Easy inspect link (only if they don't have SIH)
         if (!row.querySelector('.sih-inspect-magnifier')) {
             const imageContainer = row.querySelector('.market_listing_item_img_container');
-
             const easyLink = document.createElement('a');
-            easyLink.href = listingData.asset.market_actions[0].link
-                .replace('%listingid%', id)
-                .replace('%assetid%', listingData.asset.id);
+            easyLink.href = inspectLink;
             easyLink.innerText = '🔍';
             easyLink.classList.add('easy-inspect');
 
