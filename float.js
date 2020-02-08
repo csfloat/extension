@@ -410,6 +410,9 @@ const addInventoryMods = async function(boxContent) {
     gameInfo.parentElement.insertBefore(floatDiv, gameInfo.nextSibling);
 
     const getFloatButton = createButton('Fetching...', 'green', 'getFloatBtn');
+    getFloatButton.addEventListener('click', () => {
+        queue.addJob(inspectLink, id, /* force */ true);
+    });
     getFloatButton.inspectLink = inspectLink;
     floatDiv.appendChild(getFloatButton);
 
@@ -570,7 +573,7 @@ const addMarketButtons = async function() {
 
         let getFloatButton = createButton('Get Float', 'green', 'getFloatBtn');
         getFloatButton.addEventListener('click', () => {
-            queue.addJob(inspectLink, id);
+            queue.addJob(inspectLink, id, /* force */ true);
         });
         getFloatButton.style.marginRight = '10px';
         floatDiv.appendChild(getFloatButton);
