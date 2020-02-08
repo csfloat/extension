@@ -40,6 +40,10 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.2.2
+
+* Prevents auto retrying failed CSGOFloat requests
+
 v2.2.1
 
 * FloatDB ranks now link to the relevant db.csgofloat.com page
