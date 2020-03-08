@@ -282,11 +282,11 @@ const addFloatUtilities = async function() {
     }
 
     // Add github link
-    let githubLink = document.createElement('a');
-    githubLink.classList.add('float-github');
-    githubLink.href = 'https://github.com/Step7750/CSGOFloat';
-    githubLink.innerText = 'Powered by CSGOFloat';
-    parentDiv.appendChild(githubLink);
+    let csgofloatLink = document.createElement('a');
+    csgofloatLink.classList.add('float-github');
+    csgofloatLink.href = 'https://csgofloat.com';
+    csgofloatLink.innerText = 'Powered by CSGOFloat';
+    parentDiv.appendChild(csgofloatLink);
 
     // Add filter div
     filters.addFilterUI(parentDiv);
