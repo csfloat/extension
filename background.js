@@ -9,6 +9,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         url = `https://steamcommunity.com/profiles/${request.steamId}/inventory/json/730/2?l=english`;
     } else if (request.floatMarket) {
         url = `https://beta.csgofloat.com/api/v1/me/pending-trades`;
+    } else if (request.stall) {
+        url = `https://beta.csgofloat.com/api/v1/users/${request.steamId}/stall`;
     } else {
         url = `https://api.csgofloat.com/?url=${request.inspectLink}&minimal=true`;
     }

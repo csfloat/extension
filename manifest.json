@@ -24,6 +24,7 @@
                 "lib/queue.js",
                 "lib/bridge.js",
                 "lib/trade_offer.js",
+                "lib/stall.js",
                 "float.js"
             ],
             "css": ["float.css"]

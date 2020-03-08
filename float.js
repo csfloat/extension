@@ -334,6 +334,7 @@ const addInventoryMods = async function(boxContent) {
 
     const inspectLink = inspectButton.href;
     const id = extractInspectAssetId(inspectLink);
+    const steamId = extractInspectSteamId(inspectLink);
 
     // Check if we already placed the button
     if (boxContent.querySelector(`#item_${id}_floatdiv`)) {
@@ -379,13 +380,27 @@ const addInventoryMods = async function(boxContent) {
         boxContent.querySelector('#iteminfo0_item_owner_descriptors') ||
         boxContent.querySelector('#iteminfo1_item_owner_descriptors');
 
-    if (isOwner.style.display !== 'none') {
-        const listCSGOFloat = createButton('List on CSGOFloat', 'green');
-        listCSGOFloat.addEventListener('click', () => {
-            window.open('https://beta.csgofloat.com', '_blank');
-        });
-        floatDiv.appendChild(listCSGOFloat);
-    }
+    stallFetcher.getStallItem(steamId, id).then(async e => {
+        if (!e) {
+            const owner = await isInventoryOwner();
+            if (owner) {
+                const listCSGOFloat = createButton('List on CSGOFloat', 'green');
+                listCSGOFloat.addEventListener('click', () => {
+                    window.open('https://beta.csgofloat.com', '_blank');
+                });
+                floatDiv.appendChild(listCSGOFloat);
+            }
+
+            return;
+        }
+
+        const elem = document.createElement('a');
+        elem.innerText = `Buy on CSGOFloat for $${e.price / 100}`;
+        elem.href = `https://beta.csgofloat.com/item/${e.id}`;
+        elem.style.fontSize = '15px';
+        elem.target = '_blank';
+        floatDiv.appendChild(elem);
+    });
 
     if (expires && isOwner.style.display === 'none') {
         const tagDiv =
