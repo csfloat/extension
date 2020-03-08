@@ -1,5 +1,6 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     let url;
+    const options = {};
 
     if (request.model) {
         url = `https://money.csgofloat.com/model?url=${request.inspectLink}`;
@@ -8,6 +9,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.inventory) {
         url = `https://steamcommunity.com/profiles/${request.steamId}/inventory/json/730/2?l=english`;
     } else if (request.floatMarket) {
+        options.credentials = 'include';
         url = `https://beta.csgofloat.com/api/v1/me/pending-trades`;
     } else if (request.stall) {
         url = `https://beta.csgofloat.com/api/v1/users/${request.steamId}/stall`;
@@ -15,7 +17,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         url = `https://api.csgofloat.com/?url=${request.inspectLink}&minimal=true`;
     }
 
-    fetch(url, {credentials: 'include'})
+    fetch(url, options)
         .then(response => {
             response.json().then(data => sendResponse(data));
         })
