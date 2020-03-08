@@ -395,7 +395,7 @@ const addInventoryMods = async function(boxContent) {
         }
 
         const elem = document.createElement('a');
-        elem.innerText = `Buy on CSGOFloat for $${e.price / 100}`;
+        elem.innerText = `Listed on CSGOFloat for $${e.price / 100}`;
         elem.href = `https://beta.csgofloat.com/item/${e.id}`;
         elem.style.fontSize = '15px';
         elem.target = '_blank';
