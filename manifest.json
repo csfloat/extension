@@ -14,7 +14,8 @@
             "matches": [
                 "*://*.steamcommunity.com/market/listings/730/*",
                 "*://*.steamcommunity.com/id/*/inventory*",
-                "*://*.steamcommunity.com/profiles/*/inventory*"
+                "*://*.steamcommunity.com/profiles/*/inventory*",
+                "*://*.steamcommunity.com/tradeoffer/*"
             ],
             "js": [
                 "lib/filtrex.js",
@@ -27,7 +28,8 @@
             "css": ["float.css"]
         }, {
             "matches": [
-                "*://*.steamcommunity.com/id/*/tradehistory*"
+                "*://*.steamcommunity.com/id/*/tradehistory*",
+                "*://*.steamcommunity.com/profiles/*/tradehistory*"
             ],
             "js": [
                 "lib/utils.js",

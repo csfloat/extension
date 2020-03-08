@@ -463,9 +463,16 @@ const addInventoryMods = async function(boxContent) {
 
 // Adds float boxes to inventory pages
 const addInventoryBoxes = async function() {
-    const owner = await retrieveInventoryOwner();
+    let owner;
+    if (isInventoryPage()) {
+        owner = await retrieveInventoryOwner();
+    }
 
     for (const page of document.querySelectorAll('.inventory_page')) {
+        if (isTradePage()) {
+            owner = page.parentNode.id.replace("inventory_", "").replace("_730_2", "");
+        }
+
         // Don't include non-visible pages
         if (page.style.display === 'none') {
             continue;
@@ -779,7 +786,11 @@ async function main() {
 
     walletInfo = await retrieveWalletInfo();
 
-    if (isInventoryPage()) {
+    if (isTradePage()) {
+        setInterval(() => {
+            addInventoryBoxes();
+        }, 250);
+    } else if (isInventoryPage()) {
         retrieveInventoryOwner().then(async ownerId => {
             // We have to request the inventory from a separate endpoint that includes untradable expiration
             inventory = await sendMessage({ steamId: ownerId, inventory: true });
