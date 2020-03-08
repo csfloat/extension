@@ -787,6 +787,7 @@ async function main() {
     walletInfo = await retrieveWalletInfo();
 
     if (isTradePage()) {
+        addFloatMarketFill();
         setInterval(() => {
             addInventoryBoxes();
         }, 250);

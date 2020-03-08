@@ -23,6 +23,7 @@
                 "lib/filters.js",
                 "lib/queue.js",
                 "lib/bridge.js",
+                "lib/trade_offer.js",
                 "float.js"
             ],
             "css": ["float.css"]
@@ -42,7 +43,7 @@
         "scripts": ["background.js"]
     },
     "permissions": [
-        "https://api.csgofloat.com/*",
+        "https://*.csgofloat.com/*",
         "*://*.steamcommunity.com/market/listings/730/*",
         "*://*.steamcommunity.com/id/*/inventory*",
         "*://*.steamcommunity.com/id/*/tradehistory*",
