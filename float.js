@@ -382,6 +382,8 @@ const addInventoryMods = async function(boxContent) {
 
     stallFetcher.getStallItem(steamId, id).then(async e => {
         if (!e) {
+            // TODO: Uncomment once out of CSGOFloat Market Beta
+            /*
             const owner = await isInventoryOwner();
             if (owner) {
                 const listCSGOFloat = createButton('List on CSGOFloat', 'green');
@@ -389,7 +391,7 @@ const addInventoryMods = async function(boxContent) {
                     window.open('https://beta.csgofloat.com', '_blank');
                 });
                 floatDiv.appendChild(listCSGOFloat);
-            }
+            } */
 
             return;
         }
