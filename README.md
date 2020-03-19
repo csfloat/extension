@@ -40,6 +40,14 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.3.0
+
+* Allows computing manual trade verification proofs on CSGOFloat Market
+* Shows if an inventory item is listed on CSGOFloat Market Beta
+* Allows auto-filling trades for CSGOFloat Market Beta
+* Removes cs.money banner on market pages
+* Implements fetching item data on trade offers
+
 v2.2.2
 
 * Prevents auto retrying failed CSGOFloat requests
