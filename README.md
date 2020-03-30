@@ -40,6 +40,10 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.3.1
+
+* Updates Beta Market Endpoints to Production
+
 v2.3.0
 
 * Allows computing manual trade verification proofs on CSGOFloat Market

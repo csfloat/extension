@@ -382,26 +382,33 @@ const addInventoryMods = async function(boxContent) {
 
     stallFetcher.getStallItem(steamId, id).then(async e => {
         if (!e) {
-            // TODO: Uncomment once out of CSGOFloat Market Beta
-            /*
             const owner = await isInventoryOwner();
             if (owner) {
                 const listCSGOFloat = createButton('List on CSGOFloat', 'green');
                 listCSGOFloat.addEventListener('click', () => {
-                    window.open('https://beta.csgofloat.com', '_blank');
+                    window.open('https://csgofloat.com', '_blank');
                 });
                 floatDiv.appendChild(listCSGOFloat);
-            } */
+            }
 
             return;
         }
 
+        const wrap = document.createElement('div');
+        wrap.style.padding = '5px';
+        wrap.style.width = 'fit-content';
+        wrap.style.border = '1px white solid';
+        wrap.style.borderRadius = '5px';
+
+
         const elem = document.createElement('a');
         elem.innerText = `Listed on CSGOFloat for $${e.price / 100}`;
-        elem.href = `https://beta.csgofloat.com/item/${e.id}`;
+        elem.href = `https://csgofloat.com/item/${e.id}`;
         elem.style.fontSize = '15px';
         elem.target = '_blank';
-        floatDiv.appendChild(elem);
+        wrap.appendChild(elem);
+
+        floatDiv.appendChild(wrap);
     });
 
     if (expires && isOwner.style.display === 'none') {
