@@ -40,6 +40,11 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.3.2
+
+* Allows buyers on CSGOFloat Market to auto-fill trades
+* Shows warning for fake offers to CSGOFloat sellers
+
 v2.3.1
 
 * Updates Beta Market Endpoints to Production
