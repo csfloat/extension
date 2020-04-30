@@ -40,6 +40,10 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.3.3
+
+* Fixes CSGOFloat proof generation for some Steam languages
+
 v2.3.2
 
 * Allows buyers on CSGOFloat Market to auto-fill trades
