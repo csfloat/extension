@@ -40,6 +40,11 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.3.4
+
+* Adds CSMoney price banner
+* Adds window level scope attribute to allow other extensions to know if CSGOFloat is installed (window.csgofloat)
+
 v2.3.3
 
 * Fixes CSGOFloat proof generation for some Steam languages
