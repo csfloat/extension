@@ -14,7 +14,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.stall) {
         url = `https://csgofloat.com/api/v1/users/${request.steamId}/stall`;
     } else {
-        url = `https://api.csgofloat.com/?url=${request.inspectLink}&minimal=true`;
+        url = `https://api.csgofloat.com/?url=${request.inspectLink}&minimal=true${request.listPrice ? '&listPrice=' + request.listPrice : ''}`;
     }
 
     fetch(url, options)
