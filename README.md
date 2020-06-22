@@ -40,6 +40,11 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.3.5
+
+* Improves Valve's fragment check for market listings (works across pagination now)
+* Annotates pricing data on market listings
+
 v2.3.4
 
 * Adds CSMoney price banner
