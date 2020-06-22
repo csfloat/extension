@@ -577,11 +577,10 @@ const addInventoryBoxes = async function() {
 // If an item on the current page doesn't have the float div/buttons, this function adds it
 const addMarketButtons = async function() {
     // Iterate through each item on the page
-    let listingRows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
+    let listingRows = document.querySelectorAll('.market_listing_row.market_recent_listing_row');
 
     for (let row of listingRows) {
-        let id = row.id.replace('listing_', '');
-
+        let id = row.id.replace('listing_', '').replace('Copy', '');
         const steamListingData = await retrieveListingInfoFromPage(id);
         const listingData = steamListingData[id];
 
@@ -591,11 +590,18 @@ const addMarketButtons = async function() {
             continue;
         }
 
+        // Check if a 'buylisting' hash fragment can now be matched
+        checkMarketHash();
+
         const inspectLink = listingData.asset.market_actions[0].link
             .replace('%listingid%', id)
             .replace('%assetid%', listingData.asset.id);
 
         let listingNameElement = row.querySelector(`#listing_${id}_name`);
+        if (!listingNameElement) {
+            // Handle instances where it's a buy dialog opening
+            listingNameElement = row.querySelector(`#listing_${id}_nameCopy`);
+        }
 
         let floatDiv = document.createElement('div');
         floatDiv.classList.add('float-div');
