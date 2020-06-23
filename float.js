@@ -584,7 +584,7 @@ const addMarketButtons = async function() {
         const steamListingData = await retrieveListingInfoFromPage(id);
         const listingData = steamListingData[id];
 
-        if (!listingData || !listingData.asset.market_actions) return;
+        if (!listingData || !listingData.asset.market_actions) continue;
 
         if (row.querySelector(`#item_${id}_floatdiv`)) {
             continue;
