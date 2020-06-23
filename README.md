@@ -40,6 +40,10 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.3.6
+
+* Fixes Showing Floats on Market Pages WIth Your Own Listings
+
 v2.3.5
 
 * Improves Valve's fragment check for market listings (works across pagination now)
