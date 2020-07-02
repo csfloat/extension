@@ -22,6 +22,18 @@ const getRankColour = function (rank) {
     }
 };
 
+const showError = function(listingId, error) {
+    const floatDiv = document.querySelector(`#item_${listingId}_floatdiv`);
+    if (!floatDiv) return;
+
+    const buttonText = floatDiv.querySelector('#getFloatBtn span');
+    if (buttonText) buttonText.innerText = 'Get Float';
+
+    if (floatDiv.querySelector('.floatmessage')) {
+        floatDiv.querySelector('.floatmessage').innerText = error || 'Unknown Error';
+    }
+};
+
 const showFloat = async function(listingId) {
     let itemInfo = floatData[listingId];
 
