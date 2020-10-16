@@ -40,6 +40,9 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.3.7
+* Fixes CSMoney logo path
+
 v2.3.6
 
 * Fixes Showing Floats on Market Pages WIth Your Own Listings

@@ -300,7 +300,7 @@ const addFloatUtilities = async function() {
 
     const moneyButton = document.createElement('a');
     const moneyLogo = document.createElement('img');
-    moneyLogo.src = 'https://cs.money/images/logo_icons/logo.svg';
+    moneyLogo.src = 'https://cs.money/svg/logo.svg';
     moneyLogo.height = 32;
 
     const staticText = document.createElement('span');
