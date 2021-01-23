@@ -294,20 +294,52 @@ const addFloatUtilities = async function() {
     document.querySelector('#searchResultsTable').insertBefore(parentDiv, document.querySelector('#searchResultsRows'));
 
 
-    // Add CS.Money Banner
+    // Add CS.Money prices
     const csmoneyDiv = document.createElement('div');
     csmoneyDiv.id = 'floatMoney';
 
-    const link = document.createElement('a');
-    link.id = 'floatMoney';
-    link.href = 'https://christmas.cs.money/en?utm_source=sponsorship&utm_medium=csgofloat&utm_campaign=xmas20&utm_content=banner';
-    link.target = '_blank';
-
+    const moneyButton = document.createElement('a');
     const moneyLogo = document.createElement('img');
-    moneyLogo.src = 'https://i.imgur.com/o6RmHiH.jpg';
+    moneyLogo.src = 'https://cs.money/svg/logo.svg';
+    moneyLogo.height = 32;
 
-    link.appendChild(moneyLogo);
-    csmoneyDiv.appendChild(link);
+    const staticText = document.createElement('span');
+    staticText.innerText = 'Get this skin on ';
+    staticText.style.verticalAlign = 'bottom';
+
+    const priceText = document.createElement('span');
+    const price = document.createElement('span');
+    price.innerText = '$X.XX';
+    price.style.fontWeight = 'bold';
+    price.style.verticalAlign = 'bottom';
+
+    priceText.appendChild(price);
+    priceText.insertAdjacentText('afterbegin', ' for ');
+    priceText.insertAdjacentText('beforeend', ' USD');
+
+    priceText.style.verticalAlign = 'bottom';
+
+    moneyButton.appendChild(staticText);
+    moneyButton.appendChild(moneyLogo);
+    moneyButton.appendChild(priceText);
+    moneyButton.classList.add('float-money-button');
+    csmoneyDiv.appendChild(moneyButton);
+
+    const itemName = await getPageMarketHashName();
+    moneyButton.href = 'https://cs.money/?utm_source=sponsorship&utm_medium=csgoflt&utm_campaign=csgofloat&utm_content=link';
+    moneyButton.target = '_blank';
+
+    // Fetch the current price on CS.Money
+    const data = await sendMessage({ name: itemName, price: true });
+    if (data.trade && data.buy) {
+        price.innerText = `$${data.buy.toFixed(2)}`;
+    } else {
+        priceText.innerText = '';
+    }
+
+    if (data.link) {
+        moneyButton.href = data.link;
+    }
 
     document
         .querySelector('#searchResultsTable')
