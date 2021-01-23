@@ -40,6 +40,14 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.3.9
+
+* Reverts CSMoney Banner
+
+v2.3.8
+
+* Updates CSMoney Banner
+
 v2.3.7
 * Fixes CSMoney logo path
 
