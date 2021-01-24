@@ -25,6 +25,7 @@
                 "lib/bridge.js",
                 "lib/trade_offer.js",
                 "lib/stall.js",
+                "lib/inventory_fallback.js",
                 "float.js"
             ],
             "css": ["float.css"]
