@@ -40,6 +40,10 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.4.0
+
+* Provides fallback for unstable inventory loading ("Try Again using CSGOFloat")
+
 v2.3.9
 
 * Reverts CSMoney Banner
