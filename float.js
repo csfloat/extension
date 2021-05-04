@@ -416,15 +416,28 @@ const addInventoryMods = async function(boxContent) {
         const wrap = document.createElement('div');
         wrap.style.padding = '5px';
         wrap.style.width = 'fit-content';
-        wrap.style.border = '1px white solid';
-        wrap.style.borderRadius = '5px';
+        wrap.style.border = '1px #5a5a5a solid';
+        wrap.style.backgroundColor = '#383838';
+        wrap.style.borderRadius = '3px';
 
 
         const elem = document.createElement('a');
-        elem.innerText = `Listed on CSGOFloat for $${e.price / 100}`;
         elem.href = `https://csgofloat.com/item/${e.id}`;
         elem.style.fontSize = '15px';
+        elem.style.display = 'flex';
+        elem.style.alignItems = 'center';
         elem.target = '_blank';
+
+        const logo = document.createElement('img');
+        logo.src = 'https://csgofloat.com/assets/full_logo.png';
+        logo.height = 21;
+        elem.appendChild(logo);
+
+        const txt = document.createElement('span');
+        txt.style.marginLeft = '5px';
+        txt.innerText = `Listed for $${(e.price / 100).toFixed(2)}`;
+
+        elem.appendChild(txt);
         wrap.appendChild(elem);
 
         floatDiv.appendChild(wrap);
