@@ -40,6 +40,12 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.4.1
+
+* Fixes FloatDB Link Generation for StatTrak Knives
+* Changes styling of "Listed for X" button on item cards
+* Adds CSGOFloat Auction Banner 
+
 v2.4.0
 
 * Provides fallback for unstable inventory loading ("Try Again using CSGOFloat")
