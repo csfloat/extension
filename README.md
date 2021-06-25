@@ -32,6 +32,10 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.4.2
+
+* Improves dynamic banner support
+
 v2.4.1
 
 * Fixes FloatDB Link Generation for StatTrak Knives
