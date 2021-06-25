@@ -3,7 +3,7 @@
     "name": "CSGOFloat Market Checker",
     "short_name": "CSGOFloat",
     "version": "2.4.1",
-    "description": "Dedicated API for fetching the float value, paint seed, and screenshots of CS:GO items on the Steam Market",
+    "description": "Dedicated API for fetching the float value, paint seed, and screenshots of CS:GO items on the Steam Market or Inventories",
     "icons": {
         "16": "icons/16.png",
         "48": "icons/48.png",
@@ -26,6 +26,7 @@
                 "lib/trade_offer.js",
                 "lib/stall.js",
                 "lib/inventory_fallback.js",
+                "lib/banner.js",
                 "float.js"
             ],
             "css": ["float.css"]

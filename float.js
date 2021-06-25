@@ -282,7 +282,7 @@ const addFloatUtilities = async function() {
     }
 
     // Add github link
-    let csgofloatLink = document.createElement('a');
+    const csgofloatLink = document.createElement('a');
     csgofloatLink.classList.add('float-github');
     csgofloatLink.href = 'https://csgofloat.com';
     csgofloatLink.innerText = 'Powered by CSGOFloat';
@@ -293,24 +293,24 @@ const addFloatUtilities = async function() {
 
     document.querySelector('#searchResultsTable').insertBefore(parentDiv, document.querySelector('#searchResultsRows'));
 
-    // Add Banner
-    const bannerDiv = document.createElement('div');
-    bannerDiv.id = 'floatBanner';
+    const itemName = await getPageMarketHashName();
+    const data = await sendMessage({ name: itemName, price: true });
 
-    const link = document.createElement('a');
-    link.href = 'https://csgofloat.com';
-    link.target = '_blank';
+    if (!data.banner?.enable) {
+        return;
+    }
 
-    const bannerLogo = document.createElement('img');
-    bannerLogo.src = 'https://csgofloat.com/assets/extension_banner.png';
-    bannerLogo.height = 75;
+    let banner;
 
-    link.appendChild(bannerLogo);
-    bannerDiv.appendChild(link);
+    if (data.banner?.dynamic) {
+        banner = await constructDynamicBanner(data.price, data.banner);
+    } else {
+        banner = await constructBannerImage(data.banner);
+    }
 
     document
         .querySelector('#searchResultsTable')
-        .insertBefore(bannerDiv, document.querySelector('#searchResultsRows'));
+        .insertBefore(banner, document.querySelector('#searchResultsRows'));
 };
 
 const removeInventoryMods = function(parent) {
