@@ -32,6 +32,10 @@ In order to bypass CSP, the extension uses page event listeners to communicate w
 
 ## Changelog
 
+v2.4.3
+
+* Adds Glock Gamma Doppler phases
+
 v2.4.2
 
 * Improves dynamic banner support
