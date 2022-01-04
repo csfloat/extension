@@ -149,7 +149,7 @@ const getAllFloats = function() {
 
             let listingData = steamListingData[id];
 
-            if (listingData.asset.market_actions == null || listingData.asset.market_actions.length === 0) {
+            if (listingData.asset.market_actions === null || listingData.asset.market_actions.length === 0) {
                 continue;
             }
 
