@@ -1,0 +1,36 @@
+{
+  "name": "csgofloat-extension",
+  "version": "2.5.0",
+  "description": "Dedicated API for fetching the float value, paint seed, and screenshots of CS:GO items on the Steam Market or Inventories",
+  "main": ".eslintrc.js",
+  "directories": {
+    "lib": "src/lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/csgofloat/extension.git"
+  },
+  "scripts": {
+    "build": "webpack --env mode=development --config webpack.config.js --stats-error-details"
+  },
+  "author": "step7750",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/csgofloat/extension/issues"
+  },
+  "homepage": "https://github.com/csgofloat/extension#readme",
+  "devDependencies": {
+    "@types/chrome": "^0.0.193",
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.7.1",
+    "file-loader": "^6.2.0",
+    "glob": "^8.0.3",
+    "html-loader": "^4.1.0",
+    "mini-css-extract-plugin": "^2.6.1",
+    "sass-loader": "^13.0.2",
+    "ts-loader": "^9.3.1",
+    "typescript": "^4.7.4",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  }
+}

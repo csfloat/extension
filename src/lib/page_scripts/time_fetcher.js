@@ -1,4 +1,9 @@
-function historyRowHashcode_CSGOFloat(row) {
+import {init} from "./utils.ts";
+import {createButton} from "../utils";
+
+init('src/lib/page_scripts/time_fetcher.js', main);
+
+function historyRowHashcode(row) {
     const text = row.innerText.replace(/\W/g, '');
 
     /* Based on https://stackoverflow.com/a/8831937 (Java's hashCode() method) */
@@ -15,7 +20,7 @@ function historyRowHashcode_CSGOFloat(row) {
     return hash;
 }
 
-function getTimestampFromTrade_CSGOFloat(row) {
+function getTimestampFromTrade(row) {
     const dateDiv = row.querySelector('.tradehistory_date');
     const date = dateDiv.firstChild.nodeValue.trim();
     const time = dateDiv.querySelector('.tradehistory_timestamp').innerText;
@@ -37,7 +42,7 @@ function getTimestampFromTrade_CSGOFloat(row) {
     return d.getTime() / 1000;
 }
 
-async function addVerifyButtons() {
+async function main() {
     let rows = document.querySelectorAll('.tradehistoryrow');
 
     for (const [i, row] of rows.entries()) {
@@ -50,20 +55,14 @@ async function addVerifyButtons() {
 
         let proveBtn = createButton('CSGOFloat Proof', 'green', btnId);
         proveBtn.addEventListener('click', () => {
-            window.postMessage(
-                {
-                    type: 'fetchTime',
-                    index: i
-                },
-                '*'
-            );
+            fetchListingTime(i);
         });
 
         row.querySelector('.tradehistory_content').append(proveBtn);
     }
 }
 
-async function hasTradeBeforeTime_CSGOFloat(hashCode, timestamp) {
+async function hasTradeBeforeTime(hashCode, timestamp) {
     const resp = await fetch(`${location.protocol}//${location.host}${location.pathname}?after_time=${timestamp}&l=english`, {
         credentials: 'same-origin'
     });
@@ -80,7 +79,7 @@ async function hasTradeBeforeTime_CSGOFloat(hashCode, timestamp) {
 
     for (const row of rows) {
 
-        const thisCode = historyRowHashcode_CSGOFloat(row);
+        const thisCode = historyRowHashcode(row);
         if (thisCode === hashCode) {
             return true;
         }
@@ -89,7 +88,7 @@ async function hasTradeBeforeTime_CSGOFloat(hashCode, timestamp) {
     return false;
 }
 
-async function fetchEnglishRow_CSGOFloat(index) {
+async function fetchEnglishRow(index) {
     let queryParams = location.search;
     if (queryParams === '') {
         queryParams = '?l=english';
@@ -109,17 +108,17 @@ async function fetchEnglishRow_CSGOFloat(index) {
     return rows[index];
 }
 
-async function fetchListingTime_CSGOFloat(index) {
+async function fetchListingTime(index) {
     const btn = document.querySelector(`#verify_${index}_csgofloat`);
     btn.querySelector('span').innerText = 'Computing Proof...';
 
-    const node = await fetchEnglishRow_CSGOFloat(index);
-    const hashCode = historyRowHashcode_CSGOFloat(node);
+    const node = await fetchEnglishRow(index);
+    const hashCode = historyRowHashcode(node);
 
     let timestamp;
 
     try {
-        timestamp = getTimestampFromTrade_CSGOFloat(node);
+        timestamp = getTimestampFromTrade(node);
         if (!timestamp) {
             throw 'failed timestamp creation';
         }
@@ -133,7 +132,7 @@ async function fetchListingTime_CSGOFloat(index) {
     let amt = 0;
     while (left < right && amt < 5) {
         const middle = left + Math.floor((right - left) / 2);
-        const hasTrade = await hasTradeBeforeTime_CSGOFloat(hashCode, timestamp + middle);
+        const hasTrade = await hasTradeBeforeTime(hashCode, timestamp + middle);
         if (hasTrade) {
             right = middle;
         } else {
@@ -150,22 +149,3 @@ async function fetchListingTime_CSGOFloat(index) {
     btn.parentNode.append(span);
     btn.parentNode.removeChild(btn);
 }
-
-// register the message listener in the page scope
-let script = document.createElement('script');
-script.innerText = `
-    ${fetchEnglishRow_CSGOFloat.toString()}
-    ${hasTradeBeforeTime_CSGOFloat.toString()}
-    ${fetchListingTime_CSGOFloat.toString()}
-    ${historyRowHashcode_CSGOFloat.toString()}
-    ${getTimestampFromTrade_CSGOFloat.toString()}
-    window.addEventListener('message', (e) => {
-        if (e.data.type == 'fetchTime') {
-            fetchListingTime_CSGOFloat(e.data.index);
-        }
-    });
-`;
-
-document.head.appendChild(script);
-
-addVerifyButtons();

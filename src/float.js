@@ -1,3 +1,6 @@
+import {stallFetcher} from "./lib/floatmarket/stall.ts";
+import {Filters} from "./lib/filter/filters.ts";
+
 let floatData = {}, inventory = {};
 let walletInfo = {};
 let sortTypeAsc = true;

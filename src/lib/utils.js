@@ -1,4 +1,4 @@
-const createButton = function(text, colour, id) {
+export const createButton = function(text, colour, id) {
     let btn = document.createElement('a');
     btn.classList.add(`btn_${colour}_white_innerfade`);
     btn.classList.add('btn_small');
@@ -249,3 +249,9 @@ const isMarketListing = function (id) {
     // Dumb heuristic, has to be larger than asset id
     return id >= 10000000000000;
 };
+
+export async function getCurrentTab() {
+    console.log(chrome);
+    const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    return tab;
+}

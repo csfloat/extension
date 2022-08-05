@@ -1,3 +1,5 @@
+/******/ (() => { // webpackBootstrap
+var __webpack_exports__ = {};
 class StallFetcher {
     constructor() {
         // Maps string -> stall items
@@ -27,3 +29,6 @@ class StallFetcher {
 }
 
 const stallFetcher = new StallFetcher();
+
+/******/ })()
+;

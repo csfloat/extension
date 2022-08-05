@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Filtrex provides compileExpression() to compile user expressions to JavaScript.
  *
@@ -8,7 +9,7 @@
  *
  * -Joe Walnes
  */
-function compileExpression(expression, validVars) {
+export function compileExpression(expression, validVars) {
     var functions = {
         abs: Math.abs,
         ceil: Math.ceil,
