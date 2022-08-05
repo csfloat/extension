@@ -1,34 +1,34 @@
 import {Cache} from "./cache";
+import {DeferredPromise} from "./deferred_promise";
 
-abstract class Job<T> {
-    protected constructor(protected data: T) {}
+export abstract class Job<T> {
+    constructor(protected data: T) {}
 
     getData() {
         return this.data;
     }
 
+    /**
+     * Hash that uniquely identifies this job.
+     *
+     * If two jobs have the same hashcode, they are considered identical.
+     * */
     hashCode(): string {
         return JSON.stringify(this.data);
     }
 }
 
-interface InspectRequest {
-    link: string;
-}
-
-class InspectJob extends Job<InspectRequest> {
-    hashCode(): string {
-        return this.data.link;
-    }
-}
-
 interface QueuedJob<Req, Resp> {
     job: Job<Req>;
-    promise: Promise<Resp>
+    deferredPromise: DeferredPromise<Resp>;
 }
 
-
-export abstract class QueueQ<Req, Resp> {
+/**
+ * Queue to handle processing of "Jobs" with a request that
+ * return a response. Ensures a max concurrency of processing
+ * simultaneous jobs.
+ */
+export abstract class Queue<Req, Resp> {
     private internalQueue: QueuedJob<Req, Resp>[] = [];
     private jobsProcessing: number = 0;
 
@@ -58,23 +58,36 @@ export abstract class QueueQ<Req, Resp> {
         const queuedJob = this.internalQueue.shift()!;
         const req: Req = queuedJob.job.getData();
 
-        
+        try {
+            const resp = await this.process(req);
+            queuedJob.deferredPromise.resolve(resp);
+        } catch (e) {
+            queuedJob.deferredPromise.reject((e as any).toString());
+        }
+
+        this.jobsProcessing -= 1;
+        this.checkQueue();
     }
 
     add(job: Job<Req>): Promise<Resp> {
         if (this.has(job)) {
-            return this.getOrThrow(job)?.promise;
+            return this.getOrThrow(job)?.deferredPromise.promise();
         }
 
+        const promise = new DeferredPromise<Resp>();
+        this.internalQueue.push({job, deferredPromise: promise});
 
+        setTimeout(() => this.checkQueue(), 0);
+
+        return promise.promise();
     }
 
-    abstract process(req: Req): Promise<Resp>;
+    protected abstract process(req: Req): Promise<Resp>;
 }
 
 // Like a queue, but has an internal cache for elements already requested
-export abstract class CachedQueue<Req, Resp> extends QueueQ<Req, Resp>{
-    private cache = new Cache<Resp>()
+export abstract class CachedQueue<Req, Resp> extends Queue<Req, Resp>{
+    private cache = new Cache<Resp>();
 
     add(job: Job<Req>): Promise<Resp> {
         if (this.cache.has(job.hashCode())) {
@@ -87,108 +100,5 @@ export abstract class CachedQueue<Req, Resp> extends QueueQ<Req, Resp>{
         });
     }
 
-    abstract process(req: Req): Promise<Resp>;
-}
-
-export class Queue {
-    private queue: Job[] = []:
-    private failedRequests: string[] = [];
-    private concurrency = 10;
-    private processing = 0;
-    private floatMapping: {[listingId: string]: any} = {};
-
-    addJob(link, listingId, force) {
-        if (listingId in this.floatMapping) {
-            showFloat(listingId);
-            return;
-        }
-
-        const job = {
-            link,
-            listingId
-        };
-
-        // Stop if this item is already in the queue
-        if (this.queue.find(j => j.listingId === listingId)) {
-            return;
-        }
-
-        if (!force) {
-            // Prevent us from auto-fetching a previously failed request unless it's a user action
-            if (this.failedRequests.find(v => v === listingId)) {
-                return;
-            }
-        }
-
-        const promise = new Promise((resolve, reject) => {
-            job.resolve = resolve;
-            job.reject = reject;
-        });
-
-        this.queue.push(job);
-        this.checkQueue();
-
-        return promise;
-    }
-
-    async checkQueue() {
-        if (this.queue.length === 0 || this.processing >= this.concurrency) {
-            return;
-        }
-
-        // there is a free bot, process the job
-        let job = this.queue.shift();
-
-        this.processing += 1;
-
-        const floatDiv = document.querySelector(`#item_${job.listingId}_floatdiv`);
-
-        // Changed pages or div not visible, cancel request
-        if (!floatDiv || floatDiv.offsetParent === null) {
-            this.processing -= 1;
-            this.checkQueue();
-            return;
-        }
-
-        const buttonText = floatDiv.querySelector('#getFloatBtn span');
-        if (buttonText) {
-            buttonText.fetching = true;
-            buttonText.innerText = 'Fetching';
-        }
-
-        const params = { inspectLink: job.link };
-
-        if (isMarketListing(job.listingId)) {
-            const listingData = (await retrieveListingInfoFromPage(job.listingId))[job.listingId];
-            if (listingData.currencyid === 2001) {
-                params.listPrice = listingData.price + listingData.fee;
-            } else if (listingData.converted_currencyid === 2001) {
-                params.listPrice = listingData.converted_price + listingData.converted_fee;
-            }
-        }
-
-        const data = await sendMessage(params);
-
-        if (buttonText) {
-            buttonText.fetching = false;
-        }
-
-        if (data && data.iteminfo) {
-            floatData[job.listingId] = data.iteminfo;
-            showFloat(job.listingId);
-        } else {
-            // Reset the button text for this itemid
-            if (buttonText) buttonText.innerText = 'Get Float';
-
-            // Change the message div for this item to the error
-            if (floatDiv && floatDiv.querySelector('.floatmessage')) {
-                floatDiv.querySelector('.floatmessage').innerText = data.error || 'Unknown Error';
-            }
-
-            this.failedRequests.push(job.listingId);
-        }
-
-        this.processing -= 1;
-        this.checkQueue();
-    }
+    protected abstract process(req: Req): Promise<Resp>;
 }

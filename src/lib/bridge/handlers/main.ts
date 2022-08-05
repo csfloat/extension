@@ -3,6 +3,7 @@ import MessageSender = chrome.runtime.MessageSender;
 
 export enum RequestType {
     EXECUTE_SCRIPT_ON_PAGE,
+    FETCH_INSPECT_INFO,
     FETCH_GLOBAL_FILTERS,
     FETCH_STALL,
 }

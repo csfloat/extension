@@ -43,6 +43,9 @@
         "*://*.steamcommunity.com/id/*/tradehistory*",
         "*://*.steamcommunity.com/profiles/*/inventory*"
     ],
+    "externally_connectable" : {
+        "matches": ["*://*.steamcommunity.com/*"]
+    },
     "web_accessible_resources": [
         {
             "resources": ["model_frame.html", "model_frame.js"],

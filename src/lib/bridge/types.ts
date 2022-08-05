@@ -28,6 +28,8 @@ export interface InternalResponseBundle {
     // Response
     response: any;
 
+    error: string;
+
     // Random ID to identify the request
     id: number;
 }

@@ -9,6 +9,13 @@ export async function ClientSend<Req, Resp>(handler: RequestHandler<Req, Resp>, 
         id: Math.ceil(Math.random() * 100000000000)
     };
 
-    const resp = await chrome.runtime.sendMessage(EXTENSION_ID, bundle) as InternalResponseBundle;
-    return resp?.response;
+    return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage(EXTENSION_ID, bundle, (resp: InternalResponseBundle) => {
+            if (resp?.response) {
+                resolve(resp.response);
+            } else {
+                reject(resp?.error);
+            }
+        });
+    });
 }
