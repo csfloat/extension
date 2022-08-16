@@ -19,7 +19,6 @@ class FloatFetcher extends CachedQueue<FetchInspectInfoRequest, ItemInfo> {
     }
 
     protected async process(req: FetchInspectInfoRequest): Promise<ItemInfo> {
-        console.log('send request', req);
         const resp = await ClientSend(FetchInspectInfo, req);
         return resp.iteminfo;
     }
