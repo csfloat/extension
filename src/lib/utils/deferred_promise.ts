@@ -5,7 +5,7 @@
 export class DeferredPromise<T> {
     private resolve_: ((value: T) => void) | undefined;
     private reject_: ((reason: string) => void) | undefined;
-    private promise_: Promise<T>;
+    private readonly promise_: Promise<T>;
 
     constructor() {
         this.promise_ = new Promise((resolve, reject) => {
