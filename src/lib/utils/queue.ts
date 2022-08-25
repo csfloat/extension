@@ -34,6 +34,11 @@ export abstract class Queue<Req, Resp> {
 
     constructor(private maxConcurrency: number) {}
 
+    /** Amount of jobs currently in the queue */
+    size(): number {
+        return this.internalQueue.length;
+    }
+
     has(job: Job<Req>): boolean {
         return !!this.internalQueue.find(e => e.job.hashCode() === job.hashCode());
     }
@@ -88,6 +93,11 @@ export abstract class Queue<Req, Resp> {
 // Like a queue, but has an internal cache for elements already requested
 export abstract class CachedQueue<Req, Resp> extends Queue<Req, Resp>{
     private cache = new Cache<Resp>();
+
+    /** Amount of previously requested jobs stored in the cache */
+    cacheSize(): number {
+        return this.cache.size();
+    }
 
     add(job: Job<Req>): Promise<Resp> {
         if (this.cache.has(job.hashCode())) {

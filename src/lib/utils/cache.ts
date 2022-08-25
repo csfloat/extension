@@ -23,4 +23,8 @@ export class Cache<T> {
     has(key: string): boolean {
         return key in this.cache_;
     }
+
+    size(): number {
+        return Object.keys(this.cache_).length;
+    }
 }
