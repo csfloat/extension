@@ -23,7 +23,9 @@ module.exports = (env) => {
         mode: "none",
         entry: Object.assign(
             getPathEntries('./src/**/*.css'),
-            getPathEntries('./src/**/*.ts'),
+            getPathEntries('./src/lib/page_scripts/*.ts'),
+            getPathEntries('./src/lib/types/*.d.ts'),
+            getPathEntries('./src/background.ts'),
             getPathEntries('./src/**/*.js')),
         output: {
             path: path.join(__dirname, "dist"),
@@ -37,7 +39,11 @@ module.exports = (env) => {
                 {
                     test: /\.ts$/,
                     loader: "ts-loader",
-                    exclude: /node_modules/,
+                    exclude: /node_modules|\.d\.ts$/,
+                },
+                {
+                    test: /\.d\.ts$/,
+                    loader: 'ignore-loader'
                 },
                 {
                     test: new RegExp(`.(css)$`),
@@ -76,6 +82,9 @@ module.exports = (env) => {
         ],
         stats: {
             errorDetails: true,
+        },
+        optimization: {
+            usedExports: true
         }
     }
 };
