@@ -1,5 +1,6 @@
 import {ExecuteScriptOnPage} from "../bridge/handlers/execute_script";
 import {ClientSend} from "../bridge/client";
+import {inPageContext} from "../utils/snips";
 
 /**
  * Initializes a page script, executing it in the page context if necessary
@@ -9,7 +10,7 @@ import {ClientSend} from "../bridge/client";
  */
 export function init(scriptPath: string, ifPage: ()=>any) {
     // Don't allow the page script to run this.
-    if (!chrome.extension) {
+    if (inPageContext()) {
         ifPage();
         return;
     }
