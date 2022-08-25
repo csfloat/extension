@@ -15,7 +15,7 @@ export interface ItemInfo {
     paintindex: number;
     rarity: number;
     quality: number;
-    painseed: number;
+    paintseed: number;
     inventory: number;
     origin: number;
     s: string;
