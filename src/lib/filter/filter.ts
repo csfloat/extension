@@ -1,6 +1,5 @@
 // @ts-nocheck
 import {compileExpression} from "../../third_party/filtrex/filtrex";
-import {createButton} from "../utils/html";
 
 export class Filter {
     constructor(expression, colour, isGlobal, filters) {
