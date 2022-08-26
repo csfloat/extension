@@ -51,6 +51,11 @@ export function inlineStickers(itemNameBlock: JQuery<Element>, itemInfo: ItemInf
     `);
 }
 
+/**
+ * Adds easy inspect link by hovering over a market listing row image
+ * @param itemImgContainer Element with ".market_listing_item_img_container"
+ * @param inspectLink Item Inspect Link
+ */
 export function inlineEasyInspect(itemImgContainer: JQuery<Element>, inspectLink: string|undefined) {
     if (!itemImgContainer || !inspectLink) return;
 
