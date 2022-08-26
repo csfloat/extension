@@ -4,6 +4,7 @@ import {EXTENSION_ID} from "../../constants";
 
 export enum RequestType {
     EXECUTE_SCRIPT_ON_PAGE,
+    EXECUTE_CSS_ON_PAGE,
     FETCH_INSPECT_INFO,
     FETCH_GLOBAL_FILTERS,
     FETCH_STALL,
