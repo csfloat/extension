@@ -1,3 +1,7 @@
+.csgofloat-stickers-container {
+    float: right;
+}
+
 .csgofloat-easy-inspect {
     position: absolute;
     height: 74px;
