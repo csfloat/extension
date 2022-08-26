@@ -6,6 +6,7 @@ interface Sticker {
     codename?: string;
     material?: string;
     name?: string;
+    wear?: number;
 }
 
 export interface ItemInfo {

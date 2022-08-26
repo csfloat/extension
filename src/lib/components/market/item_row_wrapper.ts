@@ -4,10 +4,11 @@ import {property} from 'lit/decorators.js';
 import {CustomElement, InjectAppend, InjectionMode} from "../injectors";
 import {FloatElement} from "../custom";
 import {cache} from "decorator-cache-getter";
-import {ListingData} from "../../types/steam";
+import {Asset, ListingData} from "../../types/steam";
 import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
 import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
 import {getDopplerPhase, hasDopplerPhase} from "../../utils/dopplers";
+import {inlineStickers} from "./helpers";
 
 @CustomElement()
 @InjectAppend(".market_listing_row .market_listing_item_name_block", InjectionMode.CONTINUOUS)
@@ -27,6 +28,12 @@ export class ItemRowWrapper extends FloatElement {
         if (!this.listingId) return;
 
         return g_rgListingInfo[this.listingId];
+    }
+
+    get asset(): Asset|undefined {
+        if (!this.data) return;
+
+        return g_rgAssets[730][2][this.data?.asset.id!];
     }
 
     get inspectLink(): string|undefined {
@@ -50,17 +57,20 @@ export class ItemRowWrapper extends FloatElement {
 
     async connectedCallback() {
         super.connectedCallback();
+
         try {
             this.itemInfo = await this.fetchFloat();
         } catch (e: any) {
             this.error = e.toString();
         }
+
+        if (this.itemInfo && this.asset) {
+            inlineStickers($J(this).parent().find(".market_listing_item_name"), this.itemInfo, this.asset);
+        }
     }
 
     render() {
-        if (!this.itemInfo && !this.error) {
-            return html`<div>Loading...</div>`;
-        } else if (this.itemInfo) {
+        if (this.itemInfo) {
             return html`
                 <div>
                     Float: ${this.itemInfo.floatvalue.toFixed(14)}<br>
@@ -72,6 +82,8 @@ export class ItemRowWrapper extends FloatElement {
             `;
         } else if (this.error) {
             return html`<div style="color: orangered">CSGOFloat ${this.error}</div>`;
+        } else {
+            return html`<div>Loading...</div>`;
         }
     }
 }
