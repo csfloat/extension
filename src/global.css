@@ -1,0 +1,17 @@
+.csgofloat-easy-inspect {
+    position: absolute;
+    height: 74px;
+    width: 74px;
+    left: 0;
+    top: 0;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 74px;
+    display: none;
+    font-size: 20px;
+}
+
+.market_recent_listing_row:hover .csgofloat-easy-inspect {
+    display: initial;
+}
+

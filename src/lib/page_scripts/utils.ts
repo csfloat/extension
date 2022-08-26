@@ -12,13 +12,16 @@ import {ExecuteCssOnPage} from "../bridge/handlers/execute_css";
 export function init(scriptPath: string, ifPage: ()=>any) {
     // Don't allow the page script to run this.
     if (inPageContext()) {
+        // @ts-ignore Set global identifier for other extensions to use
+        window.csgofloat = true;
+
         ifPage();
         return;
     }
 
     // Global styles
     ClientSend(ExecuteCssOnPage, {
-        path: 'src/float.css'
+        path: 'src/global.css'
     });
 
     ClientSend(ExecuteScriptOnPage, {

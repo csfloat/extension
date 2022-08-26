@@ -17,7 +17,7 @@
             "js": [
                 "src/lib/page_scripts/market_listing.js"
             ],
-            "css": ["src/float.css"]
+            "css": ["src/global.css"]
         }, {
             "matches": [
                 "*://*.steamcommunity.com/id/*/tradehistory*",
@@ -26,7 +26,7 @@
             "js": [
                 "src/lib/page_scripts/time_fetcher.js"
             ],
-            "css": ["src/float.css"]
+            "css": ["src/global.css"]
         }
     ],
     "background": {
