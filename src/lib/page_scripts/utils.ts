@@ -27,4 +27,9 @@ export function init(scriptPath: string, ifPage: ()=>any) {
     ClientSend(ExecuteScriptOnPage, {
         path: scriptPath
     });
+
+    console.log(`%c CSGOFloat Market Checker (v${chrome.runtime.getManifest().version}) by Step7750 `,
+        'background: #004594; color: #fff;');
+    console.log('%c Changelog can be found here: https://github.com/csgofloat/extension ',
+        'background: #004594; color: #fff;');
 }
