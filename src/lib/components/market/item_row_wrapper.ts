@@ -8,7 +8,7 @@ import {Asset, ListingData} from "../../types/steam";
 import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
 import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
 import {getDopplerPhase, hasDopplerPhase} from "../../utils/dopplers";
-import {inlineStickers} from "./helpers";
+import {inlineEasyInspect, inlineStickers} from "./helpers";
 
 @CustomElement()
 @InjectAppend(".market_listing_row .market_listing_item_name_block", InjectionMode.CONTINUOUS)
@@ -58,6 +58,13 @@ export class ItemRowWrapper extends FloatElement {
     async connectedCallback() {
         super.connectedCallback();
 
+        // Only add if they don't have Steam Inventory Helper
+        if (!$J(this).parent().parent().find('.sih-inspect-magnifier').length) {
+            inlineEasyInspect(
+                $J(this).parent().parent().find('.market_listing_item_img_container'),
+                this.inspectLink);
+        }
+
         try {
             this.itemInfo = await this.fetchFloat();
         } catch (e: any) {
@@ -65,7 +72,7 @@ export class ItemRowWrapper extends FloatElement {
         }
 
         if (this.itemInfo && this.asset) {
-            inlineStickers($J(this).parent().find(".market_listing_item_name"), this.itemInfo, this.asset);
+            inlineStickers($J(this).parent().find('.market_listing_item_name'), this.itemInfo, this.asset);
         }
     }
 

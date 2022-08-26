@@ -37,7 +37,7 @@ export function inlineStickers(itemNameBlock: JQuery<Element>, itemInfo: ItemInf
 
         return `<span style="display: inline-block; text-align: center;">
                     <a target="_blank" href="${url}">${imagesHtml[i]}</a>
-                    <span style="display: block;" id="sticker_${i}_wear">
+                    <span style="display: block;">
                         ${Math.round(100 * (sticker?.wear || 0)) + '%'}
                     </span>
                 </span>`;
@@ -48,5 +48,13 @@ export function inlineStickers(itemNameBlock: JQuery<Element>, itemInfo: ItemInf
         <div class="csgofloat-stickers-container">
             ${result}
         </div>
+    `);
+}
+
+export function inlineEasyInspect(itemImgContainer: JQuery<Element>, inspectLink: string|undefined) {
+    if (!itemImgContainer || !inspectLink) return;
+
+    itemImgContainer.append(`
+        <a class="csgofloat-easy-inspect" href="${inspectLink}">🔍</a>
     `);
 }
