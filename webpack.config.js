@@ -22,7 +22,6 @@ module.exports = (env) => {
     return {
         mode: "none",
         entry: Object.assign(
-            getPathEntries('./src/**/*.css'),
             getPathEntries('./src/lib/page_scripts/*.ts'),
             getPathEntries('./src/lib/types/*.d.ts'),
             getPathEntries('./src/background.ts'),
@@ -32,7 +31,7 @@ module.exports = (env) => {
             filename: "[name].js",
         },
         resolve: {
-            extensions: [".ts", ".js", ".html", ".css"],
+            extensions: [".ts", ".js", ".html"],
         },
         module: {
             rules: [
@@ -61,7 +60,7 @@ module.exports = (env) => {
                 patterns: [
                     {from: "icons", to: "icons", context: "."},
                     {from: "src/model_frame.html", to: "src/", context: "."},
-                    {from: "src/float.css", to: "src/", context: "."},
+                    {from: "src/global.css", to: "src/", context: "."},
                     {
                         from: 'manifest.json',
                         to: 'manifest.json',
