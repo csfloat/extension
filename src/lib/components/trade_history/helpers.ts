@@ -1,29 +1,29 @@
-import {init} from "./utils.ts";
-import {createButton} from "../utils";
-
-init('src/lib/page_scripts/time_fetcher.js', main);
-
-function historyRowHashcode(row) {
+function historyRowHashcode(row: HTMLElement): string {
     const text = row.innerText.replace(/\W/g, '');
 
     /* Based on https://stackoverflow.com/a/8831937 (Java's hashCode() method) */
-    let hash = 0;
     if (text.length === 0) {
-        return hash;
+        return '';
     }
+
+    let hash = 0;
     for (let i = 0; i < text.length; i++) {
         const char = text.charCodeAt(i);
         hash = ((hash<<5)-hash)+char;
         hash = hash & hash;
     }
 
-    return hash;
+    return hash.toString();
 }
 
-function getTimestampFromTrade(row) {
+function getTimestampFromTrade(row: HTMLElement): number|null {
     const dateDiv = row.querySelector('.tradehistory_date');
-    const date = dateDiv.firstChild.nodeValue.trim();
-    const time = dateDiv.querySelector('.tradehistory_timestamp').innerText;
+    if (!dateDiv) {
+        return null;
+    }
+
+    const date = dateDiv.firstChild!.nodeValue!.trim();
+    const time = (dateDiv.querySelector('.tradehistory_timestamp')! as HTMLElement).innerText;
 
     const d = new Date(date);
     const pure = time.replace('am', '').replace('pm', '');
@@ -42,27 +42,7 @@ function getTimestampFromTrade(row) {
     return d.getTime() / 1000;
 }
 
-async function main() {
-    let rows = document.querySelectorAll('.tradehistoryrow');
-
-    for (const [i, row] of rows.entries()) {
-        const btnId = `verify_${i}_csgofloat`;
-
-        if (row.querySelector(`#${btnId}`)) {
-            // Already placed the button
-            continue;
-        }
-
-        let proveBtn = createButton('CSGOFloat Proof', 'green', btnId);
-        proveBtn.addEventListener('click', () => {
-            fetchListingTime(i);
-        });
-
-        row.querySelector('.tradehistory_content').append(proveBtn);
-    }
-}
-
-async function hasTradeBeforeTime(hashCode, timestamp) {
+async function hasTradeBeforeTime(hashCode: string, timestamp: number): Promise<boolean> {
     const resp = await fetch(`${location.protocol}//${location.host}${location.pathname}?after_time=${timestamp}&l=english`, {
         credentials: 'same-origin'
     });
@@ -75,7 +55,7 @@ async function hasTradeBeforeTime(hashCode, timestamp) {
     }
 
     const doc = new DOMParser().parseFromString(body, 'text/html');
-    const rows = doc.querySelectorAll('.tradehistoryrow');
+    const rows = doc.querySelectorAll('.tradehistoryrow') as NodeListOf<HTMLElement>;
 
     for (const row of rows) {
 
@@ -88,7 +68,7 @@ async function hasTradeBeforeTime(hashCode, timestamp) {
     return false;
 }
 
-async function fetchEnglishRow(index) {
+async function fetchEnglishRow(index: number): Promise<HTMLElement> {
     let queryParams = location.search;
     if (queryParams === '') {
         queryParams = '?l=english';
@@ -105,27 +85,22 @@ async function fetchEnglishRow(index) {
 
     const doc = new DOMParser().parseFromString(body, 'text/html');
     const rows = doc.querySelectorAll('.tradehistoryrow');
-    return rows[index];
+    return rows[index] as HTMLElement;
 }
 
-async function fetchListingTime(index) {
-    const btn = document.querySelector(`#verify_${index}_csgofloat`);
-    btn.querySelector('span').innerText = 'Computing Proof...';
-
+/**
+ * Returns the listing time of the row at {@param index}
+ * @param index Index of the trade history row on the page
+ */
+export async function fetchListingTime(index: number): Promise<number|undefined> {
     const node = await fetchEnglishRow(index);
     const hashCode = historyRowHashcode(node);
 
     let timestamp;
 
-    try {
-        timestamp = getTimestampFromTrade(node);
-        if (!timestamp) {
-            throw 'failed timestamp creation';
-        }
-    } catch(e) {
-        console.error(e);
-        alert("Failed to parse time, make sure you're on an english version of the page by appending ?l=english to the url");
-        return;
+    timestamp = getTimestampFromTrade(node);
+    if (!timestamp) {
+        throw 'failed timestamp creation';
     }
 
     let left = 0, right = 60;
@@ -142,10 +117,5 @@ async function fetchListingTime(index) {
     }
 
     /* Hello to all the reversers */
-    const proof = timestamp + Math.floor((right + left) / 2);
-
-    const span = document.createElement('span');
-    span.innerText = `Proof: ${proof}`;
-    btn.parentNode.append(span);
-    btn.parentNode.removeChild(btn);
+    return timestamp + Math.floor((right + left) / 2);
 }
