@@ -34,6 +34,8 @@ export interface ItemInfo {
     origin_name?: string;
     wear_name?: string;
     full_item_name?: string;
+    low_rank?: number;
+    high_rank?: number;
 }
 
 export interface FetchInspectInfoRequest {
