@@ -9,6 +9,7 @@ import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
 import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
 import {getDopplerPhase, hasDopplerPhase} from "../../utils/dopplers";
 import {inlineEasyInspect, inlineStickers} from "./helpers";
+import {formatFloat, formatSeed} from "../../utils/item_formatters";
 
 @CustomElement()
 @InjectAppend(".market_listing_row .market_listing_item_name_block", InjectionMode.CONTINUOUS)
@@ -80,11 +81,8 @@ export class ItemRowWrapper extends FloatElement {
         if (this.itemInfo) {
             return html`
                 <div>
-                    Float: ${this.itemInfo.floatvalue.toFixed(14)}<br>
-                    Paint Seed: ${this.itemInfo.paintseed} ${
-                        hasDopplerPhase(this.itemInfo.paintindex) ?
-                                `(${getDopplerPhase(this.itemInfo.paintindex)})`
-                                : ''}
+                    Float: ${formatFloat(this.itemInfo, 14)}<br>
+                    Paint Seed: ${formatSeed(this.itemInfo)}
                 </div>
             `;
         } else if (this.error) {
