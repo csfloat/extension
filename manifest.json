@@ -27,6 +27,15 @@
                 "src/lib/page_scripts/time_fetcher.js"
             ],
             "css": ["src/global.css"]
+        }, {
+            "matches": [
+                "*://*.steamcommunity.com/id/*/inventory*",
+                "*://*.steamcommunity.com/profiles/*/inventory*"
+            ],
+            "js": [
+                "src/lib/page_scripts/inventory.js"
+            ],
+            "css": ["src/global.css"]
         }
     ],
     "background": {

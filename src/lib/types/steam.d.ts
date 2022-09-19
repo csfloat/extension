@@ -3,7 +3,7 @@ import $ from "jquery";
 type AppId = 730;
 type ContextId = 2;
 
-export interface MarketAction {
+export interface Action {
     link: string;
     name: string;
 }
@@ -19,7 +19,7 @@ export interface ListingData {
         appid: AppId;
         currency: number;
         id: string;
-        market_actions: MarketAction[];
+        market_actions: Action[];
     };
 }
 
@@ -49,7 +49,8 @@ export interface Asset {
     id: string;
     instanceid: string;
     is_stackable: boolean;
-    market_actions: MarketAction[];
+    market_actions?: Action[];
+    actions?: Action[];
     market_hash_name: string;
     market_name: string;
     market_tradable_restriction: number;
@@ -63,6 +64,36 @@ export interface Asset {
     type: string;
     unowned_contextid: string;
     unowned_id: string;
+    tags?: {
+        category: string;
+        internal_name: string;
+        localized_category_name?: string;
+        localized_tag_name?: string;
+    }[];
+}
+
+export interface InventoryAsset {
+    amount: string;
+    appid: AppId;
+    assetid: string;
+    classid: string;
+    contextid: string;
+    description: Asset;
+    element: HTMLElement;
+    homeElement: HTMLElement;
+    instanceid: string;
+    is_currency: boolean;
+}
+
+// g_ActiveInventory.m_owner
+export interface mOwner {
+    strSteamId: string;
+}
+
+// g_ActiveInventory
+export interface CInventory {
+    m_rgAssets: {[assetId: string]: InventoryAsset};
+    m_owner: mOwner;
 }
 
 // Declares globals available in the Steam Page Context
@@ -71,6 +102,7 @@ declare global {
     const g_rgListingInfo: {[listingId: string]: ListingData};
     const g_rgWalletInfo: WalletInfo|undefined; // Not populated when user is signed-out
     const g_rgAssets: {[appId in AppId]: {[contextId in ContextId]: {[assetId: string]: Asset}}};
+    const g_ActiveInventory: CInventory|undefined; // Only populated on Steam inventory pages
 }
 
 export {};
