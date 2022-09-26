@@ -96,6 +96,9 @@ export class SelectedItemInfo extends FloatElement {
     }
 
     async processSelectChange() {
+        // Reset state in-case they swap between skin and non-skin
+        this.itemInfo = undefined;
+
         if (!this.asset) return;
 
         if (!isSkin(this.asset)) return;
