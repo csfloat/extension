@@ -7,6 +7,9 @@ import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
 import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
 import {formatSeed, isSkin, renderClickableRank} from "../../utils/skin";
 import {Observe} from "../../utils/observers";
+import {ClientSend} from "../../bridge/client";
+import {FetchStall, FetchStallResponse, FloatMarketListing} from "../../bridge/handlers/fetch_stall";
+import {gStallFetcher} from "../../floatmarket/stall";
 
 /**
  * Why do we bind to iteminfo0 AND iteminfo1?
@@ -47,6 +50,8 @@ export class SelectedItemInfo extends FloatElement {
     @state()
     private loading: boolean = false;
 
+    private stall: FetchStallResponse|undefined;
+
     get asset(): InventoryAsset|undefined {
         return g_ActiveInventory?.selectedItem;
     }
@@ -59,6 +64,14 @@ export class SelectedItemInfo extends FloatElement {
         return this.asset.description?.actions![0].link
             .replace('%owner_steamid%', g_ActiveInventory?.m_owner.strSteamId!)
             .replace('%assetid%', this.asset.assetid!);
+    }
+
+    get stallListing(): FloatMarketListing|undefined {
+        if (!this.stall) {
+            return;
+        }
+
+        return (this.stall.listings || []).find(e => e.item.asset_id === this.asset?.assetid);
     }
 
     protected render(): unknown {
@@ -75,11 +88,34 @@ export class SelectedItemInfo extends FloatElement {
                 <div>Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}</div>
                 <div>Paint Seed: ${formatSeed(this.itemInfo)}</div>
                 ${this.renderListOnCSGOFloat()}
+                ${this.renderFloatMarketListing()}
+            </div>
+        `;
+    }
+
+    renderFloatMarketListing(): TemplateResult<1> {
+        if (!this.stallListing) {
+            return html``;
+        }
+
+        return html`
+            <div class="market-btn-container">
+                <a class="market-btn" href="https://csgofloat.com/item/${this.stallListing.id}" target="_blank">
+                    <img src="https://csgofloat.com/assets/full_logo.png" height="21" style="margin-right: 5px;">
+                    <span>
+                        Listed for <b>$${(this.stallListing.price / 100).toFixed(2)}</b>
+                    </span>
+                </a>
             </div>
         `;
     }
 
     renderListOnCSGOFloat(): TemplateResult<1> {
+        if (this.stallListing) {
+            // Don't tell them to list it if it's already listed...
+            return html``;
+        }
+
         if (g_ActiveInventory?.m_owner.strSteamId !== g_steamID) {
             // Not the signed-in user, don't show
             return html``;
@@ -128,5 +164,10 @@ export class SelectedItemInfo extends FloatElement {
             this.processSelectChange();
         });
 
+        if (g_ActiveInventory?.m_owner.strSteamId) {
+            // Ignore errors
+            gStallFetcher.fetch({steam_id64: g_ActiveInventory?.m_owner.strSteamId})
+                .then((stall) => this.stall = stall);
+        }
     }
 }

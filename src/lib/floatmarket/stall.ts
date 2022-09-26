@@ -1,31 +1,25 @@
+import {CachedQueue, GenericJob} from "../utils/queue";
+import {
+    FetchStall,
+    FetchStallRequest,
+    FetchStallResponse,
+} from "../bridge/handlers/fetch_stall";
 import {ClientSend} from "../bridge/client";
-import {FetchStall} from "../bridge/handlers/fetch_stall";
 
-class StallFetcher {
-    private stalls: {[steamId: string]: {listings: any[]}} = {};
 
-    constructor() {}
+class StallFetcher extends CachedQueue<FetchStallRequest, FetchStallResponse> {
+    fetch(req: FetchStallRequest): Promise<FetchStallResponse> {
+        return this.add(new GenericJob(req));
+    }
 
-    async getStallItem(steamId64: string, itemId: string) {
-        if (this.stalls[steamId64]) {
-            return this.stalls[steamId64].listings.find(e => e.item.asset_id === itemId);
-        }
-
-        let stall;
-
+    protected async process(req: FetchStallRequest): Promise<FetchStallResponse> {
         try {
-            stall = await ClientSend(FetchStall, {steam_id64: steamId64});
-            if (!stall.listings) {
-                // Stub out to prevent further calls
-                stall = {listings: []};
-            }
+            return await ClientSend(FetchStall, req);
         } catch (e) {
-            return;
+            // Stub out to prevent future calls
+            return {listings: []};
         }
-
-        this.stalls[steamId64] = stall;
-        return stall.listings.find((e: any) => e.item.asset_id === itemId);
     }
 }
 
-export const stallFetcher = new StallFetcher();
+export const gStallFetcher = new StallFetcher(1);

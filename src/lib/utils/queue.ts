@@ -18,6 +18,8 @@ export abstract class Job<T> {
     }
 }
 
+export class GenericJob<T> extends Job<T> {}
+
 interface QueuedJob<Req, Resp> {
     job: Job<Req>;
     deferredPromise: DeferredPromise<Resp>;
