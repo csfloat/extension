@@ -52,7 +52,7 @@ export class EmptyResponseHandler<Req> implements RequestHandler<Req, void> {
  * Restricts a given handler such that it can only run if the sender is
  * verified to be from the extension's origin (ie. content script)
  */
-export class RestrictedHandler<Req, Resp> implements RequestHandler<Req, Resp> {
+export class PrivilegedHandler<Req, Resp> implements RequestHandler<Req, Resp> {
     constructor(private handler: RequestHandler<Req, Resp>) {}
 
     getType(): RequestType {

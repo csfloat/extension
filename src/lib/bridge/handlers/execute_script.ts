@@ -1,10 +1,10 @@
-import {EmptyResponseHandler, RequestType, RestrictedHandler} from "./main";
+import {EmptyResponseHandler, RequestType, PrivilegedHandler} from "./main";
 
 interface ExecuteScriptRequest {
     path: string;
 }
 
-export const ExecuteScriptOnPage = new RestrictedHandler(new EmptyResponseHandler<ExecuteScriptRequest>(
+export const ExecuteScriptOnPage = new PrivilegedHandler(new EmptyResponseHandler<ExecuteScriptRequest>(
     RequestType.EXECUTE_SCRIPT_ON_PAGE,
     async (req, sender) => {
         await chrome.scripting.executeScript(
