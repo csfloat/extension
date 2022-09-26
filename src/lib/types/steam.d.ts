@@ -94,6 +94,7 @@ export interface mOwner {
 export interface CInventory {
     m_rgAssets: {[assetId: string]: InventoryAsset};
     m_owner: mOwner;
+    selectedItem?: InventoryAsset;
 }
 
 // Declares globals available in the Steam Page Context

@@ -6,7 +6,8 @@ import {cache} from "decorator-cache-getter";
 import {InventoryAsset} from "../../types/steam";
 import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
 import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
-import {formatFloat, formatSeed} from "../../utils/item_formatters";
+import {formatFloatWithRank, formatSeed} from "../../utils/skin";
+import {isSkin} from "../../utils/skin";
 
 @CustomElement()
 @InjectAppend('div.inventory_page:not([style*="display: none"]) .itemHolder div.app730', InjectionMode.CONTINUOUS)
@@ -56,7 +57,7 @@ export class BoxMetadata extends FloatElement {
 
         return html`
             <span>
-                <span class="float">${formatFloat(this.itemInfo, 6)}</span>
+                <span class="float">${formatFloatWithRank(this.itemInfo, 6)}</span>
                 <span class="seed">${formatSeed(this.itemInfo)}</span>
             </span>
         `;
@@ -67,7 +68,7 @@ export class BoxMetadata extends FloatElement {
 
         if (!this.asset) return;
 
-        if (!BoxMetadata.isSkin(this.asset)) return;
+        if (!isSkin(this.asset)) return;
 
         // Commodities won't have inspect links
         if (!this.inspectLink) return;
@@ -79,11 +80,5 @@ export class BoxMetadata extends FloatElement {
         } catch (e: any) {
             console.error(`Failed to fetch float for ${this.assetId}: ${e.toString()}`);
         }
-    }
-
-    static isSkin(asset: InventoryAsset): boolean {
-        return !!asset.description.tags?.find(
-            a => a.category === 'Weapon'
-                || (a.category === 'Type' && a.internal_name === 'Type_Hands'));
     }
 }
