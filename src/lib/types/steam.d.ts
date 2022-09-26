@@ -104,6 +104,7 @@ declare global {
     const g_rgWalletInfo: WalletInfo|undefined; // Not populated when user is signed-out
     const g_rgAssets: {[appId in AppId]: {[contextId in ContextId]: {[assetId: string]: Asset}}};
     const g_ActiveInventory: CInventory|undefined; // Only populated on Steam inventory pages
+    const g_steamID: string;
 }
 
 export {};

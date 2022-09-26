@@ -1,6 +1,6 @@
 import {FloatElement} from "../custom";
 import {CustomElement, InjectAfter, InjectionMode} from "../injectors";
-import {html, css} from "lit";
+import {html, css, TemplateResult} from "lit";
 import {state} from "lit/decorators.js";
 import {InventoryAsset} from "../../types/steam";
 import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
@@ -21,6 +21,23 @@ export class SelectedItemInfo extends FloatElement {
     static styles = css`
       .container {
         margin-bottom: 10px;
+      }
+      
+      .market-btn-container {
+        margin: 10px 0 10px 0;
+        padding: 5px;
+        width: fit-content;
+        border: 1px #5a5a5a solid;
+        background-color: #383838;
+        border-radius: 3px;
+      }
+      
+      .market-btn {
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        color: #ebebeb;
+        text-decoration: none;
       }
     `;
 
@@ -57,6 +74,23 @@ export class SelectedItemInfo extends FloatElement {
             <div class="container">
                 <div>Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}</div>
                 <div>Paint Seed: ${formatSeed(this.itemInfo)}</div>
+                ${this.renderListOnCSGOFloat()}
+            </div>
+        `;
+    }
+
+    renderListOnCSGOFloat(): TemplateResult<1> {
+        if (g_ActiveInventory?.m_owner.strSteamId !== g_steamID) {
+            // Not the signed-in user, don't show
+            return html``;
+        }
+
+        return html`
+            <div class="market-btn-container">
+                <a class="market-btn" href="https://csgofloat.com" target="_blank">
+                    <span>List on </span>
+                    <img src="https://csgofloat.com/assets/full_logo.png" height="21" style="margin-left: 5px;">
+                </a>
             </div>
         `;
     }
