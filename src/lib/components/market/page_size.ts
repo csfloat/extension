@@ -3,6 +3,9 @@ import {CustomElement} from "../injectors";
 import {html} from "lit";
 import '../common/ui/steam-button';
 import {state} from "lit/decorators.js";
+import {Get} from "../../bridge/handlers/storage_get";
+import {StorageKey} from "../../storage/store";
+import {Set} from "../../bridge/handlers/storage_set";
 
 @CustomElement()
 export class PageSize extends FloatElement {
@@ -28,6 +31,11 @@ export class PageSize extends FloatElement {
 
     async connectedCallback() {
         super.connectedCallback();
+
+        const size = await Get<number>(StorageKey.PAGE_SIZE);
+        if (size) {
+            this.changePageSize(size);
+        }
     }
 
     onSelect(e: Event) {
@@ -38,5 +46,7 @@ export class PageSize extends FloatElement {
         this.selectedSize = newSize;
         g_oSearchResults.m_cPageSize = newSize;
         g_oSearchResults.GoToPage(0, true);
+
+        Set<number>(StorageKey.PAGE_SIZE, newSize);
     }
 }

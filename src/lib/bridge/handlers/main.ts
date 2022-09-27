@@ -8,6 +8,8 @@ export enum RequestType {
     FETCH_INSPECT_INFO,
     FETCH_GLOBAL_FILTERS,
     FETCH_STALL,
+    STORAGE_GET,
+    STORAGE_SET,
 }
 
 export class SimpleHandler<Req, Resp> implements RequestHandler<Req, Resp> {
