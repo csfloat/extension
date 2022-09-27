@@ -1,6 +1,4 @@
 import {RequestType, SimpleHandler} from "./main";
-import {Cache} from "../../utils/cache";
-import {CachedQueue, GenericJob} from "../../utils/queue";
 
 export interface FetchStallRequest {
     steam_id64: string;
