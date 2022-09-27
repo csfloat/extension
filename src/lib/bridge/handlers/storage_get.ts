@@ -1,7 +1,8 @@
 import {RequestType} from "./main";
 import {RequestHandler} from "../types";
-import {gStore, StorageKey} from "../../storage/store";
+import {gStore} from "../../storage/store";
 import {ClientSend} from "../client";
+import {StorageKey, StorageRow} from "../../storage/keys";
 
 interface StorageGetRequest {
     key: StorageKey;
@@ -22,8 +23,8 @@ class StorageGetHandler<T> implements RequestHandler<StorageGetRequest, StorageG
     }
 }
 
-export async function Get<T>(key: StorageKey): Promise<T|null> {
-    const resp = await ClientSend(new StorageGetHandler<T>(), {key});
+export async function Get<T>(row: StorageRow<T>): Promise<T|null> {
+    const resp = await ClientSend(new StorageGetHandler<T>(), {key: row.key});
     return resp.value;
 }
 

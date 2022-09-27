@@ -1,8 +1,4 @@
-
-export enum StorageKey {
-    // Backwards compatible with <3.0.0
-    PAGE_SIZE = 'pageSize'
-}
+import {StorageKey} from "./keys";
 
 class Store {
     // Prefer to use sync storage if possible
@@ -10,7 +6,7 @@ class Store {
         return chrome.storage.sync ? chrome.storage.sync : chrome.storage.local;
     }
 
-    async get<T>(key: string): Promise<T|null> {
+    async get<T>(key: StorageKey): Promise<T|null> {
         const a = await this.storage.get(key);
         if (!a || !(key in a)) {
             return null;
@@ -19,7 +15,7 @@ class Store {
         return JSON.parse(a[key]) as T;
     }
 
-    async set<T>(key: string, value: T): Promise<void> {
+    async set<T>(key: StorageKey, value: T): Promise<void> {
         return this.storage.set({[key]: JSON.stringify(value)});
     }
 }

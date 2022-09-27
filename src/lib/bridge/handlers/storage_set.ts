@@ -1,7 +1,8 @@
 import {RequestType} from "./main";
 import {RequestHandler} from "../types";
-import {gStore, StorageKey} from "../../storage/store";
+import {gStore} from "../../storage/store";
 import {ClientSend} from "../client";
+import {StorageKey, StorageRow} from "../../storage/keys";
 
 interface StorageSetRequest<T> {
     key: StorageKey;
@@ -23,6 +24,6 @@ class StorageSetHandler<T> implements RequestHandler<StorageSetRequest<T>, Stora
 
 export const StorageSet = new StorageSetHandler();
 
-export function Set<T>(key: StorageKey, value: T): Promise<StorageSetResponse> {
-    return ClientSend(StorageSet, {key, value});
+export function Set<T>(row: StorageRow<any>, value: T): Promise<StorageSetResponse> {
+    return ClientSend(StorageSet, {key: row.key, value});
 }

@@ -4,8 +4,8 @@ import {html} from "lit";
 import '../common/ui/steam-button';
 import {state} from "lit/decorators.js";
 import {Get} from "../../bridge/handlers/storage_get";
-import {StorageKey} from "../../storage/store";
 import {Set} from "../../bridge/handlers/storage_set";
+import {PAGE_SIZE} from "../../storage/keys";
 
 @CustomElement()
 export class PageSize extends FloatElement {
@@ -32,7 +32,7 @@ export class PageSize extends FloatElement {
     async connectedCallback() {
         super.connectedCallback();
 
-        const size = await Get<number>(StorageKey.PAGE_SIZE);
+        const size = await Get(PAGE_SIZE);
         if (size) {
             this.changePageSize(size);
         }
@@ -47,6 +47,6 @@ export class PageSize extends FloatElement {
         g_oSearchResults.m_cPageSize = newSize;
         g_oSearchResults.GoToPage(0, true);
 
-        Set<number>(StorageKey.PAGE_SIZE, newSize);
+        Set<number>(PAGE_SIZE, newSize);
     }
 }
