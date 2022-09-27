@@ -3,6 +3,7 @@ import {CustomElement, InjectBefore, InjectionMode} from "../injectors";
 import {html, css, TemplateResult} from "lit";
 import '../common/ui/steam-button';
 import './page_size';
+import './sort_floats';
 
 @CustomElement()
 @InjectBefore('#searchResultsRows', InjectionMode.ONCE)
@@ -43,7 +44,7 @@ export class UtilityBelt extends FloatElement {
         return html`
             ${UtilityBelt.renderStyles()}
             <div class="float-utility-container">
-                <csgofloat-steam-button text="Sort by Float"></csgofloat-steam-button>
+                <csgofloat-sort-floats></csgofloat-sort-floats>
                 <csgofloat-page-size class="float-page-selector"></csgofloat-page-size>
                 <a class="float-github" href="https://csgofloat.com" target="_blank">Powered by CSGOFloat</a>
                 <hr>
