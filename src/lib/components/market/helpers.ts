@@ -2,6 +2,24 @@ import {Asset} from "../../types/steam";
 import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
 
 /**
+ * If possible, constructs the inspect link from the given listing ID using page variables
+ *
+ * @param listingId ID for the listing, may also be referred to as "M"
+ */
+export function getMarketInspectLink(listingId: string): string|undefined {
+    const listingInfo = g_rgListingInfo[listingId];
+    if (!listingInfo) return;
+
+    const asset = g_rgAssets[730][2][listingInfo.asset.id!];
+    if (!asset || !asset.market_actions?.length) return;
+
+    return asset.market_actions[0].link
+        .replace('%listingid%', listingId)
+        .replace('%assetid%', asset.id)
+}
+
+
+/**
  * Inlines stickers into a market item row HTML showing the image and wear
  *
  * @param itemNameBlock Element with `.market_listing_item_name_block`
@@ -10,6 +28,11 @@ import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
  */
 export function inlineStickers(itemNameBlock: JQuery<Element>, itemInfo: ItemInfo, asset: Asset) {
     if (!itemNameBlock) return;
+
+    if (itemNameBlock.find('.csgofloat-stickers-container').length) {
+        // Don't inline stickers if they're already inlined
+        return;
+    }
 
     const lastDescription = asset.descriptions[asset.descriptions.length - 1];
 

@@ -4,10 +4,10 @@ import {property} from 'lit/decorators.js';
 import {CustomElement, InjectAppend, InjectionMode} from "../injectors";
 import {FloatElement} from "../custom";
 import {cache} from "decorator-cache-getter";
-import {Asset, ListingData} from "../../types/steam";
+import {Asset} from "../../types/steam";
 import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
 import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
-import {inlineEasyInspect, inlineStickers} from "./helpers";
+import {getMarketInspectLink, inlineEasyInspect, inlineStickers} from "./helpers";
 import {formatSeed, renderClickableRank} from "../../utils/skin";
 
 @CustomElement()
@@ -24,24 +24,15 @@ export class ItemRowWrapper extends FloatElement {
         return matches[1];
     }
 
-    get data(): ListingData|undefined {
-        if (!this.listingId) return;
-
-        return g_rgListingInfo[this.listingId];
-    }
-
     get asset(): Asset|undefined {
-        if (!this.data) return;
+        const listingInfo = g_rgListingInfo[this.listingId!];
+        if (!listingInfo) return;
 
-        return g_rgAssets[730][2][this.data?.asset.id!];
+        return g_rgAssets[730][2][listingInfo.asset.id!];
     }
 
     get inspectLink(): string|undefined {
-        if (!this.data || !this.data.asset?.market_actions?.length) return;
-
-        return this.data.asset.market_actions[0].link
-            .replace('%listingid%', this.listingId!)
-            .replace('%assetid%', this.data.asset.id);
+        return getMarketInspectLink(this.listingId!);
     }
 
     async fetchFloat(): Promise<ItemInfo> {
