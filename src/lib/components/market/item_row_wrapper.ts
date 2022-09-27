@@ -8,7 +8,7 @@ import {Asset, ListingData} from "../../types/steam";
 import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
 import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
 import {inlineEasyInspect, inlineStickers} from "./helpers";
-import {formatFloatWithRank, formatSeed, renderClickableRank} from "../../utils/skin";
+import {formatSeed, renderClickableRank} from "../../utils/skin";
 
 @CustomElement()
 @InjectAppend(".market_listing_row .market_listing_item_name_block", InjectionMode.CONTINUOUS)

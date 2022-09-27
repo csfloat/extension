@@ -97,6 +97,20 @@ export interface CInventory {
     selectedItem?: InventoryAsset;
 }
 
+export interface CAjaxPagingControls {
+    m_bLoading: boolean;
+    m_cMaxPages: number;
+    m_cPageSize: number;
+    m_cTotalCount: number;
+    m_iCurrentPage: number;
+    m_strClassPrefix: string;
+    m_strDefaultAction: string;
+    m_strElementPrefix: string;
+    GoToPage: (iPage: number, bForce: boolean) => any;
+    NextPage: () => any;
+    PrevPage: () => any;
+}
+
 // Declares globals available in the Steam Page Context
 declare global {
     const $J: typeof $;
@@ -105,6 +119,7 @@ declare global {
     const g_rgAssets: {[appId in AppId]: {[contextId in ContextId]: {[assetId: string]: Asset}}};
     const g_ActiveInventory: CInventory|undefined; // Only populated on Steam inventory pages
     const g_steamID: string;
+    const g_oSearchResults: CAjaxPagingControls;
 }
 
 export {};
