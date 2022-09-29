@@ -2,10 +2,10 @@ import {RequestType} from "./main";
 import {RequestHandler} from "../types";
 import {gStore} from "../../storage/store";
 import {ClientSend} from "../client";
-import {StorageKey, StorageRow} from "../../storage/keys";
+import {DynamicStorageKey, StorageKey, StorageRow} from "../../storage/keys";
 
 interface StorageSetRequest<T> {
-    key: StorageKey;
+    key: StorageKey|DynamicStorageKey;
     value: T;
 }
 
