@@ -45,14 +45,6 @@ export class UtilityBelt extends FloatElement {
             </style>`;
     }
 
-    private filterRender(): HTMLTemplateResult {
-        if (this.marketHashName) {
-            return html`<csgofloat-filter-container .key="${this.marketHashName}"></csgofloat-filter-container>`;
-        } else {
-            return html``;
-        }
-    }
-
     protected render(): unknown {
         return html`
             ${UtilityBelt.renderStyles()}
@@ -61,7 +53,8 @@ export class UtilityBelt extends FloatElement {
                 <csgofloat-page-size class="float-page-selector"></csgofloat-page-size>
                 <a class="float-github" href="https://csgofloat.com" target="_blank">Powered by CSGOFloat</a>
                 <hr>
-                ${this.filterRender()}
+                <csgofloat-filter-container ?hidden="${!this.marketHashName}"
+                                            .key="${this.marketHashName}"></csgofloat-filter-container>
             </div>
         `;
     }
