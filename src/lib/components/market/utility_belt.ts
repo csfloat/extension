@@ -1,6 +1,6 @@
 import {FloatElement, ViewEncapsulation} from "../custom";
 import {CustomElement, InjectBefore, InjectionMode} from "../injectors";
-import {html, css, TemplateResult, HTMLTemplateResult} from "lit";
+import {html, TemplateResult} from "lit";
 import '../common/ui/steam-button';
 import './page_size';
 import './sort_floats';
@@ -34,14 +34,6 @@ export class UtilityBelt extends FloatElement {
                     text-decoration: underline;
                     font-family: 'Motiva Sans', sans-serif;
                 }
-                
-                hr {
-                    background-color: #1b2939;
-                    border-style: solid none none;
-                    border-color: black;
-                    border-width: 1px 0 0;
-                    height: 2px;
-                }
             </style>`;
     }
 
@@ -52,7 +44,7 @@ export class UtilityBelt extends FloatElement {
                 <csgofloat-sort-floats></csgofloat-sort-floats>
                 <csgofloat-page-size class="float-page-selector"></csgofloat-page-size>
                 <a class="float-github" href="https://csgofloat.com" target="_blank">Powered by CSGOFloat</a>
-                <hr>
+                <hr class="float-hr">
                 <csgofloat-filter-container ?hidden="${!this.marketHashName}"
                                             .key="${this.marketHashName}"></csgofloat-filter-container>
             </div>
