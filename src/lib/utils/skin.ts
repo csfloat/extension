@@ -3,6 +3,24 @@ import {ItemInfo} from "../bridge/handlers/fetch_inspect_info";
 import {getDopplerPhase, hasDopplerPhase} from "./dopplers";
 import {html, TemplateResult} from "lit";
 
+export function rangeFromWear(wear: number): [number, number]|null {
+    const wearRanges: [number, number][] = [
+        [0.0, 0.07],
+        [0.07, 0.15],
+        [0.15, 0.38],
+        [0.38, 0.45],
+        [0.45, 1.0]
+    ];
+
+    for (const range of wearRanges) {
+        if (wear > range[0] && wear <= range[1]) {
+            return range;
+        }
+    }
+
+    return null;
+}
+
 export function parseRank(info: ItemInfo): {order: OrderType, rank: number}|undefined {
     const rank = (info.low_rank || 1001) < (info.high_rank || 1001) ?
         info.low_rank : info.high_rank;

@@ -31,14 +31,26 @@ export class Filter {
         return this;
     }
 
+    getExpression(): string {
+        return this.expression;
+    }
+
     setColor(colour: string): Filter {
         this.colour = colour;
         return this;
     }
 
+    getColour(): string {
+        return this.colour;
+    }
+
     setIsGlobal(isGlobal: boolean): Filter {
         this.isGlobal = isGlobal;
         return this;
+    }
+
+    getIsGlobal(): boolean {
+        return this.isGlobal;
     }
 
     serialize(): SerializedFilter {
@@ -73,6 +85,7 @@ export class Filter {
      * Throws if the filter expression is invalid
      */
     validate(): boolean {
+        // Use example values so we can trigger non-existent property errors
         const result = this.run({
             float: 0.01,
             seed: 999,
@@ -80,7 +93,9 @@ export class Filter {
             maxfloat: 0.99,
             minwearfloat: 0.01,
             maxwearfloat: 0.99,
-            phase: 'Phase 1'
+            phase: 'Phase 1',
+            low_rank: 2,
+            high_rank: 2,
         });
 
         if (typeof result !== "boolean" && result !== 0 && result !== 1) {
@@ -100,5 +115,9 @@ export class Filter {
         } catch (e) {
             return false;
         }
+    }
+
+    equals(o: Filter) {
+        return this.expression === o.expression;
     }
 }

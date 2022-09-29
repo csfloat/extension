@@ -7,6 +7,8 @@ export interface InternalInputVars {
     minwearfloat: number;
     maxwearfloat: number;
     phase: string;
+    low_rank: number;
+    high_rank: number;
 }
 
 export interface SerializedFilter {
