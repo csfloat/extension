@@ -1,14 +1,19 @@
 import {FloatElement, ViewEncapsulation} from "../custom";
 import {CustomElement, InjectBefore, InjectionMode} from "../injectors";
-import {html, css, TemplateResult} from "lit";
+import {html, css, TemplateResult, HTMLTemplateResult} from "lit";
 import '../common/ui/steam-button';
 import './page_size';
 import './sort_floats';
+import '../filter/filter_container';
 
 @CustomElement()
 @InjectBefore('#searchResultsRows', InjectionMode.ONCE)
 export class UtilityBelt extends FloatElement {
     encapsulation = ViewEncapsulation.NONE;
+
+    get marketHashName(): string {
+        return (document.querySelector('.market_listing_nav a:nth-child(2)') as HTMLElement).innerText;
+    }
 
     // Need to manually inject styles since view encapsulation is off
     private static renderStyles(): TemplateResult<1> {
@@ -40,6 +45,14 @@ export class UtilityBelt extends FloatElement {
             </style>`;
     }
 
+    private filterRender(): HTMLTemplateResult {
+        if (this.marketHashName) {
+            return html`<csgofloat-filter-container .key="${this.marketHashName}"></csgofloat-filter-container>`;
+        } else {
+            return html``;
+        }
+    }
+
     protected render(): unknown {
         return html`
             ${UtilityBelt.renderStyles()}
@@ -48,12 +61,12 @@ export class UtilityBelt extends FloatElement {
                 <csgofloat-page-size class="float-page-selector"></csgofloat-page-size>
                 <a class="float-github" href="https://csgofloat.com" target="_blank">Powered by CSGOFloat</a>
                 <hr>
+                ${this.filterRender()}
             </div>
         `;
     }
 
     async connectedCallback() {
         super.connectedCallback();
-
     }
 }

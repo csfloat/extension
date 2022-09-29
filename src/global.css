@@ -19,3 +19,11 @@
     display: initial;
 }
 
+.float-hr {
+    background-color: #1b2939;
+    border-style: solid none none;
+    border-color: black;
+    border-width: 1px 0 0;
+    height: 2px;
+}
+

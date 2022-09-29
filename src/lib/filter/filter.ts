@@ -1,116 +1,104 @@
-// @ts-nocheck
-import {compileExpression} from "../../third_party/filtrex/filtrex";
+import {InternalInputVars, SerializedFilter} from "./types";
+import {match, percentile, percentileRange} from "./custom_functions";
+import {compileExpression} from "filtrex";
 
+type ExpressionRunner = (data: InternalInputVars) => boolean;
+
+/**
+ * Encapsulates a filter, with mechanisms for running expressions
+ */
 export class Filter {
-    constructor(expression, colour, isGlobal, filters) {
+    private colour: string;
+    private expression: string;
+    private isGlobal: boolean;
+    private runner: ExpressionRunner | undefined;
+
+    private currentVars: InternalInputVars | undefined;
+
+    constructor(expression: string, colour: string, isGlobal: boolean) {
         this.expression = expression;
         this.colour = colour;
         this.isGlobal = isGlobal;
-        this.validExpressionVars = ['float', 'seed', 'minfloat', 'maxfloat', 'minwearfloat', 'maxwearfloat', 'phase'];
-        this.filters = filters;
-
-        this.compileExpression();
     }
 
-    static filtrexMatch(str, reg) {
-        let thisMatch = str.toString().match(reg);
-
-        if (thisMatch !== null) return thisMatch.length;
-        else return 0;
+    static from(serialized: SerializedFilter): Filter {
+        return new Filter(serialized.expression, serialized.colour, serialized.isGlobal);
     }
 
-    static percentile(vars) {
-        const minFloat = vars.minfloat > vars.minwearfloat ? vars.minfloat : vars.minwearfloat;
-        const maxFloat = vars.maxfloat < vars.maxwearfloat ? vars.maxfloat : vars.maxwearfloat;
-        const itemPercentile = 100 - (100 * (vars.float - minFloat)) / (maxFloat - minFloat);
-
-        return function(rank) {
-            // Assumes floats are distributed evenly
-            return itemPercentile > rank ? 1 : 0;
-        };
+    setExpression(expression: string): Filter {
+        this.expression = expression;
+        this.runner = undefined;
+        return this;
     }
 
-    static percentileRange(vars) {
-        const minFloat = vars.minfloat > vars.minwearfloat ? vars.minfloat : vars.minwearfloat;
-        const maxFloat = vars.maxfloat < vars.maxwearfloat ? vars.maxfloat : vars.maxwearfloat;
-        const itemPercentile = 100 - (100 * (vars.float - minFloat)) / (maxFloat - minFloat);
-
-        return function(minRank, maxRank) {
-            // Assumes floats are distributed evenly
-            return itemPercentile > minRank && itemPercentile < maxRank ? 1 : 0;
-        };
+    setColor(colour: string): Filter {
+        this.colour = colour;
+        return this;
     }
 
-    func(vars) {
-        return this.filtrexFunc(vars, {
-            match: Filter.filtrexMatch,
-            percentile: Filter.percentile(vars),
-            percentileRange: Filter.percentileRange(vars)
+    setIsGlobal(isGlobal: boolean): Filter {
+        this.isGlobal = isGlobal;
+        return this;
+    }
+
+    serialize(): SerializedFilter {
+        return {
+            expression: this.expression,
+            colour: this.colour,
+            isGlobal: this.isGlobal || false,
+        }
+    }
+
+    getExtraFunctions() {
+        return {
+            match: match,
+            percentile: (rank: number) => percentile(this.currentVars!, rank),
+            percentileRange: (minRank: number, maxRank: number) => percentileRange(this.currentVars!, minRank, maxRank)
+        }
+    }
+
+    run(vars: InternalInputVars): any {
+        // Update vars in use for the functions
+        this.currentVars = vars;
+
+        if (!this.runner) {
+            // Re-use the runner since it is expensive to create
+            this.runner = compileExpression(this.expression, {extraFunctions: this.getExtraFunctions()});
+        }
+
+        return this.runner(vars);
+    }
+
+    /**
+     * Throws if the filter expression is invalid
+     */
+    validate(): boolean {
+        const result = this.run({
+            float: 0.01,
+            seed: 999,
+            minfloat: 0.01,
+            maxfloat: 0.99,
+            minwearfloat: 0.01,
+            maxwearfloat: 0.99,
+            phase: 'Phase 1'
         });
+
+        if (typeof result !== "boolean" && result !== 0 && result !== 1) {
+            throw new Error("invalid return type " + result.toString());
+        }
+
+        return true;
     }
 
-    compileExpression() {
-        this.filtrexFunc = compileExpression(this.expression, this.validExpressionVars);
-    }
-
-    onFilterColourChange(e) {
-        let colourSwitch = e.target || e.srcElement;
-
-        this.filters.setFilterColour(this, colourSwitch.value);
-    }
-
-    addToUI() {
-        let parentDiv = document.querySelector('#floatFilters');
-
-        let thisDiv = document.createElement('div');
-        thisDiv.innerText = this.expression;
-
-        let colourDiv = document.createElement('input');
-        colourDiv.type = 'color';
-        colourDiv.value = this.colour;
-        colourDiv.style.float = 'left';
-        colourDiv.style.marginRight = '10px';
-        colourDiv.style.marginTop = '-3px';
-        colourDiv.addEventListener('change', e => this.onFilterColourChange(e));
-        thisDiv.appendChild(colourDiv);
-
-        // Add remove filter btn
-        let removeFilterBtn = createButton('Remove Filter', 'grey');
-        removeFilterBtn.addEventListener('click', e => this.removeFilter(e));
-        removeFilterBtn.style.marginTop = '-3px';
-        removeFilterBtn.style.float = 'right';
-        thisDiv.appendChild(removeFilterBtn);
-
-        // Add global filter toggle btn
-        let globalToggleBtn = createButton('Global', this.isGlobal ? 'green' : 'grey');
-        globalToggleBtn.addEventListener('click', e => {
-            globalToggleBtn.classList.remove(`btn_${this.isGlobal ? 'green' : 'grey'}_white_innerfade`);
-            this.isGlobal = !this.isGlobal;
-            globalToggleBtn.classList.add(`btn_${this.isGlobal ? 'green' : 'grey'}_white_innerfade`);
-            this.filters.saveFilters();
-        });
-        globalToggleBtn.classList.add('float-tooltip');
-        globalToggleBtn.style.marginTop = '-3px';
-        globalToggleBtn.style.marginRight = '10px';
-        globalToggleBtn.style.float = 'right';
-
-        // Inner tooltip text
-        const tooltipText = document.createElement('span');
-        tooltipText.classList.add('tiptext');
-        tooltipText.innerText = 'Global filters apply to every item on the market';
-        tooltipText.style.background = 'darkslategrey';
-        globalToggleBtn.appendChild(tooltipText);
-        thisDiv.appendChild(globalToggleBtn);
-
-        // Add line break
-        let hr = document.createElement('hr');
-        thisDiv.appendChild(hr);
-
-        this.div = thisDiv;
-        parentDiv.appendChild(thisDiv);
-    }
-
-    removeFilter() {
-        this.filters.removeFilter(this);
+    /**
+     * Returns a boolean indicating if the filter expression is valid
+     */
+    isValid(): boolean {
+        try {
+            this.validate();
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 }
