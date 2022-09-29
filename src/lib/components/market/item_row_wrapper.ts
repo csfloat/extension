@@ -11,7 +11,7 @@ import {getMarketInspectLink, inlineEasyInspect, inlineStickers} from "./helpers
 import {formatSeed, renderClickableRank} from "../../utils/skin";
 
 @CustomElement()
-@InjectAppend(".market_listing_row .market_listing_item_name_block", InjectionMode.CONTINUOUS)
+@InjectAppend("#searchResultsRows .market_listing_row .market_listing_item_name_block", InjectionMode.CONTINUOUS)
 export class ItemRowWrapper extends FloatElement {
     @cache
     get listingId(): string|undefined {
