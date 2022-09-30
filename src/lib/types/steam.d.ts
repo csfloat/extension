@@ -121,6 +121,26 @@ export interface BuyItemDialog {
     m_bPurchaseSuccess: number;
 }
 
+export interface CInventory {
+    prototype: {
+        GetInventoryLoadURL: () => string;
+        AddInventoryData: (data: any) => void;
+        ShowInventoryLoadError: () => void;
+        RetryLoad: () => any;
+
+        // Annotated by CSGOFloat, see {@link fallback.ts}
+        g_ShowInventoryLoadError: () => void;
+        g_AddInventoryData: (data: any) => void;
+        g_GetInventoryLoadURL: () => string;
+
+        m_steamid: string;
+        m_appid: number;
+        m_contextid: number;
+        m_bNeedsRepagination: boolean;
+        m_$ErrorDisplay: JQuery;
+    }
+}
+
 // Declares globals available in the Steam Page Context
 declare global {
     const $J: typeof $;
@@ -132,6 +152,7 @@ declare global {
     const g_oSearchResults: CAjaxPagingControls;
     const BuyItemDialog: BuyItemDialog|undefined; // Only populated on Steam Market pages
     const MarketCheckHash: (() => any)|undefined; // Only populated on Steam Market pages
+    const CInventory: CInventory;
 }
 
 export {};
