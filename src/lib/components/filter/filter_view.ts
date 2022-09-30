@@ -29,7 +29,8 @@ export class FilterView extends FloatElement {
       }
       
       .remove-btn {}
-    `]
+    `];
+
     protected render(): HTMLTemplateResult {
         return html`
             <div class="container">
