@@ -9,6 +9,7 @@ import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
 import {formatFloatWithRank, formatSeed, getLowestRank} from "../../utils/skin";
 import {isSkin} from "../../utils/skin";
 import {getRankColour} from "../../utils/ranks";
+import {Observe} from "../../utils/observers";
 
 @CustomElement()
 @InjectAppend('div.inventory_page:not([style*="display: none"]) .itemHolder div.app730', InjectionMode.CONTINUOUS)
@@ -32,7 +33,6 @@ export class BoxMetadata extends FloatElement {
     @state()
     private itemInfo: ItemInfo|undefined;
 
-    @cache
     get assetId(): string|undefined {
         return $J(this).parent().attr('id')?.split('_')[2];
     }
@@ -67,6 +67,19 @@ export class BoxMetadata extends FloatElement {
     async connectedCallback() {
         super.connectedCallback();
 
+        if (this.asset) {
+            this.onInit();
+        } else {
+            // Wait until the asset exists
+            Observe(() => this.asset, () => {
+                if (this.asset) {
+                    this.onInit();
+                }
+            }, 200);
+        }
+    }
+
+    async onInit() {
         if (!this.asset) return;
 
         if (!isSkin(this.asset)) return;
