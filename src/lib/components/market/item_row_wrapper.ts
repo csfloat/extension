@@ -108,6 +108,12 @@ export class ItemRowWrapper extends FloatElement {
                 $J(this).parent().parent().css('background-color', colour);
             });
         }
+
+        if (BuyItemDialog?.m_bInitialized && MarketCheckHash) {
+            // Does the hash now match an item on the page?
+            // Allows dynamic page scrubs to auto-show the dialog
+            MarketCheckHash();
+        }
     }
 
     render() {

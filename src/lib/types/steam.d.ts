@@ -115,6 +115,12 @@ export interface CAjaxPagingControls {
     PrevPage: () => any;
 }
 
+export interface BuyItemDialog {
+    m_bInitialized: number;
+    m_bPurchaseClicked: number;
+    m_bPurchaseSuccess: number;
+}
+
 // Declares globals available in the Steam Page Context
 declare global {
     const $J: typeof $;
@@ -124,6 +130,8 @@ declare global {
     const g_ActiveInventory: CInventory|undefined; // Only populated on Steam inventory pages
     const g_steamID: string;
     const g_oSearchResults: CAjaxPagingControls;
+    const BuyItemDialog: BuyItemDialog|undefined; // Only populated on Steam Market pages
+    const MarketCheckHash: (() => any)|undefined; // Only populated on Steam Market pages
 }
 
 export {};
