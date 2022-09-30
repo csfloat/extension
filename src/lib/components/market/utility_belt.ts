@@ -37,7 +37,7 @@ export class UtilityBelt extends FloatElement {
                 <csgofloat-sort-floats></csgofloat-sort-floats>
                 <csgofloat-page-size class="page-selector"></csgofloat-page-size>
                 <a class="github" href="https://csgofloat.com" target="_blank">Powered by CSGOFloat</a>
-                <hr class="float-hr">
+                <hr>
                 <csgofloat-filter-container ?hidden="${!this.marketHashName}"
                                             .key="${this.marketHashName}"></csgofloat-filter-container>
             </div>

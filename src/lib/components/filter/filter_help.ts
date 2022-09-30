@@ -6,7 +6,7 @@ import {html, HTMLTemplateResult} from "lit";
 export class FilterHelp extends FloatElement {
     protected render(): HTMLTemplateResult {
         return html`
-            <hr class="float-hr"></hr>
+            <hr></hr>
             Filters will highlight matching items with the specified colour<br><br>
 
             <b>Note: </b> If multiple filters match an item, it will be highlighted with the average colour<br><br>

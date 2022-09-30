@@ -37,7 +37,7 @@ export class FilterContainer extends FloatElement {
             ${this.filters.map(filter => {
                 return html`<div>
                     <csgofloat-filter-view .filter="${filter}"></csgofloat-filter-view>
-                    <hr class="float-hr">
+                    <hr>
                 </div>`
             })}
             <csgofloat-filter-creator @newFilter="${this.onNewFilter}"></csgofloat-filter-creator>
