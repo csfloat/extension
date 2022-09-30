@@ -10,6 +10,7 @@ import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
 import {getMarketInspectLink, inlineEasyInspect, inlineStickers} from "./helpers";
 import {formatSeed, renderClickableRank} from "../../utils/skin";
 import {gFilterService} from "../../filter/service";
+import {Currency} from "../../types/steam_constants";
 
 @CustomElement()
 @InjectAppend("#searchResultsRows .market_listing_row .market_listing_item_name_block", InjectionMode.CONTINUOUS)
@@ -42,6 +43,7 @@ export class ItemRowWrapper extends FloatElement {
     async fetchFloat(): Promise<ItemInfo> {
         return gFloatFetcher.fetch({
             link: this.inspectLink!,
+            listPrice: this.usdPrice
         });
     }
 
@@ -65,6 +67,14 @@ export class ItemRowWrapper extends FloatElement {
         }
 
         return (this.listingInfo.converted_price + this.listingInfo.converted_fee) / 100;
+    }
+
+    get usdPrice(): number|undefined {
+        if (this.listingInfo?.currencyid === Currency.USD) {
+            return this.listingInfo.price + this.listingInfo.fee;
+        } else if (this.listingInfo?.converted_currencyid === Currency.USD) {
+            return this.listingInfo.converted_price! + this.listingInfo.converted_fee!;
+        }
     }
 
     @property()

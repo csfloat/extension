@@ -13,6 +13,7 @@ export interface ListingData {
     listingid: string;
     fee: number;
     price: number;
+    currencyid: number;
     converted_price?: number;
     converted_fee?: number;
     converted_currencyid?: number;
