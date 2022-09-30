@@ -29,6 +29,7 @@ class FilterService {
         const globalFilters = (await Get(GLOBAL_FILTERS)) || [];
         const itemFilters = (await Get(row)) || [];
         this.filters = globalFilters.concat(itemFilters).map(e => Filter.from(e));
+        this.itemRow = row;
         this.onUpdate.next(this.filters);
     }
 
@@ -58,6 +59,12 @@ class FilterService {
         }
 
         return null;
+    }
+
+    remove(filter: Filter) {
+        this.filters = this.filters.filter(f => !f.equals(filter));
+        this.save();
+        this.onUpdate.next(this.filters);
     }
 
     upsert(filter: Filter) {

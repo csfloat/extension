@@ -4,10 +4,11 @@ import {property, state} from 'lit/decorators.js';
 import {CustomElement} from "../injectors";
 import {FloatElement, ViewEncapsulation} from "../custom";
 import {Filter} from "../../filter/filter";
-import {Get} from "../../bridge/handlers/storage_get";
-import {DYNAMIC_ITEM_FILTERS, GLOBAL_FILTERS} from "../../storage/keys";
+import {DYNAMIC_ITEM_FILTERS} from "../../storage/keys";
+import {gFilterService} from "../../filter/service";
 
 import './filter_creator';
+import './filter_view';
 
 @CustomElement()
 export class FilterContainer extends FloatElement {
@@ -26,14 +27,26 @@ export class FilterContainer extends FloatElement {
             throw new Error('filter key MUST be defined');
         }
 
-        const globalFilters = (await Get(GLOBAL_FILTERS)) || [];
-        const itemFilters = (await Get(DYNAMIC_ITEM_FILTERS(this.key))) || [];
-        this.filters = globalFilters.concat(itemFilters).map(e => Filter.from(e));
+        gFilterService.onUpdate$.subscribe((filters) => {
+            this.filters = [...filters];
+        });
+
+        await gFilterService.initialize(DYNAMIC_ITEM_FILTERS(this.key));
     }
 
     render() {
         return html`
-            <csgofloat-filter-creator></csgofloat-filter-creator>
+            ${this.filters.map(filter => {
+                return html`<div>
+                    <csgofloat-filter-view .filter="${filter}"></csgofloat-filter-view>
+                    <hr class="float-hr">
+                </div>`
+            })}
+            <csgofloat-filter-creator @newFilter="${this.onNewFilter}"></csgofloat-filter-creator>
         `;
+    }
+
+    onNewFilter(e: CustomEvent) {
+        gFilterService.upsert(e.detail.filter);
     }
 }

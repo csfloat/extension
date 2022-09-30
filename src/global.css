@@ -27,3 +27,20 @@
     height: 2px;
 }
 
+.csgofloat-filter-colour-input {
+    float: left;
+    margin-top: 2px;
+    -webkit-appearance: none;
+    border: none;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+}
+
+.csgofloat-filter-colour-input::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.csgofloat-filter-colour-input::-webkit-color-swatch {
+    border: none;
+}

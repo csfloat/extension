@@ -23,6 +23,7 @@ export class FilterCreator extends FloatElement {
     @query('.csgofloat-filter-expression-input')
     private expressionInput!: HTMLInputElement;
 
+    @state()
     get expression(): string {
         return this.expressionInput?.value;
     }
@@ -105,7 +106,8 @@ export class FilterCreator extends FloatElement {
                    placeholder="Add Highlight Filter">
             <a class="csgofloat-filter-help-btn" title="Filter Help"
                @click="${() => this.showHelp = !this.showHelp}">ⓘ</a>
-            <div class="csgofloat-filter-compile-status" style="${styleMap({
+            <div class="csgofloat-filter-compile-status"
+                 style="${styleMap({
                 color: this.error ? 'red' : 'green'
             })}">${this.error ? 'X' : '✓'}</div>
             <csgofloat-steam-button
@@ -113,12 +115,13 @@ export class FilterCreator extends FloatElement {
                     class="csgofloat-filter-add-btn"
                     .text="${"Add Filter"}"
                     @click="${this.onAddFilter}"></csgofloat-steam-button>
-            <div class="csgofloat-filter-compile-error">${this.error || nothing}</div>
+            <div class="csgofloat-filter-compile-error">${(this.expression && this.error) || nothing}</div>
             <csgofloat-filter-help ?hidden="${!this.showHelp}"></csgofloat-filter-help>
         `;
     }
 
     onExpressionInput() {
+        this.requestUpdate();
         if (this.expression === '') return;
 
         try {
@@ -126,12 +129,22 @@ export class FilterCreator extends FloatElement {
             f.validate();
             this.error = '';
         } catch (e: any) {
-            console.error(e);
             this.error = e.toString();
         }
     }
 
-    onAddFilter() {
+    reset() {
+        this.expressionInput!.value = '';
+        this.error = '';
+    }
 
+    onAddFilter() {
+        this.dispatchEvent(new CustomEvent('newFilter', {
+            detail: {
+                filter: new Filter(this.expression, this.colour, false)
+            }
+        }));
+
+        this.reset();
     }
 }
