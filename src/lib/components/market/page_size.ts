@@ -18,6 +18,7 @@ export class PageSize extends FloatElement {
     protected render(): unknown {
         return html`
             <select @change="${this.onSelect}">
+                <option disabled>Per Page</option>
                 ${this.sizes.map(size => {
                     return html`
                         <option value="${size}" ?selected="${size === this.selectedSize}">${size}</option>
