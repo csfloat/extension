@@ -69,21 +69,12 @@ export class FilterCreator extends FloatElement {
       }
     `];
 
-    private renderStyles(): HTMLTemplateResult {
-        return html`
-            <style>
-                
-            </style>
-        `;
-    }
-
     async connectedCallback() {
         super.connectedCallback();
     }
 
     render() {
         return html`
-            ${this.renderStyles()}
             <input id="colour-input" type="color" value="#0A9913">
             <input @input="${this.onExpressionInput}"
                    class="expression-input"
