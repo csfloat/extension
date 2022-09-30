@@ -96,6 +96,7 @@ export class Filter {
             phase: 'Phase 1',
             low_rank: 2,
             high_rank: 2,
+            price: 10,
         });
 
         if (typeof result !== "boolean" && result !== 0 && result !== 1) {

@@ -13,6 +13,9 @@ export interface ListingData {
     listingid: string;
     fee: number;
     price: number;
+    converted_price?: number;
+    converted_fee?: number;
+    converted_currencyid?: number;
     steam_fee: number;
     asset: {
         amount: string;

@@ -9,6 +9,7 @@ export interface InternalInputVars {
     phase: string;
     low_rank: number;
     high_rank: number;
+    price?: number;
 }
 
 export interface SerializedFilter {

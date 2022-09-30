@@ -4,7 +4,7 @@ import {property} from 'lit/decorators.js';
 import {CustomElement, InjectAppend, InjectionMode} from "../injectors";
 import {FloatElement} from "../custom";
 import {cache} from "decorator-cache-getter";
-import {Asset} from "../../types/steam";
+import {Asset, ListingData} from "../../types/steam";
 import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
 import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
 import {getMarketInspectLink, inlineEasyInspect, inlineStickers} from "./helpers";
@@ -25,11 +25,14 @@ export class ItemRowWrapper extends FloatElement {
         return matches[1];
     }
 
-    get asset(): Asset|undefined {
-        const listingInfo = g_rgListingInfo[this.listingId!];
-        if (!listingInfo) return;
+    get listingInfo(): ListingData|null {
+        return g_rgListingInfo[this.listingId!];
+    }
 
-        return g_rgAssets[730][2][listingInfo.asset.id!];
+    get asset(): Asset|undefined {
+        if (!this.listingInfo) return;
+
+        return g_rgAssets[730][2][this.listingInfo.asset.id!];
     }
 
     get inspectLink(): string|undefined {
@@ -40,6 +43,28 @@ export class ItemRowWrapper extends FloatElement {
         return gFloatFetcher.fetch({
             link: this.inspectLink!,
         });
+    }
+
+    /**
+     * Returns the price of the item in the user's wallet currency
+     *
+     * If the user is not logged in, this will return undefined
+     */
+    get convertedPrice(): number|undefined {
+        if (!g_rgWalletInfo || !g_rgWalletInfo.wallet_currency) {
+            return;
+        }
+
+        if (!this.listingInfo || !this.listingInfo.converted_price || !this.listingInfo.converted_fee) {
+            return;
+        }
+
+        // Item currency is formatted as 20XX for most currencies where XX is the account currency
+        if (this.listingInfo.converted_currencyid !== (g_rgWalletInfo.wallet_currency + 2000)) {
+            return;
+        }
+
+        return (this.listingInfo.converted_price + this.listingInfo.converted_fee) / 100;
     }
 
     @property()
@@ -69,7 +94,7 @@ export class ItemRowWrapper extends FloatElement {
 
         if (this.itemInfo) {
             gFilterService.onUpdate$.subscribe(() => {
-                const colour = gFilterService.matchColour(this.itemInfo!) || '';
+                const colour = gFilterService.matchColour(this.itemInfo!, this.convertedPrice) || '';
                 $J(this).parent().parent().css('background-color', colour);
             });
         }

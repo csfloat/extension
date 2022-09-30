@@ -1,5 +1,5 @@
 import {GLOBAL_FILTERS, StorageRow} from "../storage/keys";
-import {SerializedFilter} from "./types";
+import {InternalInputVars, SerializedFilter} from "./types";
 import {Get} from "../bridge/handlers/storage_get";
 import {Filter} from "./filter";
 import {Set} from "../bridge/handlers/storage_set";
@@ -40,10 +40,10 @@ class FilterService {
         return this.filters;
     }
 
-    matchColour(info: ItemInfo): string|null {
+    matchColour(info: ItemInfo, price?: number): string|null {
         const wearRange = rangeFromWear(info.floatvalue) || [0, 1];
 
-        const vars = {
+        const vars: InternalInputVars = {
             float: info.floatvalue,
             seed: info.paintseed,
             minfloat: info.min,
@@ -54,6 +54,10 @@ class FilterService {
             low_rank: info.low_rank!,
             high_rank: info.high_rank!
         };
+
+        if (price) {
+            vars.price = price;
+        }
 
         const colours = this.filters.filter(e => e.run(vars)).map(e => e.getColour());
         if (colours.length === 0) {
