@@ -6,7 +6,9 @@ import {Set} from "../bridge/handlers/storage_set";
 import {ItemInfo} from "../bridge/handlers/fetch_inspect_info";
 import {rangeFromWear} from "../utils/skin";
 import {getDopplerPhase} from "../utils/dopplers";
-import {Subject} from "rxjs";
+import {ReplaySubject} from "rxjs";
+import {debounce} from "lodash-decorators";
+import {averageColour} from "./utils";
 
 
 /**
@@ -15,7 +17,8 @@ import {Subject} from "rxjs";
 class FilterService {
     private filters: Filter[] = [];
     private itemRow: StorageRow<SerializedFilter[]> | undefined;
-    private onUpdate = new Subject<Filter[]>();
+    /* Send last value upon subscription */
+    private onUpdate = new ReplaySubject<Filter[]>(1);
     onUpdate$ = this.onUpdate.asObservable();
 
     constructor() {}
@@ -52,13 +55,12 @@ class FilterService {
             high_rank: info.high_rank!
         };
 
-        for (const filter of this.filters) {
-            if (filter.run(vars)) {
-                return filter.getColour();
-            }
+        const colours = this.filters.filter(e => e.run(vars)).map(e => e.getColour());
+        if (colours.length === 0) {
+            return null;
         }
 
-        return null;
+        return averageColour(colours);
     }
 
     remove(filter: Filter) {
@@ -80,6 +82,8 @@ class FilterService {
         this.onUpdate.next(this.filters);
     }
 
+    // Prevent spamming and hitting MAX_WRITE_OPERATIONS_PER_MINUTE
+    @debounce(500)
     private async save() {
         if (!this.itemRow) {
             throw new Error('cannot save filters without being initialized');

@@ -9,6 +9,7 @@ import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
 import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
 import {getMarketInspectLink, inlineEasyInspect, inlineStickers} from "./helpers";
 import {formatSeed, renderClickableRank} from "../../utils/skin";
+import {gFilterService} from "../../filter/service";
 
 @CustomElement()
 @InjectAppend("#searchResultsRows .market_listing_row .market_listing_item_name_block", InjectionMode.CONTINUOUS)
@@ -64,6 +65,13 @@ export class ItemRowWrapper extends FloatElement {
 
         if (this.itemInfo && this.asset) {
             inlineStickers($J(this).parent().find('.market_listing_item_name'), this.itemInfo, this.asset);
+        }
+
+        if (this.itemInfo) {
+            gFilterService.onUpdate$.subscribe(() => {
+                const colour = gFilterService.matchColour(this.itemInfo!) || '';
+                $J(this).parent().parent().css('background-color', colour);
+            });
         }
     }
 
