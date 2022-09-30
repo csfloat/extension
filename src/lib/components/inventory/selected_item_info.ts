@@ -9,7 +9,7 @@ import {formatSeed, isSkin, renderClickableRank} from "../../utils/skin";
 import {Observe} from "../../utils/observers";
 import {ClientSend} from "../../bridge/client";
 import {FetchStall, FetchStallResponse, FloatMarketListing} from "../../bridge/handlers/fetch_stall";
-import {gStallFetcher} from "../../floatmarket/stall";
+import {gStallFetcher} from "../../float_market/stall";
 
 /**
  * Why do we bind to iteminfo0 AND iteminfo1?
