@@ -8,6 +8,7 @@ import {Filter} from "../../filter/filter";
 
 import '../common/ui/steam-button';
 import './filter_help';
+import {debounce} from "lodash-decorators";
 
 /** UI for creating a filter */
 @CustomElement()
@@ -95,6 +96,8 @@ export class FilterCreator extends FloatElement {
         `;
     }
 
+    // Don't show errors right away as the user is typing
+    @debounce(500)
     onExpressionInput() {
         this.requestUpdate();
         if (this.expression === '') return;
