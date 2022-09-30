@@ -111,6 +111,7 @@ export class FilterCreator extends FloatElement {
     reset() {
         this.expressionInput!.value = '';
         this.error = '';
+        this.requestUpdate();
     }
 
     onAddFilter() {
