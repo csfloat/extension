@@ -6,8 +6,9 @@ import {cache} from "decorator-cache-getter";
 import {InventoryAsset} from "../../types/steam";
 import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
 import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
-import {formatFloatWithRank, formatSeed} from "../../utils/skin";
+import {formatFloatWithRank, formatSeed, getLowestRank} from "../../utils/skin";
 import {isSkin} from "../../utils/skin";
+import {getRankColour} from "../../utils/ranks";
 
 @CustomElement()
 @InjectAppend('div.inventory_page:not([style*="display: none"]) .itemHolder div.app730', InjectionMode.CONTINUOUS)
@@ -80,5 +81,21 @@ export class BoxMetadata extends FloatElement {
         } catch (e: any) {
             console.error(`Failed to fetch float for ${this.assetId}: ${e.toString()}`);
         }
+
+        if (this.itemInfo) {
+            this.annotateRankShine(this.itemInfo);
+        }
+    }
+
+    annotateRankShine(info: ItemInfo) {
+        const rank = getLowestRank(info);
+        if (!rank || rank > 5) {
+            return;
+        }
+
+        // Make the inventory box coloured ;)
+        $J(this).parent().css('color', 'black');
+        $J(this).parent().find('img').css('background-color', getRankColour(rank));
+        $J(this).parent().addClass('csgofloat-shine');
     }
 }

@@ -21,9 +21,18 @@ export function rangeFromWear(wear: number): [number, number]|null {
     return null;
 }
 
-export function parseRank(info: ItemInfo): {order: OrderType, rank: number}|undefined {
-    const rank = (info.low_rank || 1001) < (info.high_rank || 1001) ?
+export function getLowestRank(info: ItemInfo): number|undefined {
+    if (!info.low_rank && !info.high_rank) {
+        // Item has no rank to return
+        return;
+    }
+
+    return (info.low_rank || 1001) < (info.high_rank || 1001) ?
         info.low_rank : info.high_rank;
+}
+
+export function parseRank(info: ItemInfo): {order: OrderType, rank: number}|undefined {
+    const rank = getLowestRank(info);
     if (rank && rank <= 1000) {
         return {
             order: rank === info.low_rank ? OrderType.LOW_RANK : OrderType.HIGH_RANK,
