@@ -2,7 +2,7 @@ import {html} from 'lit';
 
 import {property, state} from 'lit/decorators.js';
 import {CustomElement} from "../injectors";
-import {FloatElement, ViewEncapsulation} from "../custom";
+import {FloatElement} from "../custom";
 import {Filter} from "../../filter/filter";
 import {DYNAMIC_ITEM_FILTERS} from "../../storage/keys";
 import {gFilterService} from "../../filter/service";
@@ -12,8 +12,6 @@ import './filter_view';
 
 @CustomElement()
 export class FilterContainer extends FloatElement {
-    encapsulation = ViewEncapsulation.NONE;
-
     @property({type: String})
     private key: string = '';
 

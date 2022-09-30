@@ -12,7 +12,7 @@ import {isSkin} from "../../utils/skin";
 @CustomElement()
 @InjectAppend('div.inventory_page:not([style*="display: none"]) .itemHolder div.app730', InjectionMode.CONTINUOUS)
 export class BoxMetadata extends FloatElement {
-    static styles = css`
+    static styles = [FloatElement.globalStyles, css`
       .float {
         position: absolute;
         bottom: 3px;
@@ -26,7 +26,7 @@ export class BoxMetadata extends FloatElement {
         right: 3px;
         font-size: 12px;
       }
-    `;
+    `];
 
     @state()
     private itemInfo: ItemInfo|undefined;

@@ -1,4 +1,4 @@
-import {FloatElement, ViewEncapsulation} from "../custom";
+import {FloatElement} from "../custom";
 import {CustomElement} from "../injectors";
 import {html} from "lit";
 import '../common/ui/steam-button';
@@ -15,8 +15,6 @@ enum SortDirection {
 
 @CustomElement()
 export class SortFloats extends FloatElement {
-    encapsulation = ViewEncapsulation.NONE;
-
     @state()
     private direction: SortDirection = SortDirection.NONE;
 

@@ -1,11 +1,9 @@
 import {CustomElement} from "../injectors";
-import {FloatElement, ViewEncapsulation} from "../custom";
+import {FloatElement} from "../custom";
 import {html, HTMLTemplateResult} from "lit";
 
 @CustomElement()
 export class FilterHelp extends FloatElement {
-    encapsulation = ViewEncapsulation.NONE;
-
     protected render(): HTMLTemplateResult {
         return html`
             <hr class="float-hr"></hr>

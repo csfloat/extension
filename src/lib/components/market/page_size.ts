@@ -1,4 +1,4 @@
-import {FloatElement, ViewEncapsulation} from "../custom";
+import {FloatElement} from "../custom";
 import {CustomElement} from "../injectors";
 import {html} from "lit";
 import '../common/ui/steam-button';
@@ -9,8 +9,6 @@ import {PAGE_SIZE} from "../../storage/keys";
 
 @CustomElement()
 export class PageSize extends FloatElement {
-    encapsulation = ViewEncapsulation.NONE;
-
     @state()
     private selectedSize = 10;
 

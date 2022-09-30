@@ -1,4 +1,4 @@
-import {FloatElement, ViewEncapsulation} from "../custom";
+import {FloatElement} from "../custom";
 import {CustomElement, InjectBefore, InjectionMode} from "../injectors";
 import {html, TemplateResult} from "lit";
 import '../common/ui/steam-button';
@@ -9,8 +9,6 @@ import '../filter/filter_container';
 @CustomElement()
 @InjectBefore('#searchResultsRows', InjectionMode.ONCE)
 export class UtilityBelt extends FloatElement {
-    encapsulation = ViewEncapsulation.NONE;
-
     get marketHashName(): string {
         return (document.querySelector('.market_listing_nav a:nth-child(2)') as HTMLElement).innerText;
     }

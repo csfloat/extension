@@ -2,15 +2,13 @@ import {html} from 'lit';
 
 import {state} from 'lit/decorators.js';
 import {CustomElement, InjectAppend, InjectionMode} from "../injectors";
-import {FloatElement, ViewEncapsulation} from "../custom";
+import {FloatElement} from "../custom";
 import {fetchListingTime} from "./helpers";
 import '../common/ui/steam-button';
 
 @CustomElement()
 @InjectAppend(".tradehistoryrow .tradehistory_content", InjectionMode.CONTINUOUS)
 export class TradeProof extends FloatElement {
-    encapsulation = ViewEncapsulation.NONE;
-    
     @state()
     private proofNumber: number | undefined;
 
