@@ -33,7 +33,7 @@ export class FilterCreator extends FloatElement {
         return this.colourInput?.value;
     }
 
-    static styles = [FloatElement.globalStyles, css`
+    static styles = [...FloatElement.styles, css`
       .expression-input {
         width: 350px;
         margin-left: 5px;

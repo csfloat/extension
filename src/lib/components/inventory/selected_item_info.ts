@@ -21,7 +21,7 @@ import {gStallFetcher} from "../../floatmarket/stall";
 @InjectAfter('div#iteminfo0_content .item_desc_description div.item_desc_game_info', InjectionMode.CONTINUOUS)
 @InjectAfter('div#iteminfo1_content .item_desc_description div.item_desc_game_info', InjectionMode.CONTINUOUS)
 export class SelectedItemInfo extends FloatElement {
-    static styles = [FloatElement.globalStyles, css`
+    static styles = [...FloatElement.styles, css`
       .container {
         margin-bottom: 10px;
       }

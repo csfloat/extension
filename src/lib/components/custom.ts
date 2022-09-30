@@ -6,7 +6,7 @@ function camelToDashCase(str: string) {
 
 // LitElement wrapper with a pre-determined tag
 export class FloatElement extends LitElement {
-    static globalStyles = css`
+    static styles = [css`
       hr {
         background-color: #1b2939;
         border-style: solid none none;
@@ -44,10 +44,7 @@ export class FloatElement extends LitElement {
       input[type=color]::-webkit-color-swatch {
         border: none;
       }
-    `;
-
-    // Global styles in scope
-    static styles = [FloatElement.globalStyles];
+    `];
 
     static tag(): string {
         return `csgofloat-${camelToDashCase(this.name)}`;

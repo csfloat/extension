@@ -20,7 +20,7 @@ export class SteamButton extends FloatElement {
     @property({type: String})
     private type: ButtonType = ButtonType.GreenWhite;
 
-    static styles = [FloatElement.globalStyles, css`
+    static styles = [...FloatElement.styles, css`
       .btn_green_white_innerfade {
         border-radius: 2px;
         border: none;
