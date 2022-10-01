@@ -2,7 +2,7 @@ import {FloatElement} from "../custom";
 import {CustomElement} from "../injectors";
 import {html} from "lit";
 import '../common/ui/steam-button';
-import {state} from "lit/decorators.js";
+import {query, state} from "lit/decorators.js";
 import {Get} from "../../bridge/handlers/storage_get";
 import {Set} from "../../bridge/handlers/storage_set";
 import {PAGE_SIZE} from "../../storage/keys";
@@ -14,6 +14,9 @@ export class PageSize extends FloatElement {
 
     @state()
     private sizes = [10, 25, 50, 100];
+
+    @query('select')
+    private select!: HTMLSelectElement;
 
     protected render(): unknown {
         return html`
@@ -38,7 +41,7 @@ export class PageSize extends FloatElement {
     }
 
     onSelect(e: Event) {
-        this.changePageSize(this.sizes[(e.target as HTMLSelectElement).selectedIndex]);
+        this.changePageSize(parseInt(this.select.value));
     }
 
     changePageSize(newSize: number) {
