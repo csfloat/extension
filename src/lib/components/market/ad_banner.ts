@@ -74,7 +74,7 @@ export class AdBanner extends FloatElement {
                     <div class="ad-notice">Ad</div>
                     <a class="link" href="${this.response.banner.link}" target="_blank">
                         <span class="text">Get this skin on</span>
-                        <img src="${"https://cs.money/svg/logo.svg"}" height="${this.response.banner.height || 32}">
+                        <img src="https://cs.money/svg/logo.svg" height="32">
                         <span class="text">
                             for <span class="price">$${this.response.price.toFixed(2)}</span> USD
                         </span>
