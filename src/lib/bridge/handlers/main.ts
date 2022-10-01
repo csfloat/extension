@@ -10,6 +10,7 @@ export enum RequestType {
     STORAGE_GET,
     STORAGE_SET,
     CSMONEY_PRICE,
+    FETCH_PENDING_TRADES,
 }
 
 export class SimpleHandler<Req, Resp> implements RequestHandler<Req, Resp> {
