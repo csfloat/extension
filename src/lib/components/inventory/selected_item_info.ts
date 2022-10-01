@@ -7,9 +7,9 @@ import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
 import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
 import {formatSeed, isSkin, renderClickableRank} from "../../utils/skin";
 import {Observe} from "../../utils/observers";
-import {ClientSend} from "../../bridge/client";
-import {FetchStall, FetchStallResponse, FloatMarketListing} from "../../bridge/handlers/fetch_stall";
+import {FetchStallResponse} from "../../bridge/handlers/fetch_stall";
 import {gStallFetcher} from "../../float_market/stall";
+import {Listing} from "../../types/float_market";
 
 /**
  * Why do we bind to iteminfo0 AND iteminfo1?
@@ -66,7 +66,7 @@ export class SelectedItemInfo extends FloatElement {
             .replace('%assetid%', this.asset.assetid!);
     }
 
-    get stallListing(): FloatMarketListing|undefined {
+    get stallListing(): Listing|undefined {
         if (!this.stall) {
             return;
         }
