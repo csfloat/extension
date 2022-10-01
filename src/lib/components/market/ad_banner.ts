@@ -14,6 +14,14 @@ export class AdBanner extends FloatElement {
         background-color: rgba(0, 0, 0, 0.2);
         text-align: center;
         border: 1px solid black;
+        position: relative;
+      }
+      
+      .ad-notice {
+        position: absolute;
+        top: 3px;
+        right: 3px;
+        
       }
       
       .link {
@@ -63,9 +71,10 @@ export class AdBanner extends FloatElement {
         if (this.response.banner.dynamic) {
             return html`
                 <div class="container">
+                    <div class="ad-notice">Ad</div>
                     <a class="link" href="${this.response.banner.link}" target="_blank">
                         <span class="text">Get this skin on</span>
-                        <img src="https://cs.money/svg/logo.svg" height="32">
+                        <img src="${"https://cs.money/svg/logo.svg"}" height="${this.response.banner.height || 32}">
                         <span class="text">
                             for <span class="price">$${this.response.price.toFixed(2)}</span> USD
                         </span>
@@ -75,6 +84,7 @@ export class AdBanner extends FloatElement {
         } else {
             return html`
                 <div class="container">
+                    <div class="ad-notice">Ad</div>
                     <a class="link" href="${this.response.banner.link}" target="_blank">
                         <img src="${this.response.banner.src}" height="${this.response.banner.height}">
                     </a>
