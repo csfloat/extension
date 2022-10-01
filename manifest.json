@@ -36,6 +36,14 @@
                 "src/lib/page_scripts/inventory.js"
             ],
             "css": ["src/global.css"]
+        }, {
+            "matches": [
+                "*://*.steamcommunity.com/tradeoffer/*"
+            ],
+            "js": [
+                "src/lib/page_scripts/trade_offer.js"
+            ],
+            "css": ["src/global.css"]
         }
     ],
     "background": {

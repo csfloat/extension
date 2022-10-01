@@ -1,4 +1,4 @@
-import {InventoryAsset} from "../types/steam";
+import {Asset} from "../types/steam";
 import {ItemInfo} from "../bridge/handlers/fetch_inspect_info";
 import {getDopplerPhase, hasDopplerPhase} from "./dopplers";
 import {html, TemplateResult} from "lit";
@@ -100,8 +100,8 @@ export function renderClickableRank(info: ItemInfo): TemplateResult<1> {
         </a>`;
 }
 
-export function isSkin(asset: InventoryAsset): boolean {
-    return !!asset.description.tags?.find(
+export function isSkin(asset: Asset): boolean {
+    return !!asset.tags?.find(
         a => a.category === 'Weapon'
             || (a.category === 'Type' && a.internal_name === 'Type_Hands'));
 }

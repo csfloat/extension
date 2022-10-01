@@ -96,8 +96,11 @@ export interface mOwner {
 
 // g_ActiveInventory
 export interface CInventory {
+    initialized: boolean;
     m_rgAssets: {[assetId: string]: InventoryAsset};
-    m_owner: mOwner;
+    rgInventory: {[assetId: string]: Asset};
+    m_owner?: mOwner;
+    owner?: mOwner;
     selectedItem?: InventoryAsset;
 }
 
@@ -141,6 +144,22 @@ export interface CInventory {
     }
 }
 
+export interface RgContext {
+    asset_count: number;
+    id: string;
+    inventory: CInventory;
+}
+
+export interface UserSomeone {
+    bReady: boolean;
+    rgContexts: {
+        "730": {
+            "2": RgContext
+        }
+    };
+    strSteamId: string;
+}
+
 // Declares globals available in the Steam Page Context
 declare global {
     const $J: typeof $;
@@ -153,6 +172,8 @@ declare global {
     const BuyItemDialog: BuyItemDialog|undefined; // Only populated on Steam Market pages
     const MarketCheckHash: (() => any)|undefined; // Only populated on Steam Market pages
     const CInventory: CInventory;
+    const UserThem: UserSomeone|undefined; // Only populated on create offer pages
+    const UserYou: UserSomeone|undefined; // Only populated on create offer pages
 }
 
 export {};

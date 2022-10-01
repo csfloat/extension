@@ -2,8 +2,7 @@ import {FloatElement} from "../custom";
 import {CustomElement, InjectAppend, InjectionMode} from "../injectors";
 import {html, css} from "lit";
 import {state} from "lit/decorators.js";
-import {cache} from "decorator-cache-getter";
-import {InventoryAsset} from "../../types/steam";
+import {Asset, InventoryAsset, mOwner} from "../../types/steam";
 import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
 import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
 import {formatFloatWithRank, formatSeed, getLowestRank} from "../../utils/skin";
@@ -12,7 +11,7 @@ import {getRankColour} from "../../utils/ranks";
 import {Observe} from "../../utils/observers";
 
 @CustomElement()
-@InjectAppend('div.inventory_page:not([style*="display: none"]) .itemHolder div.app730', InjectionMode.CONTINUOUS)
+@InjectAppend('#active_inventory_page div.inventory_page:not([style*="display: none"]) .itemHolder div.app730', InjectionMode.CONTINUOUS)
 export class BoxMetadata extends FloatElement {
     static styles = [...FloatElement.styles, css`
       .float {
@@ -37,19 +36,31 @@ export class BoxMetadata extends FloatElement {
         return $J(this).parent().attr('id')?.split('_')[2];
     }
 
-    get asset(): InventoryAsset|undefined {
+    get asset(): Asset|undefined {
         if (!this.assetId) return;
 
-        return g_ActiveInventory?.m_rgAssets[this.assetId];
+        return g_ActiveInventory?.m_rgAssets[this.assetId]?.description;
+    }
+
+    get ownerSteamId(): string|undefined {
+        if (g_ActiveInventory?.m_owner) {
+            return g_ActiveInventory?.m_owner?.strSteamId;
+        } else if (g_ActiveInventory?.owner) {
+            return g_ActiveInventory?.owner?.strSteamId;
+        }
     }
 
     get inspectLink(): string|undefined {
         if (!this.asset) return;
 
-        if (!this.asset.description?.actions || this.asset.description?.actions?.length === 0) return;
+        if (!this.asset?.actions || this.asset?.actions?.length === 0) return;
 
-        return this.asset.description?.actions![0].link
-            .replace('%owner_steamid%', g_ActiveInventory?.m_owner.strSteamId!)
+        if (!this.ownerSteamId) {
+            return;
+        }
+
+        return this.asset?.actions![0].link
+            .replace('%owner_steamid%', this.ownerSteamId)
             .replace('%assetid%', this.assetId!);
     }
 
@@ -67,12 +78,12 @@ export class BoxMetadata extends FloatElement {
     async connectedCallback() {
         super.connectedCallback();
 
-        if (this.asset) {
+        if (this.inspectLink) {
             this.onInit();
         } else {
             // Wait until the asset exists
-            Observe(() => this.asset, () => {
-                if (this.asset) {
+            Observe(() => this.inspectLink, () => {
+                if (this.inspectLink) {
                     this.onInit();
                 }
             }, 200);

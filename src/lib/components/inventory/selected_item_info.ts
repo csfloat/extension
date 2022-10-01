@@ -62,7 +62,7 @@ export class SelectedItemInfo extends FloatElement {
         if (!this.asset.description?.actions || this.asset.description?.actions?.length === 0) return;
 
         return this.asset.description?.actions![0].link
-            .replace('%owner_steamid%', g_ActiveInventory?.m_owner.strSteamId!)
+            .replace('%owner_steamid%', g_ActiveInventory?.m_owner?.strSteamId!)
             .replace('%assetid%', this.asset.assetid!);
     }
 
@@ -116,7 +116,7 @@ export class SelectedItemInfo extends FloatElement {
             return html``;
         }
 
-        if (g_ActiveInventory?.m_owner.strSteamId !== g_steamID) {
+        if (g_ActiveInventory?.m_owner?.strSteamId !== g_steamID) {
             // Not the signed-in user, don't show
             return html``;
         }
@@ -137,7 +137,7 @@ export class SelectedItemInfo extends FloatElement {
 
         if (!this.asset) return;
 
-        if (!isSkin(this.asset)) return;
+        if (!isSkin(this.asset.description)) return;
 
         // Commodities won't have inspect links
         if (!this.inspectLink) return;
@@ -164,7 +164,7 @@ export class SelectedItemInfo extends FloatElement {
             this.processSelectChange();
         });
 
-        if (g_ActiveInventory?.m_owner.strSteamId) {
+        if (g_ActiveInventory?.m_owner?.strSteamId) {
             // Ignore errors
             gStallFetcher.fetch({steam_id64: g_ActiveInventory?.m_owner.strSteamId})
                 .then((stall) => this.stall = stall);
