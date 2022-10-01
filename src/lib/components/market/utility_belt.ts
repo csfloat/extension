@@ -1,9 +1,10 @@
 import {FloatElement} from "../custom";
 import {CustomElement, InjectBefore, InjectionMode} from "../injectors";
-import {css, html, TemplateResult} from "lit";
+import {css, html} from "lit";
 import '../common/ui/steam-button';
 import './page_size';
 import './sort_floats';
+import './ad_banner';
 import '../filter/filter_container';
 
 @CustomElement()
@@ -41,6 +42,7 @@ export class UtilityBelt extends FloatElement {
                 <csgofloat-filter-container ?hidden="${!this.marketHashName}"
                                             .key="${this.marketHashName}"></csgofloat-filter-container>
             </div>
+            <csgofloat-ad-banner></csgofloat-ad-banner>
         `;
     }
 
