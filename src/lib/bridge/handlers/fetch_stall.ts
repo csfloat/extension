@@ -1,13 +1,13 @@
 import {RequestType, SimpleHandler} from "./main";
-import {Listing, Seller} from "../../types/float_market";
+import {Contract, User} from "../../types/float_market";
 
 export interface FetchStallRequest {
     steam_id64: string;
 }
 
 export interface FetchStallResponse {
-    listings?: Listing[];
-    user?: Seller;
+    listings?: Contract[];
+    user?: User;
 }
 
 export interface FetchStallResponseError {

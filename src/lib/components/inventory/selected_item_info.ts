@@ -9,7 +9,7 @@ import {formatSeed, isSkin, renderClickableRank} from "../../utils/skin";
 import {Observe} from "../../utils/observers";
 import {FetchStallResponse} from "../../bridge/handlers/fetch_stall";
 import {gStallFetcher} from "../../float_market/stall";
-import {Listing} from "../../types/float_market";
+import {Contract} from "../../types/float_market";
 
 /**
  * Why do we bind to iteminfo0 AND iteminfo1?
@@ -66,7 +66,7 @@ export class SelectedItemInfo extends FloatElement {
             .replace('%assetid%', this.asset.assetid!);
     }
 
-    get stallListing(): Listing|undefined {
+    get stallListing(): Contract|undefined {
         if (!this.stall) {
             return;
         }

@@ -29,7 +29,7 @@ export interface Item {
     };
 }
 
-export interface Seller {
+export interface User {
     avatar: string;
     flags: number;
     online: boolean;
@@ -57,7 +57,7 @@ export enum ContractType {
     AUCTION = 'auction'
 }
 
-export interface Listing {
+export interface Contract {
     created_at: string;
     id: string;
     is_seller: boolean;
@@ -66,8 +66,33 @@ export interface Listing {
     max_offer_discount?: number;
     min_offer_price?: number;
     price: number;
-    seller: Seller;
+    seller: User;
     state: ContractState;
     type: ContractType;
     watchers: number;
+}
+
+export enum TradeState {
+    QUEUED = 'queued',
+    PENDING = 'pending',
+    VERIFIED = 'verified',
+    FAILED = 'failed',
+    CANCELLED = 'cancelled'
+}
+
+export interface Trade {
+    id: string;
+    accepted_at?: string;
+    buyer: User;
+    buyer_id: string;
+    contract: Contract;
+    contract_id: string;
+    created_at: string;
+    expires_at?: string;
+    grace_period_start: string;
+    manual_verification: boolean;
+    manual_verification_at?: string;
+    seller_id: string;
+    state: TradeState;
+    trade_url: string;
 }
