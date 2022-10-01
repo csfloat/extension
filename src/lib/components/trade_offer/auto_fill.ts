@@ -90,5 +90,10 @@ export class AutoFill extends FloatElement {
         }
 
         MoveItemToTrade(el);
+
+        const note = document.getElementById('trade_offer_note');
+        if (note) {
+            (note as HTMLTextAreaElement).value = `CSGOFloat Market Trade Offer #${trade.id} \n\nThanks for using CSGOFloat!`;
+        }
     }
 }
