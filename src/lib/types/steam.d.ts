@@ -74,6 +74,7 @@ export interface Asset {
         localized_category_name?: string;
         localized_tag_name?: string;
     }[];
+    element?: HTMLElement;
 }
 
 export interface InventoryAsset {
@@ -158,6 +159,7 @@ export interface UserSomeone {
         }
     };
     strSteamId: string;
+    findAsset: (appId: AppId, contextId: ContextId, itemId: string) => Asset;
 }
 
 // Declares globals available in the Steam Page Context
@@ -174,6 +176,7 @@ declare global {
     const CInventory: CInventory;
     const UserThem: UserSomeone|undefined; // Only populated on create offer pages
     const UserYou: UserSomeone|undefined; // Only populated on create offer pages
+    const MoveItemToTrade: (el: HTMLElement) => void; // Only populated on create offer pages
 }
 
 export {};
