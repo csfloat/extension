@@ -1,6 +1,6 @@
-import {BoxMetadata} from "../inventory/box_metadata";
 import {CustomElement, InjectAppend, InjectionMode} from "../injectors";
-import {Asset, mOwner, UserSomeone} from "../../types/steam";
+import {Asset, UserSomeone} from "../../types/steam";
+import {ItemHolderMetadata} from "../common/item_holder_metadata";
 
 // Annotates item info (float, seed, etc...) in boxes on the Trade Offer Page
 @CustomElement()
@@ -8,7 +8,7 @@ import {Asset, mOwner, UserSomeone} from "../../types/steam";
 @InjectAppend('div.inventory_page:not([style*="display: none"]) .itemHolder div.app730', InjectionMode.CONTINUOUS)
 // Items selected within the trade offer
 @InjectAppend('.trade_offer .itemHolder div.app730', InjectionMode.CONTINUOUS)
-export class TradeBoxMetadata extends BoxMetadata {
+export class TradeBoxMetadata extends ItemHolderMetadata {
     get owningUser(): UserSomeone|undefined {
         if (!this.assetId) return;
 
