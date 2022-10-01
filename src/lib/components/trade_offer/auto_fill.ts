@@ -27,6 +27,10 @@ export class AutoFill extends FloatElement {
         align-items: center;
       }
       
+      .container.warning {
+        background-color: rgb(179, 0, 0);
+      }
+      
       .float-icon {
         float: left;
       }
@@ -84,11 +88,46 @@ export class AutoFill extends FloatElement {
         `;
     }
 
+    /**
+     * Show a warning to users if trade includes item with csgofloat note that doesn't match an existing sale
+     *
+     * Tries to prevent scenarios where malicious actors send offer with CSGOFloat text requesting an item
+     */
+    showWarningDialog(): HTMLTemplateResult {
+        if (!this.hasAutoFillText()) {
+            return html``;
+        }
+
+        const hasItemWithNoSale = g_rgCurrentTradeStatus.me.assets
+            .find(a => !this.pendingTradesResponse?.trades_to_send.find(b => b.contract.item.asset_id === a.assetid));
+
+        if (!hasItemWithNoSale) {
+            return html``;
+        }
+
+        return html`
+            <div class="container warning">
+                <div>
+                    <div class="float-icon">
+                        <img src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/79/798a12316637ad8fbb91ddb7dc63f770b680bd19_full.jpg" style="height: 32px;">
+                    </div>
+                    <span class="item-name">
+                        Warning!
+                    </span>
+                    <div class="sale-info">
+                        Some of the items in the offer were not purchased from you on CSGOFloat Market (or you're logged into the wrong account)
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
     protected render(): HTMLTemplateResult {
         if (!this.pendingTradesResponse) return html``;
 
         return html`
             ${this.pendingTradesResponse.trades_to_send.map(e => this.renderAutoFillDialog(e))}
+            ${this.showWarningDialog()}
         `;
     }
 
@@ -106,5 +145,16 @@ export class AutoFill extends FloatElement {
         if (note) {
             (note as HTMLTextAreaElement).value = `CSGOFloat Market Trade Offer #${trade.id} \n\nThanks for using CSGOFloat!`;
         }
+    }
+
+    hasAutoFillText(): boolean {
+        const tradeMessages = document.getElementsByClassName("included_trade_offer_note_ctn");
+        if (tradeMessages.length > 0) {
+            const sanitized = (tradeMessages[0] as HTMLElement).innerText.trim().replace(/ /g, '').toLowerCase();
+
+            return sanitized.includes('csgofloat') || sanitized.includes('floatmarket');
+        }
+
+        return false;
     }
 }
