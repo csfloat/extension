@@ -7,6 +7,7 @@ import {Trade} from "../../types/float_market";
 import {state} from "lit/decorators.js";
 
 import '../common/ui/steam-button';
+import {Observe} from "../../utils/observers";
 
 @CustomElement()
 @InjectBefore('div.trade_area')
@@ -50,10 +51,20 @@ export class AutoFill extends FloatElement {
         } catch (e: any) {
             console.error('failed to fetch pending trades on CSGOFloat Market, they are likely not logged in.', e.toString());
         }
+
+        Observe(() => g_rgCurrentTradeStatus.me.assets.length, () => {
+           // Items they are giving changed, we can potentially hide an auto-fill dialog
+           this.requestUpdate();
+        });
     }
 
     renderAutoFillDialog(trade: Trade): HTMLTemplateResult {
         const item = trade.contract.item;
+
+        if (g_rgCurrentTradeStatus.me.assets.find(a => a.assetid === item.asset_id)) {
+            // Item is already included in the trade offer
+            return html``;
+        }
 
         return html`
             <div class="container">

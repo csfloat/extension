@@ -1,4 +1,5 @@
 import $ from "jquery";
+import {Currency} from "./steam_constants";
 
 type AppId = 730;
 type ContextId = 2;
@@ -162,6 +163,26 @@ export interface UserSomeone {
     findAsset: (appId: AppId, contextId: ContextId, itemId: string) => Asset;
 }
 
+export interface CurrentTradeAsset {
+    amount: number;
+    appid: AppId;
+    assetid: string;
+    contextid: string;
+}
+
+export interface CurrentTradeStatus {
+    newversion: boolean;
+    version: number;
+    me: {
+        assets: CurrentTradeAsset[];
+        ready: boolean;
+    };
+    them: {
+        assets: CurrentTradeAsset[];
+        ready: boolean;
+    };
+}
+
 // Declares globals available in the Steam Page Context
 declare global {
     const $J: typeof $;
@@ -177,6 +198,7 @@ declare global {
     const UserThem: UserSomeone|undefined; // Only populated on create offer pages
     const UserYou: UserSomeone|undefined; // Only populated on create offer pages
     const MoveItemToTrade: (el: HTMLElement) => void; // Only populated on create offer pages
+    const g_rgCurrentTradeStatus: CurrentTradeStatus;
 }
 
 export {};
