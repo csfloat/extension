@@ -5,9 +5,9 @@ import {ClientSend} from "../../bridge/client";
 import {FetchPendingTrades, FetchPendingTradesResponse} from "../../bridge/handlers/fetch_pending_trades";
 import {Trade} from "../../types/float_market";
 import {state} from "lit/decorators.js";
+import {Observe} from "../../utils/observers";
 
 import '../common/ui/steam-button';
-import {Observe} from "../../utils/observers";
 
 @CustomElement()
 @InjectBefore('div.trade_area')
@@ -53,7 +53,7 @@ export class AutoFill extends FloatElement {
         }
 
         Observe(() => g_rgCurrentTradeStatus.me.assets.length, () => {
-           // Items they are giving changed, we can potentially hide an auto-fill dialog
+           // Items they are giving changed, we can potentially hide/show an auto-fill dialog
            this.requestUpdate();
         });
     }
