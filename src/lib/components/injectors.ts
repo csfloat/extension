@@ -12,6 +12,32 @@ export enum InjectionMode {
     CONTINUOUS
 }
 
+enum InjectionType {
+    Append,
+    Before,
+    After,
+}
+
+interface InjectionConfig {
+    exists: (ctx: JQuery<HTMLElement>, selector: string) => boolean;
+    op: (ctx: JQuery<HTMLElement>, target: typeof FloatElement) => void;
+}
+
+const InjectionConfigs: {[key in InjectionType]: InjectionConfig} = {
+    [InjectionType.Append]: {
+        exists: (ctx, selector) => !!ctx.children(selector).length,
+        op: ((ctx, target) => ctx.append(target.elem())),
+    },
+    [InjectionType.Before]: {
+        exists: (ctx, selector) => !!ctx.parent().children(selector).length,
+        op: ((ctx, target) => ctx.before(target.elem())),
+    },
+    [InjectionType.After]: {
+        exists: (ctx, selector) => !!ctx.parent().children(selector).length,
+        op: ((ctx, target) => ctx.after(target.elem())),
+    },
+}
+
 export function CustomElement(): any {
     return function (target: typeof FloatElement, propertyKey: string, descriptor: PropertyDescriptor) {
         if (!inPageContext()) {
@@ -21,23 +47,22 @@ export function CustomElement(): any {
     };
 }
 
-function Inject(selector: string, mode: InjectionMode, op: (ctx: JQuery<HTMLElement>, target: typeof FloatElement) => void): any {
+function Inject(selector: string, mode: InjectionMode, type: InjectionType): any {
     return function (target: typeof FloatElement, propertyKey: string, descriptor: PropertyDescriptor) {
         if (!inPageContext()) {
             return;
         }
         switch (mode) {
             case InjectionMode.ONCE:
-                $J(selector).each(function () { op($J(this), target); });
+                $J(selector).each(function () { InjectionConfigs[type].op($J(this), target); });
                 break;
             case InjectionMode.CONTINUOUS:
                 setInterval(() => {
                     $J(selector).each(function () {
                         // Don't add the item again if we already have
-                        // Get the parent in case the op is after(), before(), etc...
-                        if ($J(this).parent().find(target.tag()).length) return;
+                        if (InjectionConfigs[type].exists($J(this), target.tag())) return;
 
-                        op($J(this), target);
+                        InjectionConfigs[type].op($J(this), target);
                     });
                 }, 250);
                 break;
@@ -46,13 +71,13 @@ function Inject(selector: string, mode: InjectionMode, op: (ctx: JQuery<HTMLElem
 }
 
 export function InjectAppend(selector: string, mode: InjectionMode = InjectionMode.ONCE): any {
-    return Inject(selector, mode, ((ctx, target) => ctx.append(target.elem())));
+    return Inject(selector, mode, InjectionType.Append);
 }
 
 export function InjectBefore(selector: string, mode: InjectionMode = InjectionMode.ONCE): any {
-    return Inject(selector, mode, ((ctx, target) => ctx.before(target.elem())));
+    return Inject(selector, mode, InjectionType.Before);
 }
 
 export function InjectAfter(selector: string, mode: InjectionMode = InjectionMode.ONCE): any {
-    return Inject(selector, mode, ((ctx, target) => ctx.after(target.elem())));
+    return Inject(selector, mode, InjectionType.After);
 }
