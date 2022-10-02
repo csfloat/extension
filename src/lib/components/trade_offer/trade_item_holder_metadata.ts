@@ -8,13 +8,13 @@ import {ItemHolderMetadata} from "../common/item_holder_metadata";
 @InjectAppend('div.inventory_page:not([style*="display: none"]) .itemHolder div.app730', InjectionMode.CONTINUOUS)
 // Items selected within the trade offer
 @InjectAppend('.trade_offer .itemHolder div.app730', InjectionMode.CONTINUOUS)
-export class TradeBoxMetadata extends ItemHolderMetadata {
+export class TradeItemHolderMetadata extends ItemHolderMetadata {
     get owningUser(): UserSomeone|undefined {
         if (!this.assetId) return;
 
-        if (UserThem && TradeBoxMetadata.getAssetFromUser(UserThem, this.assetId)) {
+        if (UserThem && TradeItemHolderMetadata.getAssetFromUser(UserThem, this.assetId)) {
             return UserThem;
-        } else if (UserYou && TradeBoxMetadata.getAssetFromUser(UserYou, this.assetId)) {
+        } else if (UserYou && TradeItemHolderMetadata.getAssetFromUser(UserYou, this.assetId)) {
             return UserYou;
         }
     }
@@ -30,7 +30,7 @@ export class TradeBoxMetadata extends ItemHolderMetadata {
 
         if (!this.owningUser) return;
 
-        return TradeBoxMetadata.getAssetFromUser(this.owningUser, this.assetId);
+        return TradeItemHolderMetadata.getAssetFromUser(this.owningUser, this.assetId);
     }
 
     private static getAssetFromUser(user: UserSomeone, assetId: string): Asset|undefined {
