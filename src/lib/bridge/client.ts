@@ -1,5 +1,4 @@
 import {InternalRequestBundle, InternalResponseBundle, RequestHandler, Version} from "./types";
-import {EXTENSION_ID} from "../constants";
 
 export async function ClientSend<Req, Resp>(handler: RequestHandler<Req, Resp>, args: Req): Promise<Resp> {
     const bundle: InternalRequestBundle = {

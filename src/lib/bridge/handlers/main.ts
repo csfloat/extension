@@ -1,6 +1,5 @@
 import {RequestHandler} from "../types";
 import MessageSender = chrome.runtime.MessageSender;
-import {EXTENSION_ID} from "../../constants";
 
 export enum RequestType {
     EXECUTE_SCRIPT_ON_PAGE,
@@ -64,7 +63,7 @@ export class PrivilegedHandler<Req, Resp> implements RequestHandler<Req, Resp> {
     }
 
     handleRequest(request: Req, sender: MessageSender): Promise<Resp> {
-        if (sender.id !== EXTENSION_ID) {
+        if (sender.id !== chrome.runtime.id) {
             throw new Error('Attempt to access restricted method outside of secure context (ie. content script)');
         }
 
