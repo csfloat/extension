@@ -11,7 +11,6 @@ enum ButtonType {
     GreyWhite = 'grey_white'
 }
 
-// NOTE: The parent MUST NOT have SHADOW DOM enabled
 @CustomElement()
 export class SteamButton extends FloatElement {
     @property({type: String})
