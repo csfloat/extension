@@ -9,7 +9,7 @@ export async function ClientSend<Req, Resp>(handler: RequestHandler<Req, Resp>, 
     };
 
     return new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage(window.CSGOFLOAT_EXTENSION_ID, bundle, (resp: InternalResponseBundle) => {
+        chrome.runtime.sendMessage(window.CSGOFLOAT_EXTENSION_ID || chrome.runtime.id, bundle, (resp: InternalResponseBundle) => {
             if (resp?.response) {
                 resolve(resp.response);
             } else {
