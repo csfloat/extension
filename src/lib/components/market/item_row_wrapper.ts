@@ -1,6 +1,6 @@
 import {css, html} from 'lit';
 
-import {property} from 'lit/decorators.js';
+import {state} from 'lit/decorators.js';
 import {CustomElement, InjectAppend, InjectionMode} from "../injectors";
 import {FloatElement} from "../custom";
 import {cache} from "decorator-cache-getter";
@@ -77,9 +77,9 @@ export class ItemRowWrapper extends FloatElement {
         }
     }
 
-    @property()
+    @state()
     private itemInfo: ItemInfo | undefined;
-    @property()
+    @state()
     private error: string | undefined;
 
     async connectedCallback() {
