@@ -3,7 +3,7 @@ import {CustomElement, InjectBefore} from "../injectors";
 import {css, html, HTMLTemplateResult} from "lit";
 import {ClientSend} from "../../bridge/client";
 import {FetchPendingTrades, FetchPendingTradesResponse} from "../../bridge/handlers/fetch_pending_trades";
-import {Trade} from "../../types/float_market";
+import {Trade, TradeState} from "../../types/float_market";
 import {state} from "lit/decorators.js";
 import {Observe} from "../../utils/observers";
 
@@ -63,6 +63,11 @@ export class AutoFill extends FloatElement {
     }
 
     renderAutoFillDialog(trade: Trade): HTMLTemplateResult {
+        if (trade.state !== TradeState.PENDING) {
+            // Make sure they accepted the sale on CSGOFloat first
+            return html``;
+        }
+
         const item = trade.contract.item;
 
         if (g_rgCurrentTradeStatus.me.assets.find(a => a.assetid === item.asset_id)) {
