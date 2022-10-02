@@ -7,13 +7,6 @@ interface ExecuteScriptRequest {
 export const ExecuteScriptOnPage = new PrivilegedHandler(new EmptyResponseHandler<ExecuteScriptRequest>(
     RequestType.EXECUTE_SCRIPT_ON_PAGE,
     async (req, sender) => {
-        await chrome.scripting.executeScript(
-            {
-                target: {tabId: sender.tab?.id as number},
-                files: [req.path],
-                world: 'MAIN'
-            });
-
         // We need to inject the extension ID dynamically so the client knows who to
         // communicate with.
         //
@@ -22,9 +15,17 @@ export const ExecuteScriptOnPage = new PrivilegedHandler(new EmptyResponseHandle
             {
                 target: {tabId: sender.tab?.id as number},
                 world: 'MAIN',
-                args: [chrome.runtime.id],
-                func: function ExtensionId(extensionId) {
+                args: [chrome.runtime.id, chrome.runtime.getURL('model_frame.html')],
+                func: function ExtensionId(extensionId, modelFrameUrl) {
                     window.CSGOFLOAT_EXTENSION_ID = extensionId;
+                    window.CSGOFLOAT_MODEL_FRAME_URL = modelFrameUrl;
                 }
+            });
+
+        await chrome.scripting.executeScript(
+            {
+                target: {tabId: sender.tab?.id as number},
+                files: [req.path],
+                world: 'MAIN'
             });
     }));
