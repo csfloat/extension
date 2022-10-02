@@ -1,5 +1,5 @@
 import {FloatElement} from "../custom";
-import {html, css} from "lit";
+import {html, css, HTMLTemplateResult} from "lit";
 import {state} from "lit/decorators.js";
 import {Asset} from "../../types/steam";
 import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
@@ -52,7 +52,7 @@ export abstract class ItemHolderMetadata extends FloatElement {
             .replace('%assetid%', this.assetId!);
     }
 
-    protected render(): unknown {
+    protected render(): HTMLTemplateResult {
         if (!this.itemInfo) return html``;
 
         return html`

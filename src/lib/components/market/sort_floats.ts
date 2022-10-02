@@ -1,6 +1,6 @@
 import {FloatElement} from "../custom";
 import {CustomElement} from "../injectors";
-import {html} from "lit";
+import {html, HTMLTemplateResult} from "lit";
 import '../common/ui/steam-button';
 import {state} from "lit/decorators.js";
 import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
@@ -32,7 +32,7 @@ export class SortFloats extends FloatElement {
     }
 
 
-    protected render(): unknown {
+    protected render(): HTMLTemplateResult {
         return html`
             <csgofloat-steam-button .text="${this.buttonText}" @click="${this.onClick}"></csgofloat-steam-button>
         `;

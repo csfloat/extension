@@ -1,6 +1,6 @@
 import {FloatElement} from "../custom";
 import {CustomElement} from "../injectors";
-import {html} from "lit";
+import {html, HTMLTemplateResult} from "lit";
 import '../common/ui/steam-button';
 import {query, state} from "lit/decorators.js";
 import {Get} from "../../bridge/handlers/storage_get";
@@ -18,7 +18,7 @@ export class PageSize extends FloatElement {
     @query('select')
     private select!: HTMLSelectElement;
 
-    protected render(): unknown {
+    protected render(): HTMLTemplateResult {
         return html`
             <select @change="${this.onSelect}">
                 <option disabled>Per Page</option>

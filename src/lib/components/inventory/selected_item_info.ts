@@ -1,6 +1,6 @@
 import {FloatElement} from "../custom";
 import {CustomElement, InjectAfter, InjectionMode} from "../injectors";
-import {html, css, TemplateResult} from "lit";
+import {html, css, TemplateResult, HTMLTemplateResult} from "lit";
 import {state} from "lit/decorators.js";
 import {InventoryAsset} from "../../types/steam";
 import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
@@ -74,7 +74,7 @@ export class SelectedItemInfo extends FloatElement {
         return (this.stall.listings || []).find(e => e.item.asset_id === this.asset?.assetid);
     }
 
-    protected render(): unknown {
+    protected render(): HTMLTemplateResult {
         if (this.loading) {
             return html`<div>Loading...</div>`;
         }
