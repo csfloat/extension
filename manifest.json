@@ -24,7 +24,7 @@
                 "*://*.steamcommunity.com/profiles/*/tradehistory*"
             ],
             "js": [
-                "src/lib/page_scripts/time_fetcher.js"
+                "src/lib/page_scripts/trade_history.js"
             ],
             "css": ["src/global.css"]
         }, {
