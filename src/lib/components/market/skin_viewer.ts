@@ -9,6 +9,12 @@ import '../common/ui/steam-button';
 import {cache} from "decorator-cache-getter";
 import {getMarketInspectLink} from "./helpers";
 
+enum Showing {
+    NONE,
+    MODEL,
+    SCREENSHOT,
+}
+
 @CustomElement()
 @InjectAppend('#searchResultsRows .market_listing_row', InjectionMode.CONTINUOUS)
 export class SkinViewer extends FloatElement {
@@ -16,7 +22,7 @@ export class SkinViewer extends FloatElement {
 
     static styles = [...FloatElement.styles, css`
         .btn-container {
-          margin: 5px 0 5px 80px;
+          margin: 7px 0 5px 80px;
         }
       
         .iframe-3d {
@@ -24,6 +30,10 @@ export class SkinViewer extends FloatElement {
           width: 100%;
           height: 500px;
           border-width: 0;
+        }
+      
+        img.screenshot {
+          width: 100%;
         }
     `];
 
@@ -46,38 +56,35 @@ export class SkinViewer extends FloatElement {
     private loading = false;
 
     @state()
-    private show3D = false;
+    private showing: Showing = Showing.NONE;
 
     async connectedCallback() {
         super.connectedCallback();
     }
 
-    loadingIfApplicable(text: string) {
-        if (this.loading) {
+    loadingIfApplicable(text: string, type: Showing) {
+        if (this.showing == type && this.loading) {
             return 'Loading...';
         } else {
             return text;
         }
     }
 
-    private render3D(): HTMLTemplateResult {
-        if (!this.show3D || !this.response?.modelLink) return html``;
-
-        return html`
-            <div>
-                <iframe class="iframe-3d" src="${window.CSGOFLOAT_MODEL_FRAME_URL}?url=${this.response?.modelLink}"></iframe>
-            </div>
-        `;
-    }
-
     protected render(): HTMLTemplateResult {
         return html`
             <div class="btn-container">
-                <csgofloat-steam-button .text="${this.loadingIfApplicable("3D")}"
+                <csgofloat-steam-button .text="${this.loadingIfApplicable("3D", Showing.MODEL)}"
                                         @click="${this.toggle3D}"></csgofloat-steam-button>
+
+                <csgofloat-steam-button .text="${this.loadingIfApplicable("Screenshot", Showing.SCREENSHOT)}"
+                                        @click="${this.toggleScreenshot}"></csgofloat-steam-button>
             </div>
-            
-            ${this.render3D()}
+            <div ?hidden="${this.showing !== Showing.MODEL || !this.response?.modelLink}">
+                <iframe class="iframe-3d" src="${window.CSGOFLOAT_MODEL_FRAME_URL}?url=${this.response?.modelLink}"></iframe>
+            </div>
+            <img class="screenshot"
+                 ?hidden="${this.showing !== Showing.SCREENSHOT || !this.response?.screenshotLink}"
+                 src="${this.response?.screenshotLink}">
         `;
     }
 
@@ -86,21 +93,36 @@ export class SkinViewer extends FloatElement {
         try {
             this.response = await ClientSend(FetchSkinModel, {inspectLink: this.inspectLink});
         } catch (e: any) {
-            console.log(e);
             alert(`Failed to fetch skin model: ${e.toString()}`);
         }
         this.loading = false;
     }
 
+    private toggle(type: Showing) {
+        if (this.showing === type) {
+            this.showing = Showing.NONE;
+        } else {
+            this.showing = type;
+        }
+    }
+
     async toggle3D() {
-        console.log(this.inspectLink);
+        if (this.loading) return;
+
+        this.toggle(Showing.MODEL);
 
         if (!this.response) {
             await this.fetchModel();
         }
+    }
 
-        console.log(this.response);
+    async toggleScreenshot() {
+        if (this.loading) return;
 
-        this.show3D = !this.show3D;
+        this.toggle(Showing.SCREENSHOT);
+
+        if (!this.response) {
+            await this.fetchModel();
+        }
     }
 }
