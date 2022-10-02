@@ -11,7 +11,7 @@
     "url": "git+https://github.com/csgofloat/extension.git"
   },
   "scripts": {
-    "build": "webpack --env mode=development --config webpack.config.js --stats-error-details",
+    "build": "webpack --env mode=prod --config webpack.config.js --stats-error-details",
     "start": "webpack --env mode=development --config webpack.config.js --stats-error-details --watch"
   },
   "author": "step7750",
