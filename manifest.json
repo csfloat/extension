@@ -65,7 +65,7 @@
     },
     "web_accessible_resources": [
         {
-            "resources": ["model_frame.html", "model_frame.js"],
+            "resources": ["src/model_frame.html", "src/model_frame.js"],
             "matches": [ "https://steamcommunity.com/*" ]
         }
     ]

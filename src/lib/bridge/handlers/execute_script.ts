@@ -15,7 +15,7 @@ export const ExecuteScriptOnPage = new PrivilegedHandler(new EmptyResponseHandle
             {
                 target: {tabId: sender.tab?.id as number},
                 world: 'MAIN',
-                args: [chrome.runtime.id, chrome.runtime.getURL('model_frame.html')],
+                args: [chrome.runtime.id, chrome.runtime.getURL('src/model_frame.html')],
                 func: function ExtensionId(extensionId, modelFrameUrl) {
                     window.CSGOFLOAT_EXTENSION_ID = extensionId;
                     window.CSGOFLOAT_MODEL_FRAME_URL = modelFrameUrl;
