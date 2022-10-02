@@ -13,4 +13,18 @@ export const ExecuteScriptOnPage = new PrivilegedHandler(new EmptyResponseHandle
                 files: [req.path],
                 world: 'MAIN'
             });
+
+        // We need to inject the extension ID dynamically so the client knows who to
+        // communicate with.
+        //
+        // On Firefox, extension IDs are random, so this is necessary.
+        await chrome.scripting.executeScript(
+            {
+                target: {tabId: sender.tab?.id as number},
+                world: 'MAIN',
+                args: [chrome.runtime.id],
+                func: function ExtensionId(extensionId) {
+                    window.CSGOFLOAT_EXTENSION_ID = extensionId;
+                }
+            });
     }));
