@@ -8,6 +8,7 @@ import {CSMoneyPrice} from "./csmoney_price";
 import {RequestType} from "./main";
 import {RequestHandler} from "../types";
 import {FetchPendingTrades} from "./fetch_pending_trades";
+import {FetchSkinModel} from "./fetch_skin_model";
 
 export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.EXECUTE_SCRIPT_ON_PAGE]: ExecuteScriptOnPage,
@@ -18,4 +19,5 @@ export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.STORAGE_SET]: StorageSet,
     [RequestType.CSMONEY_PRICE]: CSMoneyPrice,
     [RequestType.FETCH_PENDING_TRADES]: FetchPendingTrades,
+    [RequestType.FETCH_SKIN_MODEL]: FetchSkinModel,
 }
