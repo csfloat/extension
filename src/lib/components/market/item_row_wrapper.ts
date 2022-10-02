@@ -99,7 +99,7 @@ export class ItemRowWrapper extends FloatElement {
         }
 
         if (this.itemInfo && this.asset) {
-            inlineStickers($J(this).parent().find('.market_listing_item_name'), this.itemInfo, this.asset);
+            inlineStickers($J(this).parent().parent().find('.market_listing_item_name_block'), this.itemInfo, this.asset);
         }
 
         if (this.itemInfo) {
