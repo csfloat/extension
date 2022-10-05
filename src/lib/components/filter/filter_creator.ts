@@ -76,7 +76,7 @@ export class FilterCreator extends FloatElement {
 
     render() {
         return html`
-            <input id="colour-input" type="color" value="#004705">
+            <input id="colour-input" type="color" value="#354908">
             <input @input="${this.onExpressionInput}"
                    class="expression-input"
                    placeholder="Add Highlight Filter">
