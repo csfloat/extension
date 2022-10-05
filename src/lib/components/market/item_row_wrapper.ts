@@ -11,6 +11,7 @@ import {getMarketInspectLink, inlineEasyInspect, inlineStickers} from "./helpers
 import {formatSeed, renderClickableRank} from "../../utils/skin";
 import {gFilterService} from "../../filter/service";
 import {AppId, ContextId, Currency} from "../../types/steam_constants";
+import {defined} from "../../utils/checkers";
 
 @CustomElement()
 @InjectAppend("#searchResultsRows .market_listing_row .market_listing_item_name_block", InjectionMode.CONTINUOUS)
@@ -53,7 +54,7 @@ export class ItemRowWrapper extends FloatElement {
      * If the user is not logged in, this will return undefined
      */
     get convertedPrice(): number|undefined {
-        if (!g_rgWalletInfo || !g_rgWalletInfo.wallet_currency) {
+        if (!defined(typeof g_rgWalletInfo) || !g_rgWalletInfo || !g_rgWalletInfo.wallet_currency) {
             return;
         }
 
