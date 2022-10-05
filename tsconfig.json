@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "module": "es6",
+    "target": "es6",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "rootDir": "src",
+    "outDir": "dist/js",
+    "noEmitOnError": true,
+    "typeRoots": [ "node_modules/@types", "./src/lib/types" ],
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "moduleResolution": "Node",
+  }
+}
