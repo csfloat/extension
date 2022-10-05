@@ -86,6 +86,10 @@ export class ItemRowWrapper extends FloatElement {
     async connectedCallback() {
         super.connectedCallback();
 
+        if (!this.inspectLink) {
+            return;
+        }
+
         // Only add if they don't have Steam Inventory Helper
         if (!$J(this).parent().parent().find('.sih-inspect-magnifier').length) {
             inlineEasyInspect(
@@ -118,6 +122,10 @@ export class ItemRowWrapper extends FloatElement {
     }
 
     render() {
+        if (!this.inspectLink) {
+            return html``;
+        }
+
         if (this.itemInfo) {
             return html`
                 <div>

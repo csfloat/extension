@@ -71,6 +71,10 @@ export class SkinViewer extends FloatElement {
     }
 
     protected render(): HTMLTemplateResult {
+        if (!this.inspectLink) {
+            return html``;
+        }
+
         return html`
             <div class="btn-container">
                 <csgofloat-steam-button .text="${this.loadingIfApplicable("3D", Showing.MODEL)}"
