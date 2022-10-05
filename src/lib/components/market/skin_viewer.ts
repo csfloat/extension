@@ -1,6 +1,6 @@
 import {FloatElement} from "../custom";
 import {CustomElement, InjectAppend, InjectionMode} from "../injectors";
-import {css, html, HTMLTemplateResult} from "lit";
+import {css, html, HTMLTemplateResult, nothing} from "lit";
 import {FetchSkinModel, FetchSkinModelResponse} from "../../bridge/handlers/fetch_skin_model";
 import {state} from "lit/decorators.js";
 import {ClientSend} from "../../bridge/client";
@@ -79,9 +79,11 @@ export class SkinViewer extends FloatElement {
                 <csgofloat-steam-button .text="${this.loadingIfApplicable("Screenshot", Showing.SCREENSHOT)}"
                                         @click="${this.toggleScreenshot}"></csgofloat-steam-button>
             </div>
-            <div ?hidden="${this.showing !== Showing.MODEL || !this.response?.modelLink}">
-                <iframe class="iframe-3d" src="${window.CSGOFLOAT_MODEL_FRAME_URL}?url=${this.response?.modelLink}"></iframe>
-            </div>
+            ${this.showing === Showing.MODEL && this.response?.modelLink ? html`
+                <div>
+                    <iframe class="iframe-3d" src="${window.CSGOFLOAT_MODEL_FRAME_URL}?url=${this.response?.modelLink}"></iframe>
+                </div>
+            ` : nothing}
             <img class="screenshot"
                  ?hidden="${this.showing !== Showing.SCREENSHOT || !this.response?.screenshotLink}"
                  src="${this.response?.screenshotLink}">
