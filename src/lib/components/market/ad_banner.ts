@@ -4,6 +4,7 @@ import {css, html, HTMLTemplateResult} from "lit";
 import {ClientSend} from "../../bridge/client";
 import {CSMoneyPrice, CSMoneyPriceResponse} from "../../bridge/handlers/csmoney_price";
 import {state} from "lit/decorators.js";
+import {AppId, ContextId} from "../../types/steam_constants";
 
 @CustomElement()
 export class AdBanner extends FloatElement {
@@ -50,9 +51,10 @@ export class AdBanner extends FloatElement {
     private response: CSMoneyPriceResponse | undefined;
 
     getMarketHashName(): string|null {
-        if (Object.keys(g_rgAssets["730"]["2"]).length > 0) {
+        if (Object.keys(g_rgAssets[AppId.CSGO][ContextId.PRIMARY]).length > 0) {
             // Resistant to the user switching page languages
-            return g_rgAssets["730"]["2"][Object.keys(g_rgAssets["730"]["2"])[0]].market_hash_name;
+            const firstAssetId = Object.keys(g_rgAssets[AppId.CSGO][ContextId.PRIMARY])[0];
+            return g_rgAssets[AppId.CSGO][ContextId.PRIMARY][firstAssetId].market_hash_name;
         } else if ((document.querySelector('.market_listing_item_name') as HTMLElement)?.innerText) {
             // Fallback
             return (document.querySelector('.market_listing_item_name') as HTMLElement)?.innerText;

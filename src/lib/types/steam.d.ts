@@ -1,8 +1,6 @@
 import $ from "jquery";
-import {Currency} from "./steam_constants";
+import {AppId, ContextId} from "./steam_constants";
 
-type AppId = 730;
-type ContextId = 2;
 
 export interface Action {
     link: string;
@@ -155,8 +153,8 @@ export interface RgContext {
 export interface UserSomeone {
     bReady: boolean;
     rgContexts: {
-        "730": {
-            "2": RgContext
+        [AppId.CSGO]: {
+            [ContextId.PRIMARY]: RgContext
         }
     };
     strSteamId: string;

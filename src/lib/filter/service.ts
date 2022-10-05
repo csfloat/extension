@@ -99,7 +99,7 @@ class FilterService {
 
         const iFilters = this.filters.filter(f => !f.getIsGlobal()).map(f => f.serialize());
 
-        // TODO: If this is an empty array, we can just delete the key
+        // TODO(GH-105): If this is an empty array, we can just delete the key
         await Set(this.itemRow, iFilters);
 
     }

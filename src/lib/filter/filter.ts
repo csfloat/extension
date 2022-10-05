@@ -35,7 +35,7 @@ export class Filter {
         return this.expression;
     }
 
-    setColor(colour: string): Filter {
+    setColour(colour: string): Filter {
         this.colour = colour;
         return this;
     }

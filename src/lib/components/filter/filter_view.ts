@@ -49,7 +49,7 @@ export class FilterView extends FloatElement {
     }
 
     onColourChange(e: Event) {
-        this.filter = this.filter.setColor((e.target as HTMLInputElement).value)
+        this.filter = this.filter.setColour((e.target as HTMLInputElement).value)
         gFilterService.upsert(this.filter);
         this.requestUpdate();
     }

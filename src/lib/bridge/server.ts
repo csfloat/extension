@@ -7,7 +7,6 @@ function findHandler(type: RequestType): RequestHandler<any, any>|undefined {
     return HANDLERS_MAP[type];
 }
 
-
 export async function Handle(blob: any, sender: MessageSender): Promise<any> {
     if (blob.version !== Version.V1) {
         // Ignore messages that aren't for this bridge

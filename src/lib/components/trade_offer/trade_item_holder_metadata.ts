@@ -1,6 +1,7 @@
 import {CustomElement, InjectAppend, InjectionMode} from "../injectors";
 import {Asset, UserSomeone} from "../../types/steam";
 import {ItemHolderMetadata} from "../common/item_holder_metadata";
+import {AppId, ContextId} from "../../types/steam_constants";
 
 // Annotates item info (float, seed, etc...) in boxes on the Trade Offer Page
 @CustomElement()
@@ -34,8 +35,8 @@ export class TradeItemHolderMetadata extends ItemHolderMetadata {
     }
 
     private static getAssetFromUser(user: UserSomeone, assetId: string): Asset|undefined {
-        if (user.rgContexts["730"]["2"].inventory?.rgInventory[assetId]) {
-            const inventory = user.rgContexts["730"]["2"].inventory;
+        if (user.rgContexts[AppId.CSGO][ContextId.PRIMARY].inventory?.rgInventory[assetId]) {
+            const inventory = user.rgContexts[AppId.CSGO][ContextId.PRIMARY].inventory;
             return inventory?.rgInventory[assetId];
         }
     }
