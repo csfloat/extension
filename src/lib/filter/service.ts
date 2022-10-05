@@ -59,7 +59,17 @@ class FilterService {
             vars.price = price;
         }
 
-        const colours = this.filters.filter(e => e.run(vars)).map(e => e.getColour());
+        const colours = this.filters.filter(e => {
+            const result = e.run(vars);
+            if (!Filter.isValidReturnValue(result)) {
+                // If we fail to evaluate the expression, return false
+                // This is expected if they have an expression using `price`
+                // but are logged out.
+                return false;
+            } else {
+                return result;
+            }
+        }).map(e => e.getColour());
         if (colours.length === 0) {
             return null;
         }

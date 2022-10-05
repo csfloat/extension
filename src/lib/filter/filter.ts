@@ -82,6 +82,17 @@ export class Filter {
     }
 
     /**
+     * Whether the return value from {@link run} is "valid" or usable
+     * for comparison purposes.
+     *
+     * For instance, will return false if `result` is an error indicating
+     * a property is undefined.
+     */
+    static isValidReturnValue(result: any): boolean {
+        return typeof result === "boolean" || result === 0 || result === 1;
+    }
+
+    /**
      * Throws if the filter expression is invalid
      */
     validate(): boolean {
@@ -99,7 +110,7 @@ export class Filter {
             price: 10,
         });
 
-        if (typeof result !== "boolean" && result !== 0 && result !== 1) {
+        if (!Filter.isValidReturnValue(result)) {
             throw new Error("invalid return type " + result.toString());
         }
 
