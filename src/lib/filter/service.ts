@@ -9,6 +9,7 @@ import {getDopplerPhase} from "../utils/dopplers";
 import {ReplaySubject} from "rxjs";
 import {debounce} from "lodash-decorators";
 import {averageColour} from "./utils";
+import {Remove} from "../bridge/handlers/storage_remove";
 
 
 /**
@@ -109,8 +110,13 @@ class FilterService {
 
         const iFilters = this.filters.filter(f => !f.getIsGlobal()).map(f => f.serialize());
 
-        // TODO(GH-105): If this is an empty array, we can just delete the key
-        await Set(this.itemRow, iFilters);
+        if (iFilters.length === 0) {
+            // Remove the key to prevent polluting their storage
+            // Sync storage has a max of 512 keys which we don't want to hit easily
+            await Remove(this.itemRow);
+        } else {
+            await Set(this.itemRow, iFilters);
+        }
 
     }
 }
