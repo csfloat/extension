@@ -8,6 +8,7 @@ import {state} from "lit/decorators.js";
 import {Observe} from "../../utils/observers";
 
 import '../common/ui/steam-button';
+import {AppId, ContextId} from "../../types/steam_constants";
 
 @CustomElement()
 @InjectBefore('div.trade_area')
@@ -138,7 +139,7 @@ export class AutoFill extends FloatElement {
 
     autoFill(trade: Trade) {
         $J('#inventory_select_your_inventory').click();
-        const el = UserYou?.findAsset(730, 2, trade.contract.item.asset_id)?.element;
+        const el = UserYou?.findAsset(AppId.CSGO, ContextId.PRIMARY, trade.contract.item.asset_id)?.element;
         if (!el) {
             console.error('failed to find asset element for id ' + trade.contract.item.asset_id);
             return;

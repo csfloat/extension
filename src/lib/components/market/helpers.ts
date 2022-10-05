@@ -1,5 +1,6 @@
 import {Asset} from "../../types/steam";
 import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
+import {AppId, ContextId} from "../../types/steam_constants";
 
 /**
  * If possible, constructs the inspect link from the given listing ID using page variables
@@ -10,7 +11,7 @@ export function getMarketInspectLink(listingId: string): string|undefined {
     const listingInfo = g_rgListingInfo[listingId];
     if (!listingInfo) return;
 
-    const asset = g_rgAssets[730][2][listingInfo.asset.id!];
+    const asset = g_rgAssets[AppId.CSGO][ContextId.PRIMARY][listingInfo.asset.id!];
     if (!asset || !asset.market_actions?.length) return;
 
     return asset.market_actions[0].link

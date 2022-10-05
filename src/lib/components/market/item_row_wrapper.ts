@@ -10,7 +10,7 @@ import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
 import {getMarketInspectLink, inlineEasyInspect, inlineStickers} from "./helpers";
 import {formatSeed, renderClickableRank} from "../../utils/skin";
 import {gFilterService} from "../../filter/service";
-import {Currency} from "../../types/steam_constants";
+import {AppId, ContextId, Currency} from "../../types/steam_constants";
 
 @CustomElement()
 @InjectAppend("#searchResultsRows .market_listing_row .market_listing_item_name_block", InjectionMode.CONTINUOUS)
@@ -33,7 +33,7 @@ export class ItemRowWrapper extends FloatElement {
     get asset(): Asset|undefined {
         if (!this.listingInfo) return;
 
-        return g_rgAssets[730][2][this.listingInfo.asset.id!];
+        return g_rgAssets[AppId.CSGO][ContextId.PRIMARY][this.listingInfo.asset.id!];
     }
 
     get inspectLink(): string|undefined {
