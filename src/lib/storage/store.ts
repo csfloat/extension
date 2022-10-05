@@ -18,6 +18,10 @@ class Store {
     async set<T>(key: StorageKey|DynamicStorageKey, value: T): Promise<void> {
         return this.storage.set({[key]: JSON.stringify(value)});
     }
+
+    async remove<T>(key: StorageKey|DynamicStorageKey): Promise<void> {
+        return this.storage.remove([key]);
+    }
 }
 
 export const gStore = new Store();

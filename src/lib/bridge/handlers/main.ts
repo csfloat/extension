@@ -8,6 +8,7 @@ export enum RequestType {
     FETCH_STALL,
     STORAGE_GET,
     STORAGE_SET,
+    STORAGE_REMOVE,
     CSMONEY_PRICE,
     FETCH_PENDING_TRADES,
     FETCH_SKIN_MODEL,
