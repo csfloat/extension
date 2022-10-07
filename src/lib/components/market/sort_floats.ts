@@ -3,7 +3,7 @@ import {CustomElement} from '../injectors';
 import {html, HTMLTemplateResult} from 'lit';
 import '../common/ui/steam-button';
 import {state} from 'lit/decorators.js';
-import {gFloatFetcher} from '../../float_fetcher/float_fetcher';
+import {gFloatFetcher} from '../../services/float_fetcher';
 import {getMarketInspectLink} from './helpers';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 

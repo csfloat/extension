@@ -5,7 +5,7 @@ import {CustomElement, InjectAppend, InjectionMode} from '../injectors';
 import {FloatElement} from '../custom';
 import {cache} from 'decorator-cache-getter';
 import {Asset, ListingData} from '../../types/steam';
-import {gFloatFetcher} from '../../float_fetcher/float_fetcher';
+import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {getMarketInspectLink, inlineEasyInspect, inlineStickers} from './helpers';
 import {formatSeed, renderClickableRank} from '../../utils/skin';

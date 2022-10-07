@@ -3,7 +3,7 @@ import {CustomElement, InjectAfter, InjectionMode} from '../injectors';
 import {html, css, TemplateResult, HTMLTemplateResult} from 'lit';
 import {state} from 'lit/decorators.js';
 import {InventoryAsset} from '../../types/steam';
-import {gFloatFetcher} from '../../float_fetcher/float_fetcher';
+import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {formatSeed, isSkin, renderClickableRank} from '../../utils/skin';
 import {Observe} from '../../utils/observers';
