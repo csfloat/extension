@@ -1,4 +1,5 @@
-import {RequestType, SimpleHandler} from './main';
+import {SimpleHandler} from './main';
+import {RequestType} from './handlers';
 
 interface Sticker {
     slot: number;

@@ -1,4 +1,5 @@
-import {RequestType, SimpleHandler} from './main';
+import {SimpleHandler} from './main';
+import {RequestType} from './handlers';
 
 export interface FetchSkinModelRequest {
     inspectLink: string;

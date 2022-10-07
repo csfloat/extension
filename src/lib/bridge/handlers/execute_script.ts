@@ -1,4 +1,5 @@
-import {EmptyResponseHandler, RequestType, PrivilegedHandler} from './main';
+import {EmptyResponseHandler, PrivilegedHandler} from './main';
+import {RequestType} from './handlers';
 
 interface ExecuteScriptRequest {
     path: string;
