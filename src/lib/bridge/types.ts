@@ -1,4 +1,4 @@
-import {RequestType} from "./handlers/main";
+import {RequestType} from './handlers/main';
 import MessageSender = chrome.runtime.MessageSender;
 
 export interface RequestHandler<Req, Resp> {
@@ -7,7 +7,7 @@ export interface RequestHandler<Req, Resp> {
 }
 
 export enum Version {
-    V1 = 'CSGOFLOAT_V1'
+    V1 = 'CSGOFLOAT_V1',
 }
 
 export interface InternalRequestBundle {

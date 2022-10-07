@@ -1,6 +1,6 @@
-import {CachedQueue, Job} from "../utils/queue";
-import {ClientSend} from "../bridge/client";
-import {FetchInspectInfo, FetchInspectInfoRequest, ItemInfo} from "../bridge/handlers/fetch_inspect_info";
+import {CachedQueue, Job} from '../utils/queue';
+import {ClientSend} from '../bridge/client';
+import {FetchInspectInfo, FetchInspectInfoRequest, ItemInfo} from '../bridge/handlers/fetch_inspect_info';
 
 class InspectJob extends Job<FetchInspectInfoRequest> {
     hashCode(): string {

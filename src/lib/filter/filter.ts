@@ -1,6 +1,6 @@
-import {InternalInputVars, SerializedFilter} from "./types";
-import {match, percentile, percentileRange} from "./custom_functions";
-import {compileExpression} from "filtrex";
+import {InternalInputVars, SerializedFilter} from './types';
+import {match, percentile, percentileRange} from './custom_functions';
+import {compileExpression} from 'filtrex';
 
 type ExpressionRunner = (data: InternalInputVars) => boolean;
 
@@ -58,15 +58,15 @@ export class Filter {
             expression: this.expression,
             colour: this.colour,
             isGlobal: this.isGlobal || false,
-        }
+        };
     }
 
     getExtraFunctions() {
         return {
             match: match,
             percentile: (rank: number) => percentile(this.currentVars!, rank),
-            percentileRange: (minRank: number, maxRank: number) => percentileRange(this.currentVars!, minRank, maxRank)
-        }
+            percentileRange: (minRank: number, maxRank: number) => percentileRange(this.currentVars!, minRank, maxRank),
+        };
     }
 
     run(vars: InternalInputVars): any {
@@ -75,7 +75,9 @@ export class Filter {
 
         if (!this.runner) {
             // Re-use the runner since it is expensive to create
-            this.runner = compileExpression(this.expression, {extraFunctions: this.getExtraFunctions()});
+            this.runner = compileExpression(this.expression, {
+                extraFunctions: this.getExtraFunctions(),
+            });
         }
 
         return this.runner(vars);
@@ -89,7 +91,7 @@ export class Filter {
      * a property is undefined.
      */
     static isValidReturnValue(result: any): boolean {
-        return typeof result === "boolean" || result === 0 || result === 1;
+        return typeof result === 'boolean' || result === 0 || result === 1;
     }
 
     /**
@@ -111,7 +113,7 @@ export class Filter {
         });
 
         if (!Filter.isValidReturnValue(result)) {
-            throw new Error("invalid return type " + result.toString());
+            throw new Error('invalid return type ' + result.toString());
         }
 
         return true;

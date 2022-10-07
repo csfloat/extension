@@ -1,4 +1,4 @@
-import {RequestHandler} from "../types";
+import {RequestHandler} from '../types';
 import MessageSender = chrome.runtime.MessageSender;
 
 export enum RequestType {

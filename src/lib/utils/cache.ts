@@ -8,7 +8,7 @@ export class Cache<T> {
         this.cache_[key] = value;
     }
 
-    get(key: string): T|undefined {
+    get(key: string): T | undefined {
         return this.cache_[key];
     }
 

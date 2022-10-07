@@ -1,24 +1,21 @@
-import {Asset} from "../../types/steam";
-import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
-import {AppId, ContextId} from "../../types/steam_constants";
+import {Asset} from '../../types/steam';
+import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
+import {AppId, ContextId} from '../../types/steam_constants';
 
 /**
  * If possible, constructs the inspect link from the given listing ID using page variables
  *
  * @param listingId ID for the listing, may also be referred to as "M"
  */
-export function getMarketInspectLink(listingId: string): string|undefined {
+export function getMarketInspectLink(listingId: string): string | undefined {
     const listingInfo = g_rgListingInfo[listingId];
     if (!listingInfo) return;
 
     const asset = g_rgAssets[AppId.CSGO][ContextId.PRIMARY][listingInfo.asset.id!];
     if (!asset || !asset.market_actions?.length) return;
 
-    return asset.market_actions[0].link
-        .replace('%listingid%', listingId)
-        .replace('%assetid%', asset.id)
+    return asset.market_actions[0].link.replace('%listingid%', listingId).replace('%assetid%', asset.id);
 }
-
 
 /**
  * Inlines stickers into a market item row HTML showing the image and wear
@@ -51,22 +48,23 @@ export function inlineStickers(itemNameBlock: JQuery<Element>, itemInfo: ItemInf
     const stickerLang = nameMatch[1];
     const stickerNames = nameMatch[2].split(', ');
 
-    const result = imagesHtml.map((imageHtml, i) => {
-        const url =
-            stickerLang === 'Sticker'
-                ? `https://steamcommunity.com/market/listings/730/${stickerLang} | ${stickerNames[i]}`
-                : `https://steamcommunity.com/market/search?q=${stickerLang} | ${stickerNames[i]}`;
+    const result = imagesHtml
+        .map((imageHtml, i) => {
+            const url =
+                stickerLang === 'Sticker'
+                    ? `https://steamcommunity.com/market/listings/730/${stickerLang} | ${stickerNames[i]}`
+                    : `https://steamcommunity.com/market/search?q=${stickerLang} | ${stickerNames[i]}`;
 
-        const sticker = itemInfo.stickers[i];
+            const sticker = itemInfo.stickers[i];
 
-        return `<span style="display: inline-block; text-align: center;">
+            return `<span style="display: inline-block; text-align: center;">
                     <a target="_blank" href="${url}">${imagesHtml[i]}</a>
                     <span style="display: block;">
                         ${Math.round(100 * (sticker?.wear || 0)) + '%'}
                     </span>
                 </span>`;
-    }).reduce((acc, v) => acc + v, '');
-
+        })
+        .reduce((acc, v) => acc + v, '');
 
     itemNameBlock.prepend(`
         <div class="csgofloat-stickers-container">
@@ -80,7 +78,7 @@ export function inlineStickers(itemNameBlock: JQuery<Element>, itemInfo: ItemInf
  * @param itemImgContainer Element with ".market_listing_item_img_container"
  * @param inspectLink Item Inspect Link
  */
-export function inlineEasyInspect(itemImgContainer: JQuery<Element>, inspectLink: string|undefined) {
+export function inlineEasyInspect(itemImgContainer: JQuery<Element>, inspectLink: string | undefined) {
     if (!itemImgContainer || !inspectLink) return;
 
     itemImgContainer.append(`

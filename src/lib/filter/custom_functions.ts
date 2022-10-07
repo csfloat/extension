@@ -1,4 +1,4 @@
-import {InternalInputVars} from "./types";
+import {InternalInputVars} from './types';
 
 export function percentile(vars: InternalInputVars, rank: number) {
     const minFloat = vars.minfloat > vars.minwearfloat ? vars.minfloat : vars.minwearfloat;
@@ -17,7 +17,7 @@ export function percentileRange(vars: InternalInputVars, minRank: number, maxRan
 }
 
 export function match(str: string, regex: string) {
-    let thisMatch = str.toString().match(regex);
+    const thisMatch = str.toString().match(regex);
 
     if (thisMatch !== null) return thisMatch.length;
     else return 0;

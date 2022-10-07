@@ -1,13 +1,13 @@
 /**
  * Keys for use as the raw "key" in local/sync storage for a row
  */
-import {SerializedFilter} from "../filter/types";
+import {SerializedFilter} from '../filter/types';
 
 export enum StorageKey {
     // Backwards compatible with <3.0.0
     PAGE_SIZE = 'pageSize',
     ITEM_FILTERS = 'expressions',
-    GLOBAL_FILTERS = 'global'
+    GLOBAL_FILTERS = 'global',
 }
 
 export type DynamicStorageKey = string;
@@ -15,8 +15,9 @@ export type DynamicStorageKey = string;
 /**
  * Encapsulates a key/value pair, each key has a value associated
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface StorageRow<T> {
-    key: StorageKey|DynamicStorageKey;
+    key: StorageKey | DynamicStorageKey;
 }
 
 function newRow<T>(name: StorageKey): StorageRow<T> {
@@ -35,7 +36,7 @@ function newRow<T>(name: StorageKey): StorageRow<T> {
 function newDynamicRow<T>(suffix: StorageKey): (prefix: string) => StorageRow<T> {
     return function (prefix: string) {
         return {key: `${prefix}_${suffix}`} as StorageRow<T>;
-    }
+    };
 }
 
 // Explicitly create each row here that is used in the application

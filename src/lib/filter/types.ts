@@ -1,4 +1,3 @@
-
 export interface InternalInputVars {
     float: number;
     seed: number;

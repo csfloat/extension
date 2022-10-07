@@ -11,38 +11,26 @@
     },
     "content_scripts": [
         {
-            "matches": [
-                "*://*.steamcommunity.com/market/listings/730/*"
-            ],
-            "js": [
-                "src/lib/page_scripts/market_listing.js"
-            ],
+            "matches": ["*://*.steamcommunity.com/market/listings/730/*"],
+            "js": ["src/lib/page_scripts/market_listing.js"],
             "css": ["src/global.css"]
-        }, {
+        },
+        {
             "matches": [
                 "*://*.steamcommunity.com/id/*/tradehistory*",
                 "*://*.steamcommunity.com/profiles/*/tradehistory*"
             ],
-            "js": [
-                "src/lib/page_scripts/trade_history.js"
-            ],
+            "js": ["src/lib/page_scripts/trade_history.js"],
             "css": ["src/global.css"]
-        }, {
-            "matches": [
-                "*://*.steamcommunity.com/id/*/inventory*",
-                "*://*.steamcommunity.com/profiles/*/inventory*"
-            ],
-            "js": [
-                "src/lib/page_scripts/inventory.js"
-            ],
+        },
+        {
+            "matches": ["*://*.steamcommunity.com/id/*/inventory*", "*://*.steamcommunity.com/profiles/*/inventory*"],
+            "js": ["src/lib/page_scripts/inventory.js"],
             "css": ["src/global.css"]
-        }, {
-            "matches": [
-                "*://*.steamcommunity.com/tradeoffer/*"
-            ],
-            "js": [
-                "src/lib/page_scripts/trade_offer.js"
-            ],
+        },
+        {
+            "matches": ["*://*.steamcommunity.com/tradeoffer/*"],
+            "js": ["src/lib/page_scripts/trade_offer.js"],
             "css": ["src/global.css"]
         }
     ],
@@ -50,23 +38,20 @@
         "service_worker": "src/background.js",
         "type": "module"
     },
-    "permissions": [
-        "storage",
-        "scripting"
-    ],
+    "permissions": ["storage", "scripting"],
     "host_permissions": [
         "*://*.steamcommunity.com/market/listings/730/*",
         "*://*.steamcommunity.com/id/*/inventory*",
         "*://*.steamcommunity.com/id/*/tradehistory*",
         "*://*.steamcommunity.com/profiles/*/inventory*"
     ],
-    "externally_connectable" : {
+    "externally_connectable": {
         "matches": ["*://*.steamcommunity.com/*"]
     },
     "web_accessible_resources": [
         {
             "resources": ["src/model_frame.html", "src/model_frame.js"],
-            "matches": [ "https://steamcommunity.com/*" ]
+            "matches": ["https://steamcommunity.com/*"]
         }
     ]
 }

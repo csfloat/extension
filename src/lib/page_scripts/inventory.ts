@@ -1,6 +1,6 @@
-import {init} from "./utils";
-import "../components/inventory/inventory_item_holder_metadata";
-import "../components/inventory/selected_item_info";
+import {init} from './utils';
+import '../components/inventory/inventory_item_holder_metadata';
+import '../components/inventory/selected_item_info';
 
 init('src/lib/page_scripts/inventory.js', main);
 
@@ -56,25 +56,27 @@ function injectInventoryFallback() {
             return;
         }
 
-        const assets = Object.values(data.rgInventory).map(asset => {
-            return {
-                appid: this.m_appid,
-                contextid: this.m_contextid,
-                assetid: asset.id,
-                classid: asset.classid,
-                instanceid: asset.instanceid,
-                amount: asset.amount,
-                m_pos: asset.pos,
-            };
-        }).sort((a, b) => a.m_pos - b.m_pos);
+        const assets = Object.values(data.rgInventory)
+            .map((asset) => {
+                return {
+                    appid: this.m_appid,
+                    contextid: this.m_contextid,
+                    assetid: asset.id,
+                    classid: asset.classid,
+                    instanceid: asset.instanceid,
+                    amount: asset.amount,
+                    m_pos: asset.pos,
+                };
+            })
+            .sort((a, b) => a.m_pos - b.m_pos);
 
         const transformedData = {
             assets,
             descriptions: Object.values(data.rgDescriptions),
-            total_inventory_count: Math.max(...assets.map(e => e.m_pos)),
+            total_inventory_count: Math.max(...assets.map((e) => e.m_pos)),
             success: true,
             more_items: 0,
-            rwgrsn: -2
+            rwgrsn: -2,
         };
 
         /* Required to force the page to lazy load images correctly */
@@ -94,14 +96,14 @@ function injectInventoryFallback() {
             return;
         }
 
-        this.m_$ErrorDisplay.find(".retry_load_btn").after(`
+        this.m_$ErrorDisplay.find('.retry_load_btn').after(`
         <div class="btnv6_blue_hoverfade btn_small retry_load_btn_csgofloat" style="margin-left: 10px;">
             <span>Try Again using CSGOFloat</span>
         </div>
     `);
-        this.m_$ErrorDisplay.find(".retry_load_btn_csgofloat").click(() => {
+        this.m_$ErrorDisplay.find('.retry_load_btn_csgofloat').click(() => {
             g_InventoryFallbackCSGOFloat = true;
-            this.RetryLoad()
+            this.RetryLoad();
         });
     };
 }

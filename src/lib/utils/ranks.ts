@@ -1,4 +1,4 @@
- export function getRankColour(rank: number) {
+export function getRankColour(rank: number) {
     switch (rank) {
         case 1:
             return '#c3a508';
@@ -11,4 +11,4 @@
         default:
             return '';
     }
-};
+}

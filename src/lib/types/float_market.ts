@@ -40,7 +40,7 @@ export interface User {
         total_failed_trades: number;
         total_trades: number;
         total_verified_trades: number;
-    }
+    };
     steam_id: string;
     username: string;
 }
@@ -49,12 +49,12 @@ export enum ContractState {
     SOLD = 'sold',
     LISTED = 'listed',
     DELISTED = 'delisted',
-    REFUNDED = 'refunded'
+    REFUNDED = 'refunded',
 }
 
 export enum ContractType {
     BUY_NOW = 'buy_now',
-    AUCTION = 'auction'
+    AUCTION = 'auction',
 }
 
 export interface Contract {
@@ -77,7 +77,7 @@ export enum TradeState {
     PENDING = 'pending',
     VERIFIED = 'verified',
     FAILED = 'failed',
-    CANCELLED = 'cancelled'
+    CANCELLED = 'cancelled',
 }
 
 export interface Trade {
