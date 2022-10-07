@@ -1,7 +1,6 @@
-import {RequestType} from './handlers/main';
 import {InternalRequestBundle, RequestHandler, Version} from './types';
 import MessageSender = chrome.runtime.MessageSender;
-import {HANDLERS_MAP} from './handlers/handlers';
+import {HANDLERS_MAP, RequestType} from './handlers/handlers';
 
 function findHandler(type: RequestType): RequestHandler<any, any> | undefined {
     return HANDLERS_MAP[type];
