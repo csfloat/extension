@@ -14,7 +14,8 @@
         "build": "webpack --env mode=prod --config webpack.config.js --stats-error-details",
         "start": "webpack --env mode=development --config webpack.config.js --stats-error-details --watch",
         "lint": "eslint --ignore-path .lintignore --ext .js,.ts .",
-        "format": "prettier --ignore-path .lintignore --write \"**/*.+(js|ts|json)\""
+        "format": "prettier --ignore-path .lintignore --write \"**/*.+(js|ts|json)\"",
+        "checkformat": "prettier --ignore-path .lintignore --check \"**/*.+(js|ts|json)\""
     },
     "author": "step7750",
     "license": "MIT",
