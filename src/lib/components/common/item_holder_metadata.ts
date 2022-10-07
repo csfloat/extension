@@ -2,7 +2,7 @@ import {FloatElement} from '../custom';
 import {html, css, HTMLTemplateResult} from 'lit';
 import {state} from 'lit/decorators.js';
 import {Asset} from '../../types/steam';
-import {gFloatFetcher} from '../../float_fetcher/float_fetcher';
+import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {formatFloatWithRank, formatSeed, getLowestRank} from '../../utils/skin';
 import {isSkin} from '../../utils/skin';
