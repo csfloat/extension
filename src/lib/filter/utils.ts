@@ -1,5 +1,5 @@
-function hexToRgb(hex: string): number[]|null {
-    let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+function hexToRgb(hex: string): number[] | null {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : null;
 }
 
@@ -28,8 +28,5 @@ export function averageColour(hexColours: string[]): string {
         }
     }
 
-    return rgbToHex(average.map(e => e / hexColours.length));
+    return rgbToHex(average.map((e) => e / hexColours.length));
 }
-
-
-

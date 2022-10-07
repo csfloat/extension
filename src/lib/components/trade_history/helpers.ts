@@ -9,14 +9,14 @@ function historyRowHashcode(row: HTMLElement): string {
     let hash = 0;
     for (let i = 0; i < text.length; i++) {
         const char = text.charCodeAt(i);
-        hash = ((hash<<5)-hash)+char;
+        hash = (hash << 5) - hash + char;
         hash = hash & hash;
     }
 
     return hash.toString();
 }
 
-function getTimestampFromTrade(row: HTMLElement): number|null {
+function getTimestampFromTrade(row: HTMLElement): number | null {
     const dateDiv = row.querySelector('.tradehistory_date');
     if (!dateDiv) {
         return null;
@@ -31,10 +31,10 @@ function getTimestampFromTrade(row: HTMLElement): number|null {
     const minutes = parseInt(pure.split(':')[1]);
     if (time.includes('pm') && hours !== 12) {
         /* Prevent 12:XXpm from getting 12 hours added */
-        hours += 12
+        hours += 12;
     } else if (time.includes('am') && hours === 12) {
         /* Prevent 12:XXam from getting 12 hours instead of being 0 */
-        hours -= 12
+        hours -= 12;
     }
 
     d.setHours(hours);
@@ -43,9 +43,12 @@ function getTimestampFromTrade(row: HTMLElement): number|null {
 }
 
 async function hasTradeBeforeTime(hashCode: string, timestamp: number): Promise<boolean> {
-    const resp = await fetch(`${location.protocol}//${location.host}${location.pathname}?after_time=${timestamp}&l=english`, {
-        credentials: 'same-origin'
-    });
+    const resp = await fetch(
+        `${location.protocol}//${location.host}${location.pathname}?after_time=${timestamp}&l=english`,
+        {
+            credentials: 'same-origin',
+        }
+    );
 
     const body = await resp.text();
 
@@ -58,7 +61,6 @@ async function hasTradeBeforeTime(hashCode: string, timestamp: number): Promise<
     const rows = doc.querySelectorAll('.tradehistoryrow') as NodeListOf<HTMLElement>;
 
     for (const row of rows) {
-
         const thisCode = historyRowHashcode(row);
         if (thisCode === hashCode) {
             return true;
@@ -78,7 +80,7 @@ async function fetchEnglishRow(index: number): Promise<HTMLElement> {
 
     /* Forces us to fetch the english version of the row at a given index no matter what */
     const resp = await fetch(`${location.protocol}//${location.host}${location.pathname}${queryParams}`, {
-        credentials: 'same-origin'
+        credentials: 'same-origin',
     });
 
     const body = await resp.text();
@@ -92,18 +94,17 @@ async function fetchEnglishRow(index: number): Promise<HTMLElement> {
  * Returns the listing time of the row at {@param index}
  * @param index Index of the trade history row on the page
  */
-export async function fetchListingTime(index: number): Promise<number|undefined> {
+export async function fetchListingTime(index: number): Promise<number | undefined> {
     const node = await fetchEnglishRow(index);
     const hashCode = historyRowHashcode(node);
 
-    let timestamp;
-
-    timestamp = getTimestampFromTrade(node);
+    const timestamp = getTimestampFromTrade(node);
     if (!timestamp) {
         throw 'failed timestamp creation';
     }
 
-    let left = 0, right = 60;
+    let left = 0,
+        right = 60;
     let amt = 0;
     while (left < right && amt < 5) {
         const middle = left + Math.floor((right - left) / 2);
