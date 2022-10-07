@@ -1,7 +1,7 @@
 /**
  * Keys for use as the raw "key" in local/sync storage for a row
  */
-import { SerializedFilter } from '../filter/types';
+import {SerializedFilter} from '../filter/types';
 
 export enum StorageKey {
     // Backwards compatible with <3.0.0
@@ -21,7 +21,7 @@ export interface StorageRow<T> {
 }
 
 function newRow<T>(name: StorageKey): StorageRow<T> {
-    return { key: name } as StorageRow<T>;
+    return {key: name} as StorageRow<T>;
 }
 
 /**
@@ -35,7 +35,7 @@ function newRow<T>(name: StorageKey): StorageRow<T> {
  */
 function newDynamicRow<T>(suffix: StorageKey): (prefix: string) => StorageRow<T> {
     return function (prefix: string) {
-        return { key: `${prefix}_${suffix}` } as StorageRow<T>;
+        return {key: `${prefix}_${suffix}`} as StorageRow<T>;
     };
 }
 

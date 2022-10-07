@@ -1,4 +1,3 @@
-
 /**
  * Similar to a promise, but allows the ability to resolve/reject in a different context
  * */

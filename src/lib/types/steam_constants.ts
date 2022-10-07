@@ -1,12 +1,12 @@
 // See g_rgCurrencyData
 export enum Currency {
-    USD = 2001
+    USD = 2001,
 }
 
 export enum AppId {
-    CSGO = 730
+    CSGO = 730,
 }
 
 export enum ContextId {
-    PRIMARY = 2
+    PRIMARY = 2,
 }

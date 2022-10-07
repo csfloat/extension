@@ -1,6 +1,5 @@
-import $ from "jquery";
-import {AppId, ContextId} from "./steam_constants";
-
+import $ from 'jquery';
+import {AppId, ContextId} from './steam_constants';
 
 export interface Action {
     link: string;
@@ -141,7 +140,7 @@ export interface CInventory {
         m_contextid: number;
         m_bNeedsRepagination: boolean;
         m_$ErrorDisplay: JQuery;
-    }
+    };
 }
 
 export interface RgContext {
@@ -154,8 +153,8 @@ export interface UserSomeone {
     bReady: boolean;
     rgContexts: {
         [AppId.CSGO]: {
-            [ContextId.PRIMARY]: RgContext
-        }
+            [ContextId.PRIMARY]: RgContext;
+        };
     };
     strSteamId: string;
     findAsset: (appId: AppId, contextId: ContextId, itemId: string) => Asset;
@@ -185,16 +184,20 @@ export interface CurrentTradeStatus {
 declare global {
     const $J: typeof $;
     const g_rgListingInfo: {[listingId: string]: ListingData};
-    const g_rgWalletInfo: WalletInfo|undefined; // Not populated when user is signed-out
-    const g_rgAssets: {[appId in AppId]: {[contextId in ContextId]: {[assetId: string]: Asset}}};
-    const g_ActiveInventory: CInventory|undefined; // Only populated on Steam inventory pages
+    const g_rgWalletInfo: WalletInfo | undefined; // Not populated when user is signed-out
+    const g_rgAssets: {
+        [appId in AppId]: {
+            [contextId in ContextId]: {[assetId: string]: Asset};
+        };
+    };
+    const g_ActiveInventory: CInventory | undefined; // Only populated on Steam inventory pages
     const g_steamID: string;
     const g_oSearchResults: CAjaxPagingControls;
-    const BuyItemDialog: BuyItemDialog|undefined; // Only populated on Steam Market pages
-    const MarketCheckHash: (() => any)|undefined; // Only populated on Steam Market pages
+    const BuyItemDialog: BuyItemDialog | undefined; // Only populated on Steam Market pages
+    const MarketCheckHash: (() => any) | undefined; // Only populated on Steam Market pages
     const CInventory: CInventory;
-    const UserThem: UserSomeone|undefined; // Only populated on create offer pages
-    const UserYou: UserSomeone|undefined; // Only populated on create offer pages
+    const UserThem: UserSomeone | undefined; // Only populated on create offer pages
+    const UserYou: UserSomeone | undefined; // Only populated on create offer pages
     const MoveItemToTrade: (el: HTMLElement) => void; // Only populated on create offer pages
     const g_rgCurrentTradeStatus: CurrentTradeStatus;
 }

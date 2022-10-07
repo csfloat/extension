@@ -1,11 +1,11 @@
 import {html} from 'lit';
 
 import {property, state} from 'lit/decorators.js';
-import {CustomElement} from "../injectors";
-import {FloatElement} from "../custom";
-import {Filter} from "../../filter/filter";
-import {DYNAMIC_ITEM_FILTERS} from "../../storage/keys";
-import {gFilterService} from "../../filter/service";
+import {CustomElement} from '../injectors';
+import {FloatElement} from '../custom';
+import {Filter} from '../../filter/filter';
+import {DYNAMIC_ITEM_FILTERS} from '../../storage/keys';
+import {gFilterService} from '../../filter/service';
 
 import './filter_creator';
 import './filter_view';
@@ -34,11 +34,11 @@ export class FilterContainer extends FloatElement {
 
     render() {
         return html`
-            ${this.filters.map(filter => {
+            ${this.filters.map((filter) => {
                 return html`<div>
                     <csgofloat-filter-view .filter="${filter}"></csgofloat-filter-view>
-                    <hr>
-                </div>`
+                    <hr />
+                </div>`;
             })}
             <csgofloat-filter-creator @newFilter="${this.onNewFilter}"></csgofloat-filter-creator>
         `;

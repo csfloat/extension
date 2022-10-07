@@ -1,4 +1,4 @@
-import { DynamicStorageKey, StorageKey } from './keys';
+import {DynamicStorageKey, StorageKey} from './keys';
 
 class Store {
     // Prefer to use sync storage if possible
@@ -16,7 +16,7 @@ class Store {
     }
 
     async set<T>(key: StorageKey | DynamicStorageKey, value: T): Promise<void> {
-        return this.storage.set({ [key]: JSON.stringify(value) });
+        return this.storage.set({[key]: JSON.stringify(value)});
     }
 
     async remove(key: StorageKey | DynamicStorageKey): Promise<void> {

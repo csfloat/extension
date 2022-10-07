@@ -1,15 +1,15 @@
-import { FloatElement } from '../custom';
-import { CustomElement, InjectAfter, InjectionMode } from '../injectors';
-import { html, css, TemplateResult, HTMLTemplateResult } from 'lit';
-import { state } from 'lit/decorators.js';
-import { InventoryAsset } from '../../types/steam';
-import { gFloatFetcher } from '../../float_fetcher/float_fetcher';
-import { ItemInfo } from '../../bridge/handlers/fetch_inspect_info';
-import { formatSeed, isSkin, renderClickableRank } from '../../utils/skin';
-import { Observe } from '../../utils/observers';
-import { FetchStallResponse } from '../../bridge/handlers/fetch_stall';
-import { gStallFetcher } from '../../float_market/stall';
-import { Contract } from '../../types/float_market';
+import {FloatElement} from '../custom';
+import {CustomElement, InjectAfter, InjectionMode} from '../injectors';
+import {html, css, TemplateResult, HTMLTemplateResult} from 'lit';
+import {state} from 'lit/decorators.js';
+import {InventoryAsset} from '../../types/steam';
+import {gFloatFetcher} from '../../float_fetcher/float_fetcher';
+import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
+import {formatSeed, isSkin, renderClickableRank} from '../../utils/skin';
+import {Observe} from '../../utils/observers';
+import {FetchStallResponse} from '../../bridge/handlers/fetch_stall';
+import {gStallFetcher} from '../../float_market/stall';
+import {Contract} from '../../types/float_market';
 
 /**
  * Why do we bind to iteminfo0 AND iteminfo1?
@@ -108,7 +108,10 @@ export class SelectedItemInfo extends FloatElement {
             <div class="market-btn-container">
                 <a class="market-btn" href="https://csgofloat.com/item/${this.stallListing.id}" target="_blank">
                     <img src="https://csgofloat.com/assets/full_logo.png" height="21" style="margin-right: 5px;" />
-                    <span> Listed for <b>$${(this.stallListing.price / 100).toFixed(2)}</b> </span>
+                    <span>
+                        Listed for
+                        <b>$${(this.stallListing.price / 100).toFixed(2)}</b>
+                    </span>
                 </a>
             </div>
         `;
@@ -174,7 +177,7 @@ export class SelectedItemInfo extends FloatElement {
         if (g_ActiveInventory?.m_owner?.strSteamId) {
             // Ignore errors
             gStallFetcher
-                .fetch({ steam_id64: g_ActiveInventory?.m_owner.strSteamId })
+                .fetch({steam_id64: g_ActiveInventory?.m_owner.strSteamId})
                 .then((stall) => (this.stall = stall));
         }
     }

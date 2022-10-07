@@ -1,5 +1,5 @@
-import {Cache} from "./cache";
-import {DeferredPromise} from "./deferred_promise";
+import {Cache} from './cache';
+import {DeferredPromise} from './deferred_promise';
 
 export abstract class Job<T> {
     constructor(protected data: T) {}
@@ -42,7 +42,7 @@ export abstract class Queue<Req, Resp> {
     }
 
     has(job: Job<Req>): boolean {
-        return !!this.internalQueue.find(e => e.job.hashCode() === job.hashCode());
+        return !!this.internalQueue.find((e) => e.job.hashCode() === job.hashCode());
     }
 
     getOrThrow(job: Job<Req>): QueuedJob<Req, Resp> {
@@ -51,7 +51,7 @@ export abstract class Queue<Req, Resp> {
         }
 
         // Guaranteed
-        return this.internalQueue.find(e => e.job.hashCode() === job.hashCode())!;
+        return this.internalQueue.find((e) => e.job.hashCode() === job.hashCode())!;
     }
 
     async checkQueue() {
@@ -93,7 +93,7 @@ export abstract class Queue<Req, Resp> {
 }
 
 // Like a queue, but has an internal cache for elements already requested
-export abstract class CachedQueue<Req, Resp> extends Queue<Req, Resp>{
+export abstract class CachedQueue<Req, Resp> extends Queue<Req, Resp> {
     private cache = new Cache<Resp>();
 
     /** Amount of previously requested jobs stored in the cache */

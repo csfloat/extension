@@ -1,16 +1,16 @@
-import {FloatElement} from "../custom";
-import {CustomElement} from "../injectors";
-import {html, HTMLTemplateResult} from "lit";
+import {FloatElement} from '../custom';
+import {CustomElement} from '../injectors';
+import {html, HTMLTemplateResult} from 'lit';
 import '../common/ui/steam-button';
-import {state} from "lit/decorators.js";
-import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
-import {getMarketInspectLink} from "./helpers";
-import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
+import {state} from 'lit/decorators.js';
+import {gFloatFetcher} from '../../float_fetcher/float_fetcher';
+import {getMarketInspectLink} from './helpers';
+import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 
 enum SortDirection {
     NONE,
     ASC,
-    DESC
+    DESC,
 }
 
 @CustomElement()
@@ -31,7 +31,6 @@ export class SortFloats extends FloatElement {
         return txt;
     }
 
-
     protected render(): HTMLTemplateResult {
         return html`
             <csgofloat-steam-button .text="${this.buttonText}" @click="${this.onClick}"></csgofloat-steam-button>
@@ -49,7 +48,10 @@ export class SortFloats extends FloatElement {
         }
     }
 
-    static sort(infos: { listingId: string; info: ItemInfo }[], direction: SortDirection): { listingId: string; info: ItemInfo }[] {
+    static sort(
+        infos: {listingId: string; info: ItemInfo}[],
+        direction: SortDirection
+    ): {listingId: string; info: ItemInfo}[] {
         switch (direction) {
             case SortDirection.NONE:
                 return infos;
@@ -65,19 +67,19 @@ export class SortFloats extends FloatElement {
 
         const rows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
 
-        const infoPromises: Promise<{ listingId: string; info: ItemInfo }>[] = [...rows]
-            .map(e => e.id.replace('listing_', ''))
-            .map(async listingId => {
+        const infoPromises: Promise<{listingId: string; info: ItemInfo}>[] = [...rows]
+            .map((e) => e.id.replace('listing_', ''))
+            .map(async (listingId) => {
                 const link = getMarketInspectLink(listingId);
 
                 const info = await gFloatFetcher.fetch({link: link!});
                 return {
                     info,
-                    listingId: listingId!
+                    listingId: listingId!,
                 };
             });
 
-        const infos: { listingId: string; info: ItemInfo }[] = await Promise.all(infoPromises);
+        const infos: {listingId: string; info: ItemInfo}[] = await Promise.all(infoPromises);
         const sortedInfos = SortFloats.sort(infos, newDirection);
 
         let lastItem = document.querySelector('#searchResultsRows .market_listing_table_header');

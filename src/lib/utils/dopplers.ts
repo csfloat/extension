@@ -18,17 +18,17 @@ const dopplerPhases: {[paintIndex: number]: string} = {
     853: 'Phase 2',
     854: 'Phase 3',
     855: 'Phase 4',
-    1119: "Emerald",
-    1120: "Phase 1",
-    1121: "Phase 2",
-    1122: "Phase 3",
-    1123: "Phase 4"
+    1119: 'Emerald',
+    1120: 'Phase 1',
+    1121: 'Phase 2',
+    1122: 'Phase 3',
+    1123: 'Phase 4',
 };
 
 export function hasDopplerPhase(paintIndex: number) {
     return paintIndex in dopplerPhases;
 }
 
-export function getDopplerPhase(paintIndex: number): string|undefined {
+export function getDopplerPhase(paintIndex: number): string | undefined {
     return dopplerPhases[paintIndex];
 }

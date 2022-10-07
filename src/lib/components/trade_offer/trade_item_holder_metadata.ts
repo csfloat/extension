@@ -1,7 +1,7 @@
-import {CustomElement, InjectAppend, InjectionMode} from "../injectors";
-import {Asset, UserSomeone} from "../../types/steam";
-import {ItemHolderMetadata} from "../common/item_holder_metadata";
-import {AppId, ContextId} from "../../types/steam_constants";
+import {CustomElement, InjectAppend, InjectionMode} from '../injectors';
+import {Asset, UserSomeone} from '../../types/steam';
+import {ItemHolderMetadata} from '../common/item_holder_metadata';
+import {AppId, ContextId} from '../../types/steam_constants';
 
 // Annotates item info (float, seed, etc...) in boxes on the Trade Offer Page
 @CustomElement()
@@ -10,7 +10,7 @@ import {AppId, ContextId} from "../../types/steam_constants";
 // Items selected within the trade offer
 @InjectAppend('.trade_offer .itemHolder div.app730', InjectionMode.CONTINUOUS)
 export class TradeItemHolderMetadata extends ItemHolderMetadata {
-    get owningUser(): UserSomeone|undefined {
+    get owningUser(): UserSomeone | undefined {
         if (!this.assetId) return;
 
         if (UserThem && TradeItemHolderMetadata.getAssetFromUser(UserThem, this.assetId)) {
@@ -20,13 +20,13 @@ export class TradeItemHolderMetadata extends ItemHolderMetadata {
         }
     }
 
-    get ownerSteamId(): string|undefined {
+    get ownerSteamId(): string | undefined {
         if (!this.assetId) return;
 
         return this.owningUser?.strSteamId;
     }
 
-    get asset(): Asset|undefined {
+    get asset(): Asset | undefined {
         if (!this.assetId) return;
 
         if (!this.owningUser) return;
@@ -34,7 +34,7 @@ export class TradeItemHolderMetadata extends ItemHolderMetadata {
         return TradeItemHolderMetadata.getAssetFromUser(this.owningUser, this.assetId);
     }
 
-    private static getAssetFromUser(user: UserSomeone, assetId: string): Asset|undefined {
+    private static getAssetFromUser(user: UserSomeone, assetId: string): Asset | undefined {
         if (user.rgContexts[AppId.CSGO][ContextId.PRIMARY].inventory?.rgInventory[assetId]) {
             const inventory = user.rgContexts[AppId.CSGO][ContextId.PRIMARY].inventory;
             return inventory?.rgInventory[assetId];

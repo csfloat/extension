@@ -1,11 +1,11 @@
-import { FloatElement } from '../custom';
-import { CustomElement } from '../injectors';
-import { html, HTMLTemplateResult } from 'lit';
+import {FloatElement} from '../custom';
+import {CustomElement} from '../injectors';
+import {html, HTMLTemplateResult} from 'lit';
 import '../common/ui/steam-button';
-import { query, state } from 'lit/decorators.js';
-import { Get } from '../../bridge/handlers/storage_get';
-import { Set } from '../../bridge/handlers/storage_set';
-import { PAGE_SIZE } from '../../storage/keys';
+import {query, state} from 'lit/decorators.js';
+import {Get} from '../../bridge/handlers/storage_get';
+import {Set} from '../../bridge/handlers/storage_set';
+import {PAGE_SIZE} from '../../storage/keys';
 
 @CustomElement()
 export class PageSize extends FloatElement {

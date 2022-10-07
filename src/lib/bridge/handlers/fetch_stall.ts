@@ -1,5 +1,5 @@
-import {RequestType, SimpleHandler} from "./main";
-import {Contract, User} from "../../types/float_market";
+import {RequestType, SimpleHandler} from './main';
+import {Contract, User} from '../../types/float_market';
 
 export interface FetchStallRequest {
     steam_id64: string;
@@ -18,8 +18,8 @@ export interface FetchStallResponseError {
 export const FetchStall = new SimpleHandler<FetchStallRequest, FetchStallResponse>(
     RequestType.FETCH_STALL,
     async (req) => {
-        return fetch(`https://csgofloat.com/api/v1/users/${req.steam_id64}/stall`).then(resp => {
-            return resp.json().then((json: FetchStallResponse|FetchStallResponseError) => {
+        return fetch(`https://csgofloat.com/api/v1/users/${req.steam_id64}/stall`).then((resp) => {
+            return resp.json().then((json: FetchStallResponse | FetchStallResponseError) => {
                 if (resp.ok) {
                     return json;
                 } else {
@@ -27,4 +27,5 @@ export const FetchStall = new SimpleHandler<FetchStallRequest, FetchStallRespons
                 }
             }) as Promise<FetchStallResponse>;
         });
-    });
+    }
+);

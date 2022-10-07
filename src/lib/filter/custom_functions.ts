@@ -1,4 +1,4 @@
-import { InternalInputVars } from './types';
+import {InternalInputVars} from './types';
 
 export function percentile(vars: InternalInputVars, rank: number) {
     const minFloat = vars.minfloat > vars.minwearfloat ? vars.minfloat : vars.minwearfloat;

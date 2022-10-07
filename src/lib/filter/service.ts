@@ -1,16 +1,15 @@
-import {GLOBAL_FILTERS, StorageRow} from "../storage/keys";
-import {InternalInputVars, SerializedFilter} from "./types";
-import {Get} from "../bridge/handlers/storage_get";
-import {Filter} from "./filter";
-import {Set} from "../bridge/handlers/storage_set";
-import {ItemInfo} from "../bridge/handlers/fetch_inspect_info";
-import {rangeFromWear} from "../utils/skin";
-import {getDopplerPhase} from "../utils/dopplers";
-import {ReplaySubject} from "rxjs";
-import {debounce} from "lodash-decorators";
-import {averageColour} from "./utils";
-import {Remove} from "../bridge/handlers/storage_remove";
-
+import {GLOBAL_FILTERS, StorageRow} from '../storage/keys';
+import {InternalInputVars, SerializedFilter} from './types';
+import {Get} from '../bridge/handlers/storage_get';
+import {Filter} from './filter';
+import {Set} from '../bridge/handlers/storage_set';
+import {ItemInfo} from '../bridge/handlers/fetch_inspect_info';
+import {rangeFromWear} from '../utils/skin';
+import {getDopplerPhase} from '../utils/dopplers';
+import {ReplaySubject} from 'rxjs';
+import {debounce} from 'lodash-decorators';
+import {averageColour} from './utils';
+import {Remove} from '../bridge/handlers/storage_remove';
 
 /**
  * Provides state for
@@ -32,7 +31,7 @@ class FilterService {
     async initialize(row: StorageRow<SerializedFilter[]>) {
         const globalFilters = (await Get(GLOBAL_FILTERS)) || [];
         const itemFilters = (await Get(row)) || [];
-        this.filters = globalFilters.concat(itemFilters).map(e => Filter.from(e));
+        this.filters = globalFilters.concat(itemFilters).map((e) => Filter.from(e));
         this.itemRow = row;
         this.onUpdate.next(this.filters);
     }
@@ -41,7 +40,7 @@ class FilterService {
         return this.filters;
     }
 
-    matchColour(info: ItemInfo, price?: number): string|null {
+    matchColour(info: ItemInfo, price?: number): string | null {
         const wearRange = rangeFromWear(info.floatvalue) || [0, 1];
 
         const vars: InternalInputVars = {
@@ -53,24 +52,26 @@ class FilterService {
             maxwearfloat: wearRange[1],
             phase: (getDopplerPhase(info.paintindex) || '').replace('Phase', '').trim(),
             low_rank: info.low_rank!,
-            high_rank: info.high_rank!
+            high_rank: info.high_rank!,
         };
 
         if (price) {
             vars.price = price;
         }
 
-        const colours = this.filters.filter(e => {
-            const result = e.run(vars);
-            if (!Filter.isValidReturnValue(result)) {
-                // If we fail to evaluate the expression, return false
-                // This is expected if they have an expression using `price`
-                // but are logged out.
-                return false;
-            } else {
-                return result;
-            }
-        }).map(e => e.getColour());
+        const colours = this.filters
+            .filter((e) => {
+                const result = e.run(vars);
+                if (!Filter.isValidReturnValue(result)) {
+                    // If we fail to evaluate the expression, return false
+                    // This is expected if they have an expression using `price`
+                    // but are logged out.
+                    return false;
+                } else {
+                    return result;
+                }
+            })
+            .map((e) => e.getColour());
         if (colours.length === 0) {
             return null;
         }
@@ -79,7 +80,7 @@ class FilterService {
     }
 
     remove(filter: Filter) {
-        this.filters = this.filters.filter(f => !f.equals(filter));
+        this.filters = this.filters.filter((f) => !f.equals(filter));
         this.save();
         this.onUpdate.next(this.filters);
     }
@@ -104,11 +105,11 @@ class FilterService {
             throw new Error('cannot save filters without being initialized');
         }
 
-        const gFilters = this.filters.filter(f => f.getIsGlobal()).map(f => f.serialize());
+        const gFilters = this.filters.filter((f) => f.getIsGlobal()).map((f) => f.serialize());
 
         await Set(GLOBAL_FILTERS, gFilters);
 
-        const iFilters = this.filters.filter(f => !f.getIsGlobal()).map(f => f.serialize());
+        const iFilters = this.filters.filter((f) => !f.getIsGlobal()).map((f) => f.serialize());
 
         if (iFilters.length === 0) {
             // Remove the key to prevent polluting their storage
@@ -117,7 +118,6 @@ class FilterService {
         } else {
             await Set(this.itemRow, iFilters);
         }
-
     }
 }
 

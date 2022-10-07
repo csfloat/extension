@@ -1,4 +1,4 @@
-import {RequestType, SimpleHandler} from "./main";
+import {RequestType, SimpleHandler} from './main';
 
 export interface CSMoneyPriceRequest {
     marketHashName: string;
@@ -27,7 +27,8 @@ export interface CSMoneyPriceResponse {
 export const CSMoneyPrice = new SimpleHandler<CSMoneyPriceRequest, CSMoneyPriceResponse>(
     RequestType.CSMONEY_PRICE,
     async (req, sender) => {
-        return fetch(`https://money.csgofloat.com/price?name=${req.marketHashName}`).then(resp => {
+        return fetch(`https://money.csgofloat.com/price?name=${req.marketHashName}`).then((resp) => {
             return resp.json() as Promise<CSMoneyPriceResponse>;
         });
-    });
+    }
+);

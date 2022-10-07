@@ -1,6 +1,6 @@
 import {customElement} from 'lit/decorators.js';
-import {FloatElement} from "./custom";
-import {inPageContext} from "../utils/snips";
+import {FloatElement} from './custom';
+import {inPageContext} from '../utils/snips';
 
 export enum InjectionMode {
     // Injects once at page load for elements matching the selector
@@ -9,7 +9,7 @@ export enum InjectionMode {
     // selector exist that haven't been injected into yet
     //
     // Should be use for "dynamic" elements
-    CONTINUOUS
+    CONTINUOUS,
 }
 
 enum InjectionType {
@@ -26,17 +26,17 @@ interface InjectionConfig {
 const InjectionConfigs: {[key in InjectionType]: InjectionConfig} = {
     [InjectionType.Append]: {
         exists: (ctx, selector) => !!ctx.children(selector).length,
-        op: ((ctx, target) => ctx.append(target.elem())),
+        op: (ctx, target) => ctx.append(target.elem()),
     },
     [InjectionType.Before]: {
         exists: (ctx, selector) => !!ctx.parent().children(selector).length,
-        op: ((ctx, target) => ctx.before(target.elem())),
+        op: (ctx, target) => ctx.before(target.elem()),
     },
     [InjectionType.After]: {
         exists: (ctx, selector) => !!ctx.parent().children(selector).length,
-        op: ((ctx, target) => ctx.after(target.elem())),
+        op: (ctx, target) => ctx.after(target.elem()),
     },
-}
+};
 
 export function CustomElement(): any {
     return function (target: typeof FloatElement, propertyKey: string, descriptor: PropertyDescriptor) {
@@ -54,7 +54,9 @@ function Inject(selector: string, mode: InjectionMode, type: InjectionType): any
         }
         switch (mode) {
             case InjectionMode.ONCE:
-                $J(selector).each(function () { InjectionConfigs[type].op($J(this), target); });
+                $J(selector).each(function () {
+                    InjectionConfigs[type].op($J(this), target);
+                });
                 break;
             case InjectionMode.CONTINUOUS:
                 setInterval(() => {

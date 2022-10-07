@@ -1,8 +1,8 @@
-import { RequestType } from './main';
-import { RequestHandler } from '../types';
-import { gStore } from '../../storage/store';
-import { ClientSend } from '../client';
-import { DynamicStorageKey, StorageKey, StorageRow } from '../../storage/keys';
+import {RequestType} from './main';
+import {RequestHandler} from '../types';
+import {gStore} from '../../storage/store';
+import {ClientSend} from '../client';
+import {DynamicStorageKey, StorageKey, StorageRow} from '../../storage/keys';
 
 interface StorageRemoveRequest {
     key: StorageKey | DynamicStorageKey;
@@ -27,5 +27,5 @@ class StorageRemoveHandler<T> implements RequestHandler<StorageRemoveRequest, St
 export const StorageRemove = new StorageRemoveHandler();
 
 export function Remove(row: StorageRow<any>): Promise<StorageRemoveResponse> {
-    return ClientSend(StorageRemove, { key: row.key });
+    return ClientSend(StorageRemove, {key: row.key});
 }

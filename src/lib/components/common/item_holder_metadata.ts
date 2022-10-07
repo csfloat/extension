@@ -1,44 +1,47 @@
-import {FloatElement} from "../custom";
-import {html, css, HTMLTemplateResult} from "lit";
-import {state} from "lit/decorators.js";
-import {Asset} from "../../types/steam";
-import {gFloatFetcher} from "../../float_fetcher/float_fetcher";
-import {ItemInfo} from "../../bridge/handlers/fetch_inspect_info";
-import {formatFloatWithRank, formatSeed, getLowestRank} from "../../utils/skin";
-import {isSkin} from "../../utils/skin";
-import {getRankColour} from "../../utils/ranks";
-import {Observe} from "../../utils/observers";
+import {FloatElement} from '../custom';
+import {html, css, HTMLTemplateResult} from 'lit';
+import {state} from 'lit/decorators.js';
+import {Asset} from '../../types/steam';
+import {gFloatFetcher} from '../../float_fetcher/float_fetcher';
+import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
+import {formatFloatWithRank, formatSeed, getLowestRank} from '../../utils/skin';
+import {isSkin} from '../../utils/skin';
+import {getRankColour} from '../../utils/ranks';
+import {Observe} from '../../utils/observers';
 
 // Generic annotator of item holder metadata (float, seed, etc...)
 // Must be extended to use as a component
 export abstract class ItemHolderMetadata extends FloatElement {
-    static styles = [...FloatElement.styles, css`
-      .float {
-        position: absolute;
-        bottom: 3px;
-        right: 3px;
-        font-size: 12px;
-      }
+    static styles = [
+        ...FloatElement.styles,
+        css`
+            .float {
+                position: absolute;
+                bottom: 3px;
+                right: 3px;
+                font-size: 12px;
+            }
 
-      .seed {
-        position: absolute;
-        top: 3px;
-        right: 3px;
-        font-size: 12px;
-      }
-    `];
+            .seed {
+                position: absolute;
+                top: 3px;
+                right: 3px;
+                font-size: 12px;
+            }
+        `,
+    ];
 
     @state()
-    private itemInfo: ItemInfo|undefined;
+    private itemInfo: ItemInfo | undefined;
 
-    get assetId(): string|undefined {
+    get assetId(): string | undefined {
         return $J(this).parent().attr('id')?.split('_')[2];
     }
 
-    abstract get asset(): Asset|undefined;
-    abstract get ownerSteamId(): string|undefined;
+    abstract get asset(): Asset | undefined;
+    abstract get ownerSteamId(): string | undefined;
 
-    get inspectLink(): string|undefined {
+    get inspectLink(): string | undefined {
         if (!this.asset) return;
 
         if (!this.asset?.actions || this.asset?.actions?.length === 0) return;
@@ -47,8 +50,8 @@ export abstract class ItemHolderMetadata extends FloatElement {
             return;
         }
 
-        return this.asset?.actions![0].link
-            .replace('%owner_steamid%', this.ownerSteamId)
+        return this.asset
+            ?.actions![0].link.replace('%owner_steamid%', this.ownerSteamId)
             .replace('%assetid%', this.assetId!);
     }
 
@@ -70,11 +73,15 @@ export abstract class ItemHolderMetadata extends FloatElement {
             this.onInit();
         } else {
             // Wait until the asset exists
-            Observe(() => this.inspectLink, () => {
-                if (this.inspectLink) {
-                    this.onInit();
-                }
-            }, 200);
+            Observe(
+                () => this.inspectLink,
+                () => {
+                    if (this.inspectLink) {
+                        this.onInit();
+                    }
+                },
+                200
+            );
         }
     }
 
@@ -88,7 +95,7 @@ export abstract class ItemHolderMetadata extends FloatElement {
 
         try {
             this.itemInfo = await gFloatFetcher.fetch({
-                link: this.inspectLink
+                link: this.inspectLink,
             });
         } catch (e: any) {
             console.error(`Failed to fetch float for ${this.assetId}: ${e.toString()}`);

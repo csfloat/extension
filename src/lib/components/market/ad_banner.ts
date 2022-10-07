@@ -1,10 +1,10 @@
-import { CustomElement } from '../injectors';
-import { FloatElement } from '../custom';
-import { css, html, HTMLTemplateResult } from 'lit';
-import { ClientSend } from '../../bridge/client';
-import { CSMoneyPrice, CSMoneyPriceResponse } from '../../bridge/handlers/csmoney_price';
-import { state } from 'lit/decorators.js';
-import { AppId, ContextId } from '../../types/steam_constants';
+import {CustomElement} from '../injectors';
+import {FloatElement} from '../custom';
+import {css, html, HTMLTemplateResult} from 'lit';
+import {ClientSend} from '../../bridge/client';
+import {CSMoneyPrice, CSMoneyPriceResponse} from '../../bridge/handlers/csmoney_price';
+import {state} from 'lit/decorators.js';
+import {AppId, ContextId} from '../../types/steam_constants';
 
 @CustomElement()
 export class AdBanner extends FloatElement {
@@ -80,7 +80,9 @@ export class AdBanner extends FloatElement {
                         <span class="text">Get this skin on</span>
                         <img src="https://cs.money/svg/new_logo.svg" height="42" />
                         <span class="text">
-                            for <span class="price">$${this.response.price.toFixed(2)}</span> USD
+                            for
+                            <span class="price">$${this.response.price.toFixed(2)}</span>
+                            USD
                         </span>
                     </a>
                 </div>
@@ -105,6 +107,6 @@ export class AdBanner extends FloatElement {
             return;
         }
 
-        this.response = await ClientSend(CSMoneyPrice, { marketHashName });
+        this.response = await ClientSend(CSMoneyPrice, {marketHashName});
     }
 }

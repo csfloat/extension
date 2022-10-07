@@ -1,15 +1,15 @@
-import {Asset} from "../types/steam";
-import {ItemInfo} from "../bridge/handlers/fetch_inspect_info";
-import {getDopplerPhase, hasDopplerPhase} from "./dopplers";
-import {html, TemplateResult} from "lit";
+import {Asset} from '../types/steam';
+import {ItemInfo} from '../bridge/handlers/fetch_inspect_info';
+import {getDopplerPhase, hasDopplerPhase} from './dopplers';
+import {html, TemplateResult} from 'lit';
 
-export function rangeFromWear(wear: number): [number, number]|null {
+export function rangeFromWear(wear: number): [number, number] | null {
     const wearRanges: [number, number][] = [
         [0.0, 0.07],
         [0.07, 0.15],
         [0.15, 0.38],
         [0.38, 0.45],
-        [0.45, 1.0]
+        [0.45, 1.0],
     ];
 
     for (const range of wearRanges) {
@@ -21,23 +21,22 @@ export function rangeFromWear(wear: number): [number, number]|null {
     return null;
 }
 
-export function getLowestRank(info: ItemInfo): number|undefined {
+export function getLowestRank(info: ItemInfo): number | undefined {
     if (!info.low_rank && !info.high_rank) {
         // Item has no rank to return
         return;
     }
 
-    return (info.low_rank || 1001) < (info.high_rank || 1001) ?
-        info.low_rank : info.high_rank;
+    return (info.low_rank || 1001) < (info.high_rank || 1001) ? info.low_rank : info.high_rank;
 }
 
-export function parseRank(info: ItemInfo): {order: OrderType, rank: number}|undefined {
+export function parseRank(info: ItemInfo): {order: OrderType; rank: number} | undefined {
     const rank = getLowestRank(info);
     if (rank && rank <= 1000) {
         return {
             order: rank === info.low_rank ? OrderType.LOW_RANK : OrderType.HIGH_RANK,
-            rank
-        }
+            rank,
+        };
     }
 }
 
@@ -64,7 +63,7 @@ export function formatSeed(info: ItemInfo): string {
 
 enum OrderType {
     LOW_RANK = 1,
-    HIGH_RANK = -1
+    HIGH_RANK = -1,
 }
 
 /**
@@ -84,7 +83,9 @@ function getFloatDbLink(info: ItemInfo, order: OrderType): string {
         }
     }
 
-    return `https://csgofloat.com/db?defIndex=${info.defindex}&paintIndex=${info.paintindex}&order=${order}&category=${getFloatDbCategory(info)}`;
+    return `https://csgofloat.com/db?defIndex=${info.defindex}&paintIndex=${
+        info.paintindex
+    }&order=${order}&category=${getFloatDbCategory(info)}`;
 }
 
 export function renderClickableRank(info: ItemInfo): TemplateResult<1> {
@@ -93,15 +94,17 @@ export function renderClickableRank(info: ItemInfo): TemplateResult<1> {
         return html``;
     }
 
-    return html`
-        <a style="color: #ebebeb; text-decoration: none; cursor: pointer;"
-           href="${getFloatDbLink(info, parsedRank.order)}" target="_blank">
-            (Rank #${parsedRank.rank})
-        </a>`;
+    return html` <a
+        style="color: #ebebeb; text-decoration: none; cursor: pointer;"
+        href="${getFloatDbLink(info, parsedRank.order)}"
+        target="_blank"
+    >
+        (Rank #${parsedRank.rank})
+    </a>`;
 }
 
 export function isSkin(asset: Asset): boolean {
     return !!asset.tags?.find(
-        a => a.category === 'Weapon'
-            || (a.category === 'Type' && a.internal_name === 'Type_Hands'));
+        (a) => a.category === 'Weapon' || (a.category === 'Type' && a.internal_name === 'Type_Hands')
+    );
 }

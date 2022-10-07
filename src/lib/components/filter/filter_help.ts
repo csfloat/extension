@@ -1,6 +1,6 @@
-import {CustomElement} from "../injectors";
-import {FloatElement} from "../custom";
-import {html, HTMLTemplateResult} from "lit";
+import {CustomElement} from '../injectors';
+import {FloatElement} from '../custom';
+import {html, HTMLTemplateResult} from 'lit';
 
 @CustomElement()
 export class FilterHelp extends FloatElement {

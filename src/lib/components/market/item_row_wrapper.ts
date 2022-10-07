@@ -1,17 +1,17 @@
-import { html } from 'lit';
+import {html} from 'lit';
 
-import { state } from 'lit/decorators.js';
-import { CustomElement, InjectAppend, InjectionMode } from '../injectors';
-import { FloatElement } from '../custom';
-import { cache } from 'decorator-cache-getter';
-import { Asset, ListingData } from '../../types/steam';
-import { gFloatFetcher } from '../../float_fetcher/float_fetcher';
-import { ItemInfo } from '../../bridge/handlers/fetch_inspect_info';
-import { getMarketInspectLink, inlineEasyInspect, inlineStickers } from './helpers';
-import { formatSeed, renderClickableRank } from '../../utils/skin';
-import { gFilterService } from '../../filter/service';
-import { AppId, ContextId, Currency } from '../../types/steam_constants';
-import { defined } from '../../utils/checkers';
+import {state} from 'lit/decorators.js';
+import {CustomElement, InjectAppend, InjectionMode} from '../injectors';
+import {FloatElement} from '../custom';
+import {cache} from 'decorator-cache-getter';
+import {Asset, ListingData} from '../../types/steam';
+import {gFloatFetcher} from '../../float_fetcher/float_fetcher';
+import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
+import {getMarketInspectLink, inlineEasyInspect, inlineStickers} from './helpers';
+import {formatSeed, renderClickableRank} from '../../utils/skin';
+import {gFilterService} from '../../filter/service';
+import {AppId, ContextId, Currency} from '../../types/steam_constants';
+import {defined} from '../../utils/checkers';
 
 @CustomElement()
 @InjectAppend('#searchResultsRows .market_listing_row .market_listing_item_name_block', InjectionMode.CONTINUOUS)
