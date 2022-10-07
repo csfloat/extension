@@ -10,7 +10,7 @@ import {AppId, ContextId} from "../../types/steam_constants";
 export class AdBanner extends FloatElement {
     static styles = [...FloatElement.styles, css` 
       .container {
-        padding: 10px;
+        padding: 5px;
         margin-top: 10px;
         background-color: rgba(0, 0, 0, 0.2);
         text-align: center;
@@ -39,7 +39,7 @@ export class AdBanner extends FloatElement {
       }
       
       .link .text {
-        vertical-align: bottom;
+        vertical-align: middle;
       }
       
       .text .price {
@@ -76,7 +76,7 @@ export class AdBanner extends FloatElement {
                     <div class="ad-notice">Ad</div>
                     <a class="link" href="${this.response.banner.link}" target="_blank">
                         <span class="text">Get this skin on</span>
-                        <img src="https://cs.money/svg/logo.svg" height="32">
+                        <img src="https://cs.money/svg/new_logo.svg" height="42">
                         <span class="text">
                             for <span class="price">$${this.response.price.toFixed(2)}</span> USD
                         </span>
