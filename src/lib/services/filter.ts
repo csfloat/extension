@@ -1,18 +1,18 @@
 import {GLOBAL_FILTERS, StorageRow} from '../storage/keys';
-import {InternalInputVars, SerializedFilter} from './types';
+import {InternalInputVars, SerializedFilter} from '../filter/types';
 import {Get} from '../bridge/handlers/storage_get';
-import {Filter} from './filter';
+import {Filter} from '../filter/filter';
 import {Set} from '../bridge/handlers/storage_set';
 import {ItemInfo} from '../bridge/handlers/fetch_inspect_info';
 import {rangeFromWear} from '../utils/skin';
 import {getDopplerPhase} from '../utils/dopplers';
 import {ReplaySubject} from 'rxjs';
 import {debounce} from 'lodash-decorators';
-import {averageColour} from './utils';
+import {averageColour} from '../filter/utils';
 import {Remove} from '../bridge/handlers/storage_remove';
 
 /**
- * Provides state for
+ * Provides state for filters
  */
 class FilterService {
     private filters: Filter[] = [];

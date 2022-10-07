@@ -5,7 +5,7 @@ import {CustomElement} from '../injectors';
 import {FloatElement} from '../custom';
 import {Filter} from '../../filter/filter';
 import {DYNAMIC_ITEM_FILTERS} from '../../storage/keys';
-import {gFilterService} from '../../filter/service';
+import {gFilterService} from '../../services/filter';
 
 import './filter_creator';
 import './filter_view';

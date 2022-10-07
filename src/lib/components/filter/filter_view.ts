@@ -3,7 +3,7 @@ import {FloatElement} from '../custom';
 import {property} from 'lit/decorators.js';
 import {Filter} from '../../filter/filter';
 import {css, html, HTMLTemplateResult} from 'lit';
-import {gFilterService} from '../../filter/service';
+import {gFilterService} from '../../services/filter';
 
 @CustomElement()
 export class FilterView extends FloatElement {
