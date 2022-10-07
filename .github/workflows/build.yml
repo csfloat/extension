@@ -25,5 +25,4 @@ jobs:
     - name: Build
       run: |
         npm install
-        npx tsc --init
-        npx build
+        npm build
