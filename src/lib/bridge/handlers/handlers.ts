@@ -9,8 +9,10 @@ import {RequestHandler} from '../types';
 import {FetchPendingTrades} from './fetch_pending_trades';
 import {FetchSkinModel} from './fetch_skin_model';
 import {StorageRemove} from './storage_remove';
+import {Example} from './example';
 
 export enum RequestType {
+    EXAMPLE,
     EXECUTE_SCRIPT_ON_PAGE,
     EXECUTE_CSS_ON_PAGE,
     FETCH_INSPECT_INFO,
@@ -24,6 +26,7 @@ export enum RequestType {
 }
 
 export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
+    [RequestType.EXAMPLE]: Example,
     [RequestType.EXECUTE_SCRIPT_ON_PAGE]: ExecuteScriptOnPage,
     [RequestType.EXECUTE_CSS_ON_PAGE]: ExecuteCssOnPage,
     [RequestType.FETCH_INSPECT_INFO]: FetchInspectInfo,
