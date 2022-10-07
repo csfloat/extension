@@ -8,7 +8,7 @@ import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {formatSeed, isSkin, renderClickableRank} from '../../utils/skin';
 import {Observe} from '../../utils/observers';
 import {FetchStallResponse} from '../../bridge/handlers/fetch_stall';
-import {gStallFetcher} from '../../float_market/stall';
+import {gStallFetcher} from '../../services/stall_fetcher';
 import {Contract} from '../../types/float_market';
 
 /**
