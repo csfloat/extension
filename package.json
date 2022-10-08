@@ -36,6 +36,7 @@
         "file-loader": "^6.2.0",
         "filtrex": "^3.0.0",
         "glob": "^8.0.3",
+        "fast-json-stable-stringify": "^2.1.0",
         "html-loader": "^4.1.0",
         "ignore-loader": "^0.1.2",
         "lit": "^2.3.0",
