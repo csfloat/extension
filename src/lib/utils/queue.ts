@@ -1,4 +1,4 @@
-import {Cache} from './cache';
+import {Cache, ICache, TTLCache} from './cache';
 import {DeferredPromise} from './deferred_promise';
 
 export abstract class Job<T> {
@@ -94,23 +94,57 @@ export abstract class Queue<Req, Resp> {
 
 // Like a queue, but has an internal cache for elements already requested
 export abstract class CachedQueue<Req, Resp> extends Queue<Req, Resp> {
-    private cache = new Cache<Resp>();
+    /** Underlying implementation of a queue */
+    protected abstract cache(): ICache<Resp>;
 
     /** Amount of previously requested jobs stored in the cache */
     cacheSize(): number {
-        return this.cache.size();
+        return this.cache().size();
+    }
+
+    getCached(job: Job<Req>): Resp | null {
+        if (this.cache().has(job.hashCode())) {
+            return this.cache().getOrThrow(job.hashCode());
+        } else {
+            return null;
+        }
+    }
+
+    setCached(job: Job<Req>, resp: Resp): void {
+        this.cache().set(job.hashCode(), resp);
     }
 
     add(job: Job<Req>): Promise<Resp> {
-        if (this.cache.has(job.hashCode())) {
-            return Promise.resolve(this.cache.getOrThrow(job.hashCode()));
+        if (this.getCached(job)) {
+            return Promise.resolve(this.getCached(job)!);
         }
 
         return super.add(job).then((resp) => {
-            this.cache.set(job.hashCode(), resp);
+            this.setCached(job, resp);
             return resp;
         });
     }
 
     protected abstract process(req: Req): Promise<Resp>;
+}
+
+export abstract class SimpleCachedQueue<Req, Resp> extends CachedQueue<Req, Resp> {
+    private readonly cache_ = new Cache<Resp>();
+
+    protected cache(): ICache<Resp> {
+        return this.cache_;
+    }
+}
+
+export abstract class TTLCachedQueue<Req, Resp> extends CachedQueue<Req, Resp> {
+    private readonly cache_: TTLCache<Resp>;
+
+    protected constructor(maxConcurrency: number, private ttlMs: number) {
+        super(maxConcurrency);
+        this.cache_ = new TTLCache<Resp>(ttlMs);
+    }
+
+    protected cache(): ICache<Resp> {
+        return this.cache_;
+    }
 }
