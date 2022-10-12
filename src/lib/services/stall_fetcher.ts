@@ -1,8 +1,8 @@
-import {CachedQueue, GenericJob} from '../utils/queue';
+import {GenericJob, SimpleCachedQueue} from '../utils/queue';
 import {FetchStall, FetchStallRequest, FetchStallResponse} from '../bridge/handlers/fetch_stall';
 import {ClientSend} from '../bridge/client';
 
-class StallFetcher extends CachedQueue<FetchStallRequest, FetchStallResponse> {
+class StallFetcher extends SimpleCachedQueue<FetchStallRequest, FetchStallResponse> {
     fetch(req: FetchStallRequest): Promise<FetchStallResponse> {
         return this.add(new GenericJob(req));
     }

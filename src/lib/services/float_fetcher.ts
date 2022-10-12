@@ -1,4 +1,4 @@
-import {CachedQueue, Job} from '../utils/queue';
+import {Job, SimpleCachedQueue} from '../utils/queue';
 import {ClientSend} from '../bridge/client';
 import {FetchInspectInfo, FetchInspectInfoRequest, ItemInfo} from '../bridge/handlers/fetch_inspect_info';
 
@@ -8,7 +8,7 @@ class InspectJob extends Job<FetchInspectInfoRequest> {
     }
 }
 
-class FloatFetcher extends CachedQueue<FetchInspectInfoRequest, ItemInfo> {
+class FloatFetcher extends SimpleCachedQueue<FetchInspectInfoRequest, ItemInfo> {
     constructor() {
         /** allow up to 10 simultaneous float fetch reqs */
         super(10);
