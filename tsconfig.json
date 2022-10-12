@@ -12,5 +12,6 @@
         "experimentalDecorators": true,
         "useDefineForClassFields": false,
         "moduleResolution": "Node"
-    }
+    },
+    "exclude": ["dist/"]
 }
