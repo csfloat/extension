@@ -26,3 +26,7 @@ jobs:
       run: |
         npm install
         npm run build
+    
+    - name: Check Circular Dependencies
+      run: |
+        npx --yes madge --circular --extensions ts ./
