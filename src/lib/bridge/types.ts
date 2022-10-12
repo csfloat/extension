@@ -1,5 +1,5 @@
 import MessageSender = chrome.runtime.MessageSender;
-import {RequestType} from './handlers/types';
+import {RequestType} from './handlers/handlers';
 
 export interface RequestHandler<Req, Resp> {
     handleRequest(request: Req, sender: MessageSender): Promise<Resp>;

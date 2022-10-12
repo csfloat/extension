@@ -1,6 +1,6 @@
 import {RequestHandler} from '../types';
 import MessageSender = chrome.runtime.MessageSender;
-import {RequestType} from './types';
+import {RequestType} from './handlers';
 
 export class SimpleHandler<Req, Resp> implements RequestHandler<Req, Resp> {
     constructor(private type: RequestType, private handler: (request: Req, sender: MessageSender) => Promise<Resp>) {}

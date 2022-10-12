@@ -1,5 +1,5 @@
 import {SimpleHandler} from './main';
-import {RequestType} from './types';
+import {RequestType} from './handlers';
 
 export interface CSMoneyPriceRequest {
     marketHashName: string;
