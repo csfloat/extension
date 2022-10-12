@@ -30,6 +30,9 @@ CSGOFloat has an extension for Firefox/Chrome that lets you fetch floats directl
 * Change the amount of items on the page up to 100
 * Shows when trade holds expire for items in any Steam inventory
 
+## Developer Guide
+
+Please see [`src/`](/src/README.md) for an overview of how the extension works and underlying tech. Contributions are welcome!
 
 ## Changelog
 
