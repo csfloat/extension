@@ -2,7 +2,7 @@ import {RequestHandler} from '../types';
 import {gStore} from '../../storage/store';
 import {ClientSend} from '../client';
 import {DynamicStorageKey, StorageKey, StorageRow} from '../../storage/keys';
-import {RequestType} from './handlers';
+import {RequestType} from './types';
 
 interface StorageGetRequest {
     key: StorageKey | DynamicStorageKey;
