@@ -1,6 +1,6 @@
 import {EmptyResponseHandler} from './main';
 import {RequestType} from './types';
-import {PrivilegedHandler} from './wrappers';
+import {PrivilegedHandler} from '../wrappers/privileged';
 
 interface ExecuteCssRequest {
     path: string;

@@ -1,7 +1,7 @@
+import {RequestHandler} from '../types';
+import {RequestType} from '../handlers/types';
 import {Job, TTLCachedQueue} from '../../utils/queue';
 import stringify from 'fast-json-stable-stringify';
-import {RequestHandler} from '../types';
-import {RequestType} from './types';
 import MessageSender = chrome.runtime.MessageSender;
 
 interface WrappedRequest<Req> {
@@ -58,25 +58,5 @@ export class CachedHandler<Req, Resp> implements RequestHandler<Req, Resp> {
 
     handleRequest(request: Req, sender: MessageSender): Promise<Resp> {
         return this.queue.fetch(request, sender);
-    }
-}
-
-/**
- * Restricts a given handler such that it can only run if the sender is
- * verified to be from the extension's origin (ie. content script)
- */
-export class PrivilegedHandler<Req, Resp> implements RequestHandler<Req, Resp> {
-    constructor(private handler: RequestHandler<Req, Resp>) {}
-
-    getType(): RequestType {
-        return this.handler.getType();
-    }
-
-    handleRequest(request: Req, sender: MessageSender): Promise<Resp> {
-        if (sender.id !== chrome.runtime.id) {
-            throw new Error('Attempt to access restricted method outside of secure context (ie. content script)');
-        }
-
-        return this.handler.handleRequest(request, sender);
     }
 }
