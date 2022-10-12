@@ -4,21 +4,26 @@ interface FetchFallbackInventoryRequest {
     steamid_64: string;
 }
 
+type ClassId = number;
+type InstanceId = number;
+
 interface FallbackAsset {
     id: number;
     contextid: number;
     assetid: number;
-    classid: number;
-    instanceid: number;
+    classid: ClassId;
+    instanceid: InstanceId;
     amount: number;
     pos: number;
 }
+
+type descriptionKey = `${ClassId}_${InstanceId}`;
 
 interface FetchFallbackInventoryResponse {
     success: boolean;
     rgInventory: {[assetId: string]: FallbackAsset};
     rgDescriptions: {
-        [classid_instanceid: string]: {
+        [key: descriptionKey]: {
             tradable: boolean;
             cache_expiration: string;
         };
