@@ -1,7 +1,7 @@
 import {Job, TTLCachedQueue} from '../../utils/queue';
 import stringify from 'fast-json-stable-stringify';
 import {RequestHandler} from '../types';
-import {RequestType} from './handlers';
+import {RequestType} from './types';
 import MessageSender = chrome.runtime.MessageSender;
 
 interface WrappedRequest<Req> {
