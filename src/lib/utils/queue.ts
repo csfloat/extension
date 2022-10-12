@@ -92,9 +92,11 @@ export abstract class Queue<Req, Resp> {
     protected abstract process(req: Req): Promise<Resp>;
 }
 
-// Like a queue, but has an internal cache for elements already requested
+/**
+ * Like a queue, but has an internal cache for elements already requested
+ */
 export abstract class CachedQueue<Req, Resp> extends Queue<Req, Resp> {
-    /** Underlying implementation of a queue */
+    /** Underlying implementation of a cache */
     protected abstract cache(): ICache<Resp>;
 
     /** Amount of previously requested jobs stored in the cache */
