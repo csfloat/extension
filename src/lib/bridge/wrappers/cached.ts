@@ -43,13 +43,17 @@ class HandlerQueue<Req, Resp> extends TTLCachedQueue<WrappedRequest<Req>, Resp> 
  * Wraps a handler such that incoming requests, if they have been previously
  * fetched, will return the previous "cached" result.
  *
- * If there are multiple in-flight requests for the same
+ * If there are multiple in-flight requests for the same request, they
+ * will be de-duped.
+ *
+ * Note: This cache is stored within the service worker and is shared across
+ * multiple tabs. Please set a low TTL to combat this.
  */
 export class CachedHandler<Req, Resp> implements RequestHandler<Req, Resp> {
     private queue: HandlerQueue<Req, Resp>;
 
     constructor(private handler: RequestHandler<Req, Resp>, maxConcurrency: number, ttlMs: number) {
-        this.queue = new HandlerQueue<Req, Resp>(Number.MAX_VALUE, ttlMs, handler);
+        this.queue = new HandlerQueue<Req, Resp>(maxConcurrency, ttlMs, handler);
     }
 
     getType(): RequestType {

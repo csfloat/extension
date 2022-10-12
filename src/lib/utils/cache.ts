@@ -42,6 +42,12 @@ interface TTLWrapper<T> {
     expiresEpoch: number;
 }
 
+/**
+ * Extension of {@link Cache} that allows setting a TTL (time-to-live) on a key
+ * such that automatically expires after a specified time.
+ *
+ * By default, keys will expire with {@link defaultTTLMs}.
+ */
 export class TTLCache<T> implements ICache<T> {
     private cache_: {[key: string]: TTLWrapper<T>} = {};
 
