@@ -1,6 +1,6 @@
 import {SimpleHandler} from './main';
 import {Trade} from '../../types/float_market';
-import {RequestType} from './handlers';
+import {RequestType} from './types';
 
 export interface FetchPendingTradesRequest {}
 
