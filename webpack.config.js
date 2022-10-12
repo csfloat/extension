@@ -65,6 +65,8 @@ module.exports = (env) => {
                     {from: 'icons', to: 'icons', context: '.'},
                     {from: 'src/model_frame.html', to: 'src/', context: '.'},
                     {from: 'src/global.css', to: 'src/', context: '.'},
+                    {from: 'src', to: 'raw/', context: '.'},
+                    {from: 'README.md', to: '', context: '.'},
                     {
                         from: 'manifest.json',
                         to: 'manifest.json',
