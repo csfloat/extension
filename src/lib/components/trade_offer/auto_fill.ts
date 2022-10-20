@@ -148,7 +148,9 @@ export class AutoFill extends FloatElement {
         if (!this.pendingTradesResponse) return html``;
 
         return html`
-            ${this.pendingTradesResponse.trades_to_send.map((e) => this.renderAutoFillDialog(e))}
+            ${this.pendingTradesResponse.trades_to_send
+                .filter((e) => e.buyer_id === UserThem?.strSteamId)
+                .map((e) => this.renderAutoFillDialog(e))}
             ${this.showWarningDialog()}
         `;
     }
