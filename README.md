@@ -14,7 +14,7 @@
 CSGOFloat has an extension for Firefox/Chrome that lets you fetch floats directly from the market page! You can view the source code for the extensions here!
 
 ## Store Links
-[Chrome Store Link](https://chrome.google.com/webstore/detail/csgofloat-market-checker/jjicbefpemnphinccgikpdaagjebbnhg) [v3.0.0]
+[Chrome Store Link](https://chrome.google.com/webstore/detail/csgofloat-market-checker/jjicbefpemnphinccgikpdaagjebbnhg) [v3+]
 
 [Firefox Add-ons Link](https://addons.mozilla.org/en-US/firefox/addon/csgofloat/) [v2.4.3]<sup>1</sup>
 
