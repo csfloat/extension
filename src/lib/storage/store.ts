@@ -12,7 +12,12 @@ class Store {
             return null;
         }
 
-        return JSON.parse(a[key]) as T;
+        try {
+            return JSON.parse(a[key]) as T;
+        } catch (e) {
+            // Fallback if this is an old key not stored as JSON
+            return a[key] as T;
+        }
     }
 
     async set<T>(key: StorageKey | DynamicStorageKey, value: T): Promise<void> {
