@@ -116,9 +116,14 @@ export class ItemRowWrapper extends FloatElement {
             });
         }
 
-        if (BuyItemDialog?.m_bInitialized && MarketCheckHash) {
-            // Does the hash now match an item on the page?
-            // Allows dynamic page scrubs to auto-show the dialog
+        if (
+            MarketCheckHash &&
+            defined(typeof BuyItemDialog) &&
+            (!BuyItemDialog?.m_modal || !BuyItemDialog.m_modal.m_bVisible)
+        ) {
+            // Only check the hash if the item dialog has not been initialized OR
+            // it is no longer visible. Prevents "freezing" the page with multiple
+            // dialogs opening.
             MarketCheckHash();
         }
     }
