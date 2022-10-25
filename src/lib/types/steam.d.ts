@@ -121,6 +121,9 @@ export interface BuyItemDialog {
     m_bInitialized: number;
     m_bPurchaseClicked: number;
     m_bPurchaseSuccess: number;
+    m_modal?: {
+        m_bVisible: boolean;
+    };
 }
 
 export interface CInventory {
