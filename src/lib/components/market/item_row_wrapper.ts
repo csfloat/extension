@@ -12,6 +12,7 @@ import {formatSeed, renderClickableRank} from '../../utils/skin';
 import {gFilterService} from '../../services/filter';
 import {AppId, ContextId, Currency} from '../../types/steam_constants';
 import {defined} from '../../utils/checkers';
+import {pickTextColour} from '../../utils/colours';
 
 @CustomElement()
 @InjectAppend('#searchResultsRows .market_listing_row .market_listing_item_name_block', InjectionMode.CONTINUOUS)
@@ -113,6 +114,8 @@ export class ItemRowWrapper extends FloatElement {
             gFilterService.onUpdate$.subscribe(() => {
                 const colour = gFilterService.matchColour(this.itemInfo!, this.convertedPrice) || '';
                 $J(this).parent().parent().css('background-color', colour);
+                const textColour = colour ? pickTextColour(colour, '#8F98A0', '#484848') : '';
+                $J(this).css('color', textColour);
             });
         }
 
