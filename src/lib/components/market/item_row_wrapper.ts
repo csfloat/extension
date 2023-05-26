@@ -1,4 +1,4 @@
-import {html} from 'lit';
+import {html, nothing} from 'lit';
 
 import {state} from 'lit/decorators.js';
 import {CustomElement, InjectAppend, InjectionMode} from '../injectors';
@@ -8,7 +8,7 @@ import {Asset, ListingData} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {getMarketInspectLink, inlineEasyInspect, inlineStickers} from './helpers';
-import {formatSeed, renderClickableRank} from '../../utils/skin';
+import {formatSeed, isSkin, renderClickableRank} from '../../utils/skin';
 import {gFilterService} from '../../services/filter';
 import {AppId, ContextId, Currency} from '../../types/steam_constants';
 import {defined} from '../../utils/checkers';
@@ -137,6 +137,10 @@ export class ItemRowWrapper extends FloatElement {
         }
 
         if (this.itemInfo) {
+            if (!this.asset || !isSkin(this.asset)) {
+                return nothing;
+            }
+
             return html`
                 <div>
                     Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}<br />
