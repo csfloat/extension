@@ -137,7 +137,7 @@ export class ItemRowWrapper extends FloatElement {
         }
 
         if (this.itemInfo) {
-            if (!this.asset || !isSkin(this.asset)) {
+            if (this.asset && !isSkin(this.asset)) {
                 return nothing;
             }
 
