@@ -10,7 +10,7 @@ import {cache} from 'decorator-cache-getter';
 import {getMarketInspectLink} from './helpers';
 import {Asset, ListingData} from '../../types/steam';
 import {AppId, ContextId} from '../../types/steam_constants';
-import {isMarketSkin, isSkin} from '../../utils/skin';
+import {isMarketSkin} from '../../utils/skin';
 
 enum Showing {
     NONE,
