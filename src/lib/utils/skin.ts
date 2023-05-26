@@ -104,13 +104,9 @@ export function renderClickableRank(info: ItemInfo): TemplateResult<1> {
 }
 
 export function isSkin(asset: Asset): boolean {
-    return !!asset.tags?.find(
-        (a) => a.category === 'Weapon' || (a.category === 'Type' && a.internal_name === 'Type_Hands')
-    );
-}
-
-export function isMarketSkin(asset: Asset) {
-    return ['★', 'Factory New', 'Minimal Wear', 'Field-Tested', 'Well-Worn', 'Battle-Scarred'].some((keyword) =>
-        asset.market_hash_name.includes(keyword)
-    );
+    return asset.tags
+        ? asset.tags.some((a) => a.category === 'Weapon' || (a.category === 'Type' && a.internal_name === 'Type_Hands'))
+        : ['★', 'Factory New', 'Minimal Wear', 'Field-Tested', 'Well-Worn', 'Battle-Scarred'].some((keyword) =>
+              asset.market_hash_name.includes(keyword)
+          );
 }

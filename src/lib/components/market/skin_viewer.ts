@@ -10,7 +10,7 @@ import {cache} from 'decorator-cache-getter';
 import {getMarketInspectLink} from './helpers';
 import {Asset, ListingData} from '../../types/steam';
 import {AppId, ContextId} from '../../types/steam_constants';
-import {isMarketSkin} from '../../utils/skin';
+import {isSkin} from '../../utils/skin';
 
 enum Showing {
     NONE,
@@ -91,7 +91,7 @@ export class SkinViewer extends FloatElement {
             return html``;
         }
 
-        if (this.asset && !isMarketSkin(this.asset)) {
+        if (this.asset && !isSkin(this.asset)) {
             return nothing;
         }
 
