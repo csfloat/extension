@@ -8,6 +8,9 @@ import {ClientSend} from '../../bridge/client';
 import '../common/ui/steam-button';
 import {cache} from 'decorator-cache-getter';
 import {getMarketInspectLink} from './helpers';
+import {Asset, ListingData} from '../../types/steam';
+import {AppId, ContextId} from '../../types/steam_constants';
+import {isSkin} from '../../utils/skin';
 
 enum Showing {
     NONE,
@@ -51,6 +54,16 @@ export class SkinViewer extends FloatElement {
         return matches[1];
     }
 
+    get listingInfo(): ListingData | null {
+        return g_rgListingInfo[this.listingId!];
+    }
+
+    get asset(): Asset | undefined {
+        if (!this.listingInfo) return;
+
+        return g_rgAssets[AppId.CSGO][ContextId.PRIMARY][this.listingInfo.asset.id!];
+    }
+
     get inspectLink(): string | undefined {
         return getMarketInspectLink(this.listingId!);
     }
@@ -73,9 +86,13 @@ export class SkinViewer extends FloatElement {
         }
     }
 
-    protected render(): HTMLTemplateResult {
+    protected render() {
         if (!this.inspectLink) {
             return html``;
+        }
+
+        if (this.asset && !isSkin(this.asset)) {
+            return nothing;
         }
 
         return html`
