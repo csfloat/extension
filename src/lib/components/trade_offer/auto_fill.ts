@@ -3,7 +3,7 @@ import {CustomElement, InjectBefore} from '../injectors';
 import {css, html, HTMLTemplateResult} from 'lit';
 import {ClientSend} from '../../bridge/client';
 import {FetchPendingTrades, FetchPendingTradesResponse} from '../../bridge/handlers/fetch_pending_trades';
-import {Trade, TradeState} from '../../types/float_market';
+import {Item, Trade, TradeState} from '../../types/float_market';
 import {state} from 'lit/decorators.js';
 import {Observe} from '../../utils/observers';
 
@@ -95,9 +95,7 @@ export class AutoFill extends FloatElement {
                         />
                     </div>
                     <span class="item-name"> ${item.market_hash_name} </span>
-                    <div class="sale-info">
-                        Detected Sale (Float: ${item.float_value.toFixed(12)}, Seed: ${item.paint_seed})
-                    </div>
+                    ${this.getSaleInfo(item)}
                 </div>
                 <csgofloat-steam-button
                     .text="${'Auto-Fill'}"
@@ -105,6 +103,18 @@ export class AutoFill extends FloatElement {
                 ></csgofloat-steam-button>
             </div>
         `;
+    }
+
+    getSaleInfo(item: Item): HTMLTemplateResult {
+        if (item.float_value) {
+            return html`
+                <div class="sale-info">
+                    Detected Sale (Float: ${item.float_value.toFixed(12)}, Seed: ${item.paint_seed})
+                </div>
+            `;
+        } else {
+            return html` <div class="sale-info">Detected Sale (Asset ID: ${item.asset_id})</div> `;
+        }
     }
 
     /**
