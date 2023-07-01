@@ -61,6 +61,7 @@ export interface rgDescription {
     type: string;
     tags?: {
         category: string;
+        name?: string;
         internal_name: string;
         localized_category_name?: string;
         localized_tag_name?: string;
@@ -91,6 +92,7 @@ export interface rgInventoryAsset {
     id: string;
     instance_id: InstanceId;
     pos: number;
+    assetid?: string; // Only populated in some endpoints...equivalent to `id`
 }
 
 export interface InventoryAsset {
@@ -210,15 +212,14 @@ export interface CurrentTradeStatus {
     };
 }
 
-type ClassIdAndInstanceId = `${ClassId}_${InstanceId}`;
-
-export interface TradeInventoryDescription {}
+export type ClassIdAndInstanceId = `${ClassId}_${InstanceId}`;
 
 export interface TradeInventory {
     more: boolean;
     more_start: boolean;
     rgDescriptions: {[k: ClassIdAndInstanceId]: rgDescription};
-    rgInventory: {[k: ClassId]: rgInventoryAsset};
+    rgInventory: {[k: string]: rgInventoryAsset};
+    rgCurrency: any[];
     success: boolean;
 }
 
@@ -242,6 +243,15 @@ declare global {
     const UserYou: UserSomeone | undefined; // Only populated on create offer pages
     const CUserYou: CUserYou; // Only populated on create offer pages
     const g_strInventoryLoadURL: string | undefined; // Only populated on create offer pages
+    let ContinueFullInventoryRequestIfNecessary: (
+        transport: JQuery.jqXHR,
+        mergedResponse: any,
+        strUrl: string,
+        oParams: any,
+        fOnSuccess: () => any,
+        fOnFailure: () => any,
+        fOnComplete: () => any
+    ) => void; // Only populated on create offer pages
     const MoveItemToTrade: (el: HTMLElement) => void; // Only populated on create offer pages
     const g_rgCurrentTradeStatus: CurrentTradeStatus;
 }
