@@ -183,15 +183,6 @@ export interface UserSomeone {
     findAsset: (appId: AppId, contextId: ContextId, itemId: string) => rgAsset;
 }
 
-export interface CUserYou {
-    prototype: {
-        OnLoadInventoryComplete: (transport: JQuery.jqXHR, appId: AppId, ContentId: ContextId) => void;
-
-        // Annotated by CSGOFloat
-        g_OnLoadInventoryComplete: (transport: JQuery.jqXHR, appId: AppId, ContentId: ContextId) => void;
-    };
-}
-
 export interface CurrentTradeAsset {
     amount: number;
     appid: AppId;
@@ -241,7 +232,6 @@ declare global {
     const CInventory: CInventory;
     const UserThem: UserSomeone | undefined; // Only populated on create offer pages
     const UserYou: UserSomeone | undefined; // Only populated on create offer pages
-    const CUserYou: CUserYou; // Only populated on create offer pages
     const g_strInventoryLoadURL: string | undefined; // Only populated on create offer pages
     let ContinueFullInventoryRequestIfNecessary: (
         transport: JQuery.jqXHR,
