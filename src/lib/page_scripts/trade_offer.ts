@@ -2,23 +2,12 @@ import {init} from './utils';
 import '../components/trade_offer/trade_item_holder_metadata';
 import '../components/trade_offer/auto_fill';
 import {ClassIdAndInstanceId, rgDescription, rgInventoryAsset, TradeInventory} from '../types/steam';
+import {fetchRegisteredSteamAPIKey} from '../utils/key';
 
 init('src/lib/page_scripts/trade_offer.js', main);
 
 async function main() {
     injectInventoryFallback();
-}
-
-async function fetchRegisteredSteamAPIKey(): Promise<string> {
-    const pageResponse = await fetch('https://steamcommunity.com/dev/apikey');
-    const pageText = await pageResponse.text();
-
-    const match = pageText.match(/Key: ([0-9A-Z]{32})[^0-9A-Z]/);
-    if (match) {
-        return match[1];
-    }
-
-    throw new Error('failed to find registered API key');
 }
 
 interface KeyInventoryResponse {
