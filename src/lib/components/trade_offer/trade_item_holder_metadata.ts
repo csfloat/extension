@@ -1,5 +1,5 @@
 import {CustomElement, InjectAppend, InjectionMode} from '../injectors';
-import {Asset, UserSomeone} from '../../types/steam';
+import {rgAsset, UserSomeone} from '../../types/steam';
 import {ItemHolderMetadata} from '../common/item_holder_metadata';
 import {AppId, ContextId} from '../../types/steam_constants';
 
@@ -26,7 +26,7 @@ export class TradeItemHolderMetadata extends ItemHolderMetadata {
         return this.owningUser?.strSteamId;
     }
 
-    get asset(): Asset | undefined {
+    get asset(): rgAsset | undefined {
         if (!this.assetId) return;
 
         if (!this.owningUser) return;
@@ -34,7 +34,7 @@ export class TradeItemHolderMetadata extends ItemHolderMetadata {
         return TradeItemHolderMetadata.getAssetFromUser(this.owningUser, this.assetId);
     }
 
-    private static getAssetFromUser(user: UserSomeone, assetId: string): Asset | undefined {
+    private static getAssetFromUser(user: UserSomeone, assetId: string): rgAsset | undefined {
         if (user.rgContexts[AppId.CSGO][ContextId.PRIMARY].inventory?.rgInventory[assetId]) {
             const inventory = user.rgContexts[AppId.CSGO][ContextId.PRIMARY].inventory;
             return inventory?.rgInventory[assetId];
