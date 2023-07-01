@@ -1,5 +1,8 @@
 import $ from 'jquery';
-import {AppId, ContextId} from './steam_constants';
+import {AppId, ContextId, Currency} from './steam_constants';
+
+type ClassId = string;
+type InstanceId = string;
 
 export interface Action {
     link: string;
@@ -32,47 +35,62 @@ export interface WalletInfo {
     wallet_currency: number;
 }
 
-// g_rgAssets
-export interface Asset {
-    amount: number;
-    app_icon: string;
+// rgDescriptions
+export interface rgDescription {
     appid: AppId;
+    actions?: Action[];
     background_color: string;
     classid: string;
     commodity: number;
-    contextid: string;
-    currency: number;
     descriptions: {
         type: string;
         value: string;
     }[];
     icon_url: string;
     icon_url_large: string;
-    id: string;
     instanceid: string;
     is_stackable: boolean;
     market_actions?: Action[];
-    actions?: Action[];
     market_hash_name: string;
     market_name: string;
     market_tradable_restriction: number;
     marketable: number;
     name: string;
     name_color: string;
-    original_amount: string;
-    owner: number;
-    status: number;
     tradable: number;
     type: string;
-    unowned_contextid: string;
-    unowned_id: string;
     tags?: {
         category: string;
         internal_name: string;
         localized_category_name?: string;
         localized_tag_name?: string;
     }[];
+}
+
+// g_rgAssets
+export interface rgAsset extends rgDescription {
+    amount: number;
+    app_icon: string;
+    contextid: string;
+    currency: number;
+    id: string;
+    is_stackable: boolean;
+    original_amount: string;
+    owner: number;
+    status: number;
+    type: string;
+    unowned_contextid: string;
+    unowned_id: string;
     element?: HTMLElement;
+}
+
+export interface rgInventoryAsset {
+    amount: string;
+    classid: ClassId;
+    hide_in_china: number;
+    id: string;
+    instance_id: InstanceId;
+    pos: number;
 }
 
 export interface InventoryAsset {
@@ -81,7 +99,7 @@ export interface InventoryAsset {
     assetid: string;
     classid: string;
     contextid: string;
-    description: Asset;
+    description: rgAsset;
     element: HTMLElement;
     homeElement: HTMLElement;
     instanceid: string;
@@ -97,7 +115,7 @@ export interface mOwner {
 export interface CInventory {
     initialized: boolean;
     m_rgAssets: {[assetId: string]: InventoryAsset};
-    rgInventory: {[assetId: string]: Asset};
+    rgInventory: {[assetId: string]: rgAsset};
     m_owner?: mOwner;
     owner?: mOwner;
     selectedItem?: InventoryAsset;
@@ -160,7 +178,7 @@ export interface UserSomeone {
         };
     };
     strSteamId: string;
-    findAsset: (appId: AppId, contextId: ContextId, itemId: string) => Asset;
+    findAsset: (appId: AppId, contextId: ContextId, itemId: string) => rgAsset;
 }
 
 export interface CurrentTradeAsset {
@@ -183,6 +201,18 @@ export interface CurrentTradeStatus {
     };
 }
 
+type ClassIdAndInstanceId = `${ClassId}_${InstanceId}`;
+
+export interface TradeInventoryDescription {}
+
+export interface TradeInventory {
+    more: boolean;
+    more_start: boolean;
+    rgDescriptions: {[k: ClassIdAndInstanceId]: rgDescription};
+    rgInventory: {[k: ClassId]: rgInventoryAsset};
+    success: boolean;
+}
+
 // Declares globals available in the Steam Page Context
 declare global {
     const $J: typeof $;
@@ -190,7 +220,7 @@ declare global {
     const g_rgWalletInfo: WalletInfo | undefined; // Not populated when user is signed-out
     const g_rgAssets: {
         [appId in AppId]: {
-            [contextId in ContextId]: {[assetId: string]: Asset};
+            [contextId in ContextId]: {[assetId: string]: rgAsset};
         };
     };
     const g_ActiveInventory: CInventory | undefined; // Only populated on Steam inventory pages
@@ -201,6 +231,16 @@ declare global {
     const CInventory: CInventory;
     const UserThem: UserSomeone | undefined; // Only populated on create offer pages
     const UserYou: UserSomeone | undefined; // Only populated on create offer pages
+    const g_strInventoryLoadURL: string | undefined; // Only populated on create offer pages
+    let RequestFullInventory:
+        | ((
+              strUrl: string,
+              oParams: {[k: string]: string},
+              fOnSuccess: (response: TradeInventory) => any,
+              fOnFailure: (t: JQuery.Transport) => any,
+              fOnComplete: (response: TradeInventory) => any
+          ) => any)
+        | undefined; // Only populated on create offer pages
     const MoveItemToTrade: (el: HTMLElement) => void; // Only populated on create offer pages
     const g_rgCurrentTradeStatus: CurrentTradeStatus;
 }

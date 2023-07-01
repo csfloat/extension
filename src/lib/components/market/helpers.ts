@@ -1,4 +1,4 @@
-import {Asset} from '../../types/steam';
+import {rgAsset} from '../../types/steam';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {AppId, ContextId} from '../../types/steam_constants';
 
@@ -24,7 +24,7 @@ export function getMarketInspectLink(listingId: string): string | undefined {
  * @param itemInfo Item Info for the item from csgofloat API
  * @param asset Steam Asset for the item
  */
-export function inlineStickers(itemNameBlock: JQuery<Element>, itemInfo: ItemInfo, asset: Asset) {
+export function inlineStickers(itemNameBlock: JQuery<Element>, itemInfo: ItemInfo, asset: rgAsset) {
     if (!itemNameBlock) return;
 
     if (itemNameBlock.find('.csgofloat-stickers-container').length) {

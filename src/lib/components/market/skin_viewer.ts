@@ -8,7 +8,7 @@ import {ClientSend} from '../../bridge/client';
 import '../common/ui/steam-button';
 import {cache} from 'decorator-cache-getter';
 import {getMarketInspectLink} from './helpers';
-import {Asset, ListingData} from '../../types/steam';
+import {rgAsset, ListingData} from '../../types/steam';
 import {AppId, ContextId} from '../../types/steam_constants';
 import {isSkin} from '../../utils/skin';
 
@@ -58,7 +58,7 @@ export class SkinViewer extends FloatElement {
         return g_rgListingInfo[this.listingId!];
     }
 
-    get asset(): Asset | undefined {
+    get asset(): rgAsset | undefined {
         if (!this.listingInfo) return;
 
         return g_rgAssets[AppId.CSGO][ContextId.PRIMARY][this.listingInfo.asset.id!];

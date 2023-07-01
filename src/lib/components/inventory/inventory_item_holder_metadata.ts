@@ -1,5 +1,5 @@
 import {CustomElement, InjectAppend, InjectionMode} from '../injectors';
-import {Asset} from '../../types/steam';
+import {rgAsset} from '../../types/steam';
 import {ItemHolderMetadata} from '../common/item_holder_metadata';
 
 @CustomElement()
@@ -8,7 +8,7 @@ import {ItemHolderMetadata} from '../common/item_holder_metadata';
     InjectionMode.CONTINUOUS
 )
 export class InventoryItemHolderMetadata extends ItemHolderMetadata {
-    get asset(): Asset | undefined {
+    get asset(): rgAsset | undefined {
         if (!this.assetId) return;
 
         return g_ActiveInventory?.m_rgAssets[this.assetId]?.description;

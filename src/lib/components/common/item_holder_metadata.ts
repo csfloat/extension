@@ -1,7 +1,7 @@
 import {FloatElement} from '../custom';
 import {html, css, HTMLTemplateResult} from 'lit';
 import {state} from 'lit/decorators.js';
-import {Asset} from '../../types/steam';
+import {rgAsset} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {formatFloatWithRank, formatSeed, getLowestRank} from '../../utils/skin';
@@ -38,7 +38,7 @@ export abstract class ItemHolderMetadata extends FloatElement {
         return $J(this).parent().attr('id')?.split('_')[2];
     }
 
-    abstract get asset(): Asset | undefined;
+    abstract get asset(): rgAsset | undefined;
     abstract get ownerSteamId(): string | undefined;
 
     get inspectLink(): string | undefined {

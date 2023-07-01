@@ -4,7 +4,7 @@ import {state} from 'lit/decorators.js';
 import {CustomElement, InjectAppend, InjectionMode} from '../injectors';
 import {FloatElement} from '../custom';
 import {cache} from 'decorator-cache-getter';
-import {Asset, ListingData} from '../../types/steam';
+import {rgAsset, ListingData} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {getMarketInspectLink, inlineEasyInspect, inlineStickers} from './helpers';
@@ -32,7 +32,7 @@ export class ItemRowWrapper extends FloatElement {
         return g_rgListingInfo[this.listingId!];
     }
 
-    get asset(): Asset | undefined {
+    get asset(): rgAsset | undefined {
         if (!this.listingInfo) return;
 
         return g_rgAssets[AppId.CSGO][ContextId.PRIMARY][this.listingInfo.asset.id!];

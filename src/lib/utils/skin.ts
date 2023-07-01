@@ -1,4 +1,4 @@
-import {Asset} from '../types/steam';
+import {rgAsset} from '../types/steam';
 import {ItemInfo} from '../bridge/handlers/fetch_inspect_info';
 import {getDopplerPhase, hasDopplerPhase} from './dopplers';
 import {html, TemplateResult} from 'lit';
@@ -103,7 +103,7 @@ export function renderClickableRank(info: ItemInfo): TemplateResult<1> {
     </a>`;
 }
 
-export function isSkin(asset: Asset): boolean {
+export function isSkin(asset: rgAsset): boolean {
     return asset.tags
         ? asset.tags.some((a) => a.category === 'Weapon' || (a.category === 'Type' && a.internal_name === 'Type_Hands'))
         : ['★', 'Factory New', 'Minimal Wear', 'Field-Tested', 'Well-Worn', 'Battle-Scarred'].some((keyword) =>
