@@ -1,13 +1,14 @@
 import {FloatElement} from '../custom';
-import {html, css, HTMLTemplateResult} from 'lit';
+import {html, css, HTMLTemplateResult, nothing} from 'lit';
 import {state} from 'lit/decorators.js';
 import {rgAsset} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
-import {formatFloatWithRank, formatSeed, getLowestRank} from '../../utils/skin';
+import {formatFloatWithRank, formatSeed, getFadePercentage, getLowestRank} from '../../utils/skin';
 import {isSkin} from '../../utils/skin';
 import {getRankColour} from '../../utils/ranks';
 import {Observe} from '../../utils/observers';
+import {round} from 'lodash';
 
 // Generic annotator of item holder metadata (float, seed, etc...)
 // Must be extended to use as a component
@@ -27,6 +28,12 @@ export abstract class ItemHolderMetadata extends FloatElement {
                 top: 3px;
                 right: 3px;
                 font-size: 12px;
+            }
+
+            .fade {
+                background: -webkit-linear-gradient(0deg, #d9bba5 0%, #e5903b 33%, #db5977 66%, #6775e1 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
             }
         `,
     ];
@@ -58,10 +65,17 @@ export abstract class ItemHolderMetadata extends FloatElement {
     protected render(): HTMLTemplateResult {
         if (!this.itemInfo) return html``;
 
+        const fadePercentage = this.asset && getFadePercentage(this.asset, this.itemInfo);
+
         return html`
             <span>
                 <span class="float">${formatFloatWithRank(this.itemInfo, 6)}</span>
-                <span class="seed">${formatSeed(this.itemInfo)}</span>
+                <span class="seed"
+                    >${formatSeed(this.itemInfo)}
+                    ${fadePercentage !== undefined
+                        ? html`<span class="fade">(${round(fadePercentage, 1)}%)</span>`
+                        : nothing}</span
+                >
             </span>
         `;
     }

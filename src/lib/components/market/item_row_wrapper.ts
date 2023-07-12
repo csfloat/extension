@@ -8,11 +8,12 @@ import {rgAsset, ListingData} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {getMarketInspectLink, inlineEasyInspect, inlineStickers} from './helpers';
-import {formatSeed, isSkin, renderClickableRank} from '../../utils/skin';
+import {formatSeed, getFadePercentage, isSkin, renderClickableRank} from '../../utils/skin';
 import {gFilterService} from '../../services/filter';
 import {AppId, ContextId, Currency} from '../../types/steam_constants';
 import {defined} from '../../utils/checkers';
 import {pickTextColour} from '../../utils/colours';
+import {round} from 'lodash';
 
 @CustomElement()
 @InjectAppend('#searchResultsRows .market_listing_row .market_listing_item_name_block', InjectionMode.CONTINUOUS)
@@ -140,11 +141,17 @@ export class ItemRowWrapper extends FloatElement {
             return nothing;
         }
 
+        const fadePercentage = this.asset && this.itemInfo && getFadePercentage(this.asset, this.itemInfo);
+
         if (this.itemInfo) {
             return html`
                 <div>
                     Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}<br />
-                    Paint Seed: ${formatSeed(this.itemInfo)}
+                    Paint Seed:
+                    ${formatSeed(this.itemInfo)}${fadePercentage !== undefined
+                        ? html`<br />
+                              Fade: ${round(fadePercentage, 5)}%`
+                        : nothing}
                 </div>
             `;
         } else if (this.error) {

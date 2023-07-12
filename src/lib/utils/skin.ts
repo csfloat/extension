@@ -2,6 +2,7 @@ import {rgAsset} from '../types/steam';
 import {ItemInfo} from '../bridge/handlers/fetch_inspect_info';
 import {getDopplerPhase, hasDopplerPhase} from './dopplers';
 import {html, TemplateResult} from 'lit';
+import {AcidFadeCalculator, AmberFadeCalculator, FadeCalculator} from 'csgo-fade-percentage-calculator';
 
 export function rangeFromWear(wear: number): [number, number] | null {
     const wearRanges: [number, number][] = [
@@ -109,4 +110,20 @@ export function isSkin(asset: rgAsset): boolean {
         : ['★', 'Factory New', 'Minimal Wear', 'Field-Tested', 'Well-Worn', 'Battle-Scarred'].some((keyword) =>
               asset.market_hash_name.includes(keyword)
           );
+}
+
+export function getFadePercentage(asset: rgAsset, itemInfo: ItemInfo): number | undefined {
+    const FADE_TYPE_TO_CALCULATOR = {
+        Fade: FadeCalculator,
+        'Acid Fade': AcidFadeCalculator,
+        'Amber Fade': AmberFadeCalculator,
+    };
+
+    for (const [fadeType, calculator] of Object.entries(FADE_TYPE_TO_CALCULATOR)) {
+        for (const supportedWeapon of calculator.getSupportedWeapons()) {
+            if (asset.market_hash_name.includes(`${supportedWeapon} | ${fadeType}`)) {
+                return calculator.getFadePercentage(supportedWeapon.toString(), itemInfo.paintseed).percentage;
+            }
+        }
+    }
 }
