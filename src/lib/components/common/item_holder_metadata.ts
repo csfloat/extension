@@ -5,10 +5,9 @@ import {rgAsset} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {formatFloatWithRank, formatSeed, getFadePercentage, getLowestRank} from '../../utils/skin';
-import {isSkin} from '../../utils/skin';
+import {isSkin, floor} from '../../utils/skin';
 import {getRankColour} from '../../utils/ranks';
 import {Observe} from '../../utils/observers';
-import {round} from 'lodash';
 
 // Generic annotator of item holder metadata (float, seed, etc...)
 // Must be extended to use as a component
@@ -34,6 +33,11 @@ export abstract class ItemHolderMetadata extends FloatElement {
                 background: -webkit-linear-gradient(0deg, #d9bba5 0%, #e5903b 33%, #db5977 66%, #6775e1 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
+            }
+
+            .csgofloat-shine-fade-text {
+                font-weight: 1000;
+                -webkit-text-stroke: 1px black;
             }
         `,
     ];
@@ -67,13 +71,21 @@ export abstract class ItemHolderMetadata extends FloatElement {
 
         const fadePercentage = this.asset && getFadePercentage(this.asset, this.itemInfo);
 
+        if (fadePercentage === 100) {
+            $J(this).parent().addClass('full-fade-border');
+        }
+
+        const rank = getLowestRank(this.itemInfo);
+
         return html`
             <span>
                 <span class="float">${formatFloatWithRank(this.itemInfo, 6)}</span>
                 <span class="seed"
                     >${formatSeed(this.itemInfo)}
                     ${fadePercentage !== undefined
-                        ? html`<span class="fade">(${round(fadePercentage, 1)}%)</span>`
+                        ? html`<span class="fade ${rank && rank <= 5 ? 'csgofloat-shine-fade-text' : ''}"
+                              >(${floor(fadePercentage, 1)}%)</span
+                          >`
                         : nothing}</span
                 >
             </span>

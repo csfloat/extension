@@ -5,12 +5,11 @@ import {state} from 'lit/decorators.js';
 import {InventoryAsset} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
-import {formatSeed, getFadePercentage, isSkin, renderClickableRank} from '../../utils/skin';
+import {formatSeed, getFadePercentage, isSkin, renderClickableRank, floor} from '../../utils/skin';
 import {Observe} from '../../utils/observers';
 import {FetchStallResponse} from '../../bridge/handlers/fetch_stall';
 import {gStallFetcher} from '../../services/stall_fetcher';
 import {Contract} from '../../types/float_market';
-import {round} from 'lodash';
 
 /**
  * Why do we bind to iteminfo0 AND iteminfo1?
@@ -97,7 +96,7 @@ export class SelectedItemInfo extends FloatElement {
             <div class="container">
                 <div>Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}</div>
                 <div>Paint Seed: ${formatSeed(this.itemInfo)}</div>
-                ${fadePercentage !== undefined ? html`<div>Fade: ${round(fadePercentage, 5)}%</div>` : nothing}
+                ${fadePercentage !== undefined ? html`<div>Fade: ${floor(fadePercentage, 5)}%</div>` : nothing}
                 ${this.renderListOnCSGOFloat()} ${this.renderFloatMarketListing()}
             </div>
         `;

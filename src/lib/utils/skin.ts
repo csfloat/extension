@@ -127,3 +127,9 @@ export function getFadePercentage(asset: rgAsset, itemInfo: ItemInfo): number | 
         }
     }
 }
+
+export function floor(n: number, precision?: number) {
+    const p = 10 ** (precision || 0);
+
+    return Math.floor(n * p) / p;
+}
