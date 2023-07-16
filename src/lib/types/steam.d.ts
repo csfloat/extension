@@ -46,6 +46,7 @@ export interface rgDescription {
         type: string;
         value: string;
     }[];
+    fraudwarnings?: string[];
     icon_url: string;
     icon_url_large: string;
     instanceid: string;
