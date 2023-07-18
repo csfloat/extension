@@ -112,7 +112,9 @@ export function isSkin(asset: rgAsset): boolean {
           );
 }
 
-export function getFadePercentage(asset: rgAsset, itemInfo: ItemInfo): number | undefined {
+export function getFadeCalculatorAndSupportedWeapon(
+    asset: rgAsset
+): [typeof FadeCalculator | typeof AcidFadeCalculator | typeof AmberFadeCalculator, string] | undefined {
     const FADE_TYPE_TO_CALCULATOR = {
         Fade: FadeCalculator,
         'Acid Fade': AcidFadeCalculator,
@@ -122,9 +124,19 @@ export function getFadePercentage(asset: rgAsset, itemInfo: ItemInfo): number | 
     for (const [fadeType, calculator] of Object.entries(FADE_TYPE_TO_CALCULATOR)) {
         for (const supportedWeapon of calculator.getSupportedWeapons()) {
             if (asset.market_hash_name.includes(`${supportedWeapon} | ${fadeType}`)) {
-                return calculator.getFadePercentage(supportedWeapon.toString(), itemInfo.paintseed).percentage;
+                return [calculator, supportedWeapon.toString()];
             }
         }
+    }
+}
+
+export function getFadePercentage(asset: rgAsset, itemInfo: ItemInfo): number | undefined {
+    const fadeCalculatorAndSupportedWeapon = getFadeCalculatorAndSupportedWeapon(asset);
+
+    if (fadeCalculatorAndSupportedWeapon !== undefined) {
+        const [calculator, supportedWeapon] = fadeCalculatorAndSupportedWeapon;
+
+        return calculator.getFadePercentage(supportedWeapon, itemInfo.paintseed).percentage;
     }
 }
 

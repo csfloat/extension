@@ -1,12 +1,12 @@
 import {FloatElement} from '../custom';
 import {CustomElement} from '../injectors';
-import {html, HTMLTemplateResult} from 'lit';
+import {html, HTMLTemplateResult, nothing} from 'lit';
 import '../common/ui/steam-button';
 import {state} from 'lit/decorators.js';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {getMarketInspectLink} from './helpers';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
-import {getFadePercentage} from '../../utils/skin';
+import {getFadeCalculatorAndSupportedWeapon, getFadePercentage} from '../../utils/skin';
 import {AppId, ContextId} from '../../types/steam_constants';
 
 enum SortType {
@@ -26,6 +26,21 @@ export class SortFloats extends FloatElement {
     private type: SortType = SortType.FLOAT;
     @state()
     private direction: SortDirection = SortDirection.NONE;
+
+    @state()
+    get isFadeSkin() {
+        const firstRow = document.querySelector('#searchResultsRows .market_listing_row.market_recent_listing_row');
+
+        if (firstRow === null) {
+            return false;
+        }
+
+        const listingInfo = g_rgListingInfo[firstRow.id.replace('listing_', '')];
+
+        const asset = g_rgAssets[AppId.CSGO][ContextId.PRIMARY][listingInfo.asset.id];
+
+        return getFadeCalculatorAndSupportedWeapon(asset) !== undefined;
+    }
 
     computeButtonText(sortType: SortType): string {
         let txt = `Sort by ${sortType}`;
@@ -47,10 +62,13 @@ export class SortFloats extends FloatElement {
                 .text="${this.computeButtonText(SortType.FLOAT)}"
                 @click="${() => this.onClick(SortType.FLOAT)}"
             ></csgofloat-steam-button>
-            <csgofloat-steam-button
-                .text="${this.computeButtonText(SortType.FADE)}"
-                @click="${() => this.onClick(SortType.FADE)}"
-            ></csgofloat-steam-button>
+
+            ${this.isFadeSkin
+                ? html`<csgofloat-steam-button
+                      .text="${this.computeButtonText(SortType.FADE)}"
+                      @click="${() => this.onClick(SortType.FADE)}"
+                  ></csgofloat-steam-button>`
+                : nothing}
         `;
     }
 
