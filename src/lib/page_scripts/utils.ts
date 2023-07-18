@@ -2,14 +2,55 @@ import {ExecuteScriptOnPage} from '../bridge/handlers/execute_script';
 import {ClientSend} from '../bridge/client';
 import {inPageContext} from '../utils/snips';
 import {ExecuteCssOnPage} from '../bridge/handlers/execute_css';
+import {FetchExtensionFile} from '../bridge/handlers/fetch_extension_file';
+import {isFirefox} from '../utils/detect';
 
+async function initiateChromium(scriptPath: string) {
+    ClientSend(ExecuteCssOnPage, {
+        path: 'src/global.css',
+    });
+
+    ClientSend(ExecuteScriptOnPage, {
+        path: scriptPath,
+    });
+}
+
+async function initiateFirefox(scriptPath: string) {
+    // We want to inject the ID of the extension
+    const id = browser.runtime.id;
+    const modelUrl = browser.runtime.getURL('src/model_frame.html');
+    const entryScript = document.createElement('script');
+    entryScript.appendChild(
+        document.createTextNode(`
+        window.CSGOFLOAT_EXTENSION_ID = '${id}';
+        window.CSGOFLOAT_MODEL_FRAME_URL = '${modelUrl}';
+    `)
+    );
+    document.head.appendChild(entryScript);
+
+    const scriptResp = await ClientSend(FetchExtensionFile, {
+        path: scriptPath,
+    });
+
+    const script = document.createElement('script');
+    script.appendChild(document.createTextNode(scriptResp.text));
+    document.head.appendChild(script);
+
+    const styleResp = await ClientSend(FetchExtensionFile, {
+        path: 'src/global.css',
+    });
+
+    const style = document.createElement('style');
+    style.appendChild(document.createTextNode(styleResp.text));
+    document.head.appendChild(style);
+}
 /**
  * Initializes a page script, executing it in the page context if necessary
  *
  * @param scriptPath Relative path of the script (always in .js)
  * @param ifPage Fn to run if we are in the page's execution context
  */
-export function init(scriptPath: string, ifPage: () => any) {
+export async function init(scriptPath: string, ifPage: () => any) {
     // Don't allow the page script to run this.
     if (inPageContext()) {
         // @ts-ignore Set global identifier for other extensions to use
@@ -19,14 +60,11 @@ export function init(scriptPath: string, ifPage: () => any) {
         return;
     }
 
-    // Global styles
-    ClientSend(ExecuteCssOnPage, {
-        path: 'src/global.css',
-    });
-
-    ClientSend(ExecuteScriptOnPage, {
-        path: scriptPath,
-    });
+    if (isFirefox()) {
+        await initiateFirefox(scriptPath);
+    } else {
+        await initiateChromium(scriptPath);
+    }
 
     console.log(
         `%c CSGOFloat Market Checker (v${chrome.runtime.getManifest().version}) by Step7750 `,
