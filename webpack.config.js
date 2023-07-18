@@ -18,6 +18,20 @@ function getPathEntries(path) {
     }, {});
 }
 
+function convertToFirefoxManifest(manifest) {
+    const cp = Object.assign({}, manifest);
+    cp.background = {
+        page: 'src/background_ff.html',
+    };
+    cp.browser_specific_settings = {
+        gecko: {
+            id: 'ff_extension@csgofloat.com',
+            strict_min_version: '109.0',
+        },
+    };
+    return cp;
+}
+
 module.exports = (env) => {
     const mode = env.mode || 'development';
 
@@ -65,21 +79,24 @@ module.exports = (env) => {
                     {from: 'icons', to: 'icons', context: '.'},
                     {from: 'src/model_frame.html', to: 'src/', context: '.'},
                     {from: 'src/global.css', to: 'src/', context: '.'},
+                    {from: 'src/background_ff.html', to: 'src/', context: '.'},
                     {from: 'src', to: 'raw/', context: '.'},
                     {from: 'README.md', to: '', context: '.'},
                     {
                         from: 'manifest.json',
                         to: 'manifest.json',
                         transform(raw) {
-                            if (mode !== 'development') {
-                                return raw;
+                            let processed = JSON.parse(raw.toString());
+
+                            if (mode === 'development' && env.browser === 'chrome') {
+                                processed.key = CHROME_KEY;
                             }
 
-                            // Ensure local dev version has same ID as PROD
-                            const manifest = JSON.parse(raw.toString());
-                            manifest.key = CHROME_KEY;
+                            if (env.browser === 'firefox') {
+                                processed = convertToFirefoxManifest(processed);
+                            }
 
-                            return JSON.stringify(manifest, null, 2);
+                            return JSON.stringify(processed, null, 2);
                         },
                     },
                 ],
