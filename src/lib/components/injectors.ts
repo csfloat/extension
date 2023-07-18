@@ -43,6 +43,12 @@ export function CustomElement(): any {
         if (!inPageContext()) {
             return;
         }
+
+        if (customElements.get(target.tag())) {
+            // Already defined
+            return;
+        }
+
         customElement(target.tag())(target);
     };
 }
