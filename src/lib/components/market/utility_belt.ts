@@ -3,7 +3,7 @@ import {CustomElement, InjectBefore, InjectionMode} from '../injectors';
 import {css, html, HTMLTemplateResult} from 'lit';
 import '../common/ui/steam-button';
 import './page_size';
-import './sort_floats';
+import './sort_listings';
 import './ad_banner';
 import '../filter/filter_container';
 
@@ -38,7 +38,7 @@ export class UtilityBelt extends FloatElement {
     protected render(): HTMLTemplateResult {
         return html`
             <div class="utility-container">
-                <csgofloat-sort-floats></csgofloat-sort-floats>
+                <csgofloat-sort-listings></csgofloat-sort-listings>
                 <csgofloat-page-size class="page-selector"></csgofloat-page-size>
                 <a class="github" href="https://csgofloat.com" target="_blank">Powered by CSGOFloat</a>
                 <hr />

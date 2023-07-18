@@ -21,7 +21,7 @@ enum SortDirection {
 }
 
 @CustomElement()
-export class SortFloats extends FloatElement {
+export class SortListings extends FloatElement {
     @state()
     private type: SortType = SortType.FLOAT;
     @state()
@@ -110,7 +110,7 @@ export class SortFloats extends FloatElement {
 
     async onClick(sortType: SortType) {
         const newDirection =
-            sortType == this.type ? SortFloats.getNextSortDirection(this.direction) : SortDirection.ASC;
+            sortType == this.type ? SortListings.getNextSortDirection(this.direction) : SortDirection.ASC;
 
         const rows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
 
@@ -134,7 +134,7 @@ export class SortFloats extends FloatElement {
             });
 
         const infos = await Promise.all(infoPromises);
-        const sortedInfos = SortFloats.sort(infos, sortType, newDirection);
+        const sortedInfos = SortListings.sort(infos, sortType, newDirection);
 
         let lastItem = document.querySelector('#searchResultsRows .market_listing_table_header');
 
