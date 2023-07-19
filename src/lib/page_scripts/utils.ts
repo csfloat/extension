@@ -4,6 +4,7 @@ import {inPageContext} from '../utils/snips';
 import {ExecuteCssOnPage} from '../bridge/handlers/execute_css';
 import {FetchExtensionFile} from '../bridge/handlers/fetch_extension_file';
 import {isFirefox} from '../utils/detect';
+import {g_PostMessageBus} from '../bus/post_message_bus';
 
 async function initiateChromium(scriptPath: string) {
     ClientSend(ExecuteCssOnPage, {
@@ -16,6 +17,8 @@ async function initiateChromium(scriptPath: string) {
 }
 
 async function initiateFirefox(scriptPath: string) {
+    g_PostMessageBus.handleRequests();
+
     // We want to inject the ID of the extension
     const id = browser.runtime.id;
     const modelUrl = browser.runtime.getURL('src/model_frame.html');
