@@ -1,4 +1,5 @@
 import {InternalRequestBundle, InternalResponseBundle, Version} from '../bridge/types';
+import {runtimeNamespace} from '../utils/detect';
 
 /**
  * Message bus that uses `postMessage` in order to communicate with the background
@@ -68,7 +69,8 @@ class PostMessageBus {
             }
 
             // Send to the background script
-            browser.runtime.sendMessage(
+            // @ts-ignore Bad types
+            runtimeNamespace().runtime.sendMessage(
                 chrome.runtime.id,
                 e.data,
                 // @ts-ignore Bad types

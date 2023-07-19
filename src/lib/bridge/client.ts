@@ -1,5 +1,5 @@
 import {InternalRequestBundle, InternalResponseBundle, RequestHandler, Version} from './types';
-import {isFirefox} from '../utils/detect';
+import {isFirefox, runtimeNamespace} from '../utils/detect';
 import {inPageContext} from '../utils/snips';
 import {g_PostMessageBus} from '../bus/post_message_bus';
 
@@ -23,7 +23,8 @@ export async function ClientSend<Req, Resp>(handler: RequestHandler<Req, Resp>, 
 
     if (canUseSendMessage()) {
         return new Promise((resolve, reject) => {
-            browser.runtime.sendMessage(
+            // @ts-ignore Bad types
+            runtimeNamespace().runtime.sendMessage(
                 window.CSGOFLOAT_EXTENSION_ID || chrome.runtime.id,
                 bundle,
                 // @ts-ignore Bad types
