@@ -2,6 +2,7 @@ import {rgAsset} from '../types/steam';
 import {ItemInfo} from '../bridge/handlers/fetch_inspect_info';
 import {getDopplerPhase, hasDopplerPhase} from './dopplers';
 import {html, TemplateResult} from 'lit';
+import {AcidFadeCalculator, AmberFadeCalculator, FadeCalculator} from 'csgo-fade-percentage-calculator';
 
 export function rangeFromWear(wear: number): [number, number] | null {
     const wearRanges: [number, number][] = [
@@ -109,4 +110,38 @@ export function isSkin(asset: rgAsset): boolean {
         : ['★', 'Factory New', 'Minimal Wear', 'Field-Tested', 'Well-Worn', 'Battle-Scarred'].some((keyword) =>
               asset.market_hash_name.includes(keyword)
           );
+}
+
+export function getFadeCalculatorAndSupportedWeapon(
+    asset: rgAsset
+): [typeof FadeCalculator | typeof AcidFadeCalculator | typeof AmberFadeCalculator, string] | undefined {
+    const FADE_TYPE_TO_CALCULATOR = {
+        Fade: FadeCalculator,
+        'Acid Fade': AcidFadeCalculator,
+        'Amber Fade': AmberFadeCalculator,
+    };
+
+    for (const [fadeType, calculator] of Object.entries(FADE_TYPE_TO_CALCULATOR)) {
+        for (const supportedWeapon of calculator.getSupportedWeapons()) {
+            if (asset.market_hash_name.includes(`${supportedWeapon} | ${fadeType}`)) {
+                return [calculator, supportedWeapon.toString()];
+            }
+        }
+    }
+}
+
+export function getFadePercentage(asset: rgAsset, itemInfo: ItemInfo): number | undefined {
+    const fadeCalculatorAndSupportedWeapon = getFadeCalculatorAndSupportedWeapon(asset);
+
+    if (fadeCalculatorAndSupportedWeapon !== undefined) {
+        const [calculator, supportedWeapon] = fadeCalculatorAndSupportedWeapon;
+
+        return calculator.getFadePercentage(supportedWeapon, itemInfo.paintseed).percentage;
+    }
+}
+
+export function floor(n: number, precision?: number) {
+    const p = 10 ** (precision || 0);
+
+    return Math.floor(n * p) / p;
 }

@@ -1,11 +1,11 @@
 import {FloatElement} from '../custom';
 import {CustomElement, InjectAfter, InjectionMode} from '../injectors';
-import {html, css, TemplateResult, HTMLTemplateResult} from 'lit';
+import {html, css, TemplateResult, HTMLTemplateResult, nothing} from 'lit';
 import {state} from 'lit/decorators.js';
 import {InventoryAsset} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
-import {formatSeed, isSkin, renderClickableRank} from '../../utils/skin';
+import {formatSeed, getFadePercentage, isSkin, renderClickableRank, floor} from '../../utils/skin';
 import {Observe} from '../../utils/observers';
 import {FetchStallResponse} from '../../bridge/handlers/fetch_stall';
 import {gStallFetcher} from '../../services/stall_fetcher';
@@ -90,10 +90,13 @@ export class SelectedItemInfo extends FloatElement {
             return html``;
         }
 
+        const fadePercentage = this.asset && getFadePercentage(this.asset.description, this.itemInfo);
+
         return html`
             <div class="container">
                 <div>Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}</div>
                 <div>Paint Seed: ${formatSeed(this.itemInfo)}</div>
+                ${fadePercentage !== undefined ? html`<div>Fade: ${floor(fadePercentage, 5)}%</div>` : nothing}
                 ${this.renderListOnCSGOFloat()} ${this.renderFloatMarketListing()}
             </div>
         `;
