@@ -11,7 +11,8 @@
         "typeRoots": ["node_modules/@types", "./src/lib/types"],
         "experimentalDecorators": true,
         "useDefineForClassFields": false,
-        "moduleResolution": "Node"
+        "moduleResolution": "Node",
+        "jsx": "react-jsx"
     },
     "exclude": ["dist/"]
 }
