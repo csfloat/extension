@@ -19,6 +19,10 @@ async function initiateChromium(scriptPath: string) {
 async function initiateFirefox(scriptPath: string) {
     g_PostMessageBus.handleRequests();
 
+    // Why do we need to use manual DOM script injection and
+    // fetch the text of the script?
+    // See https://github.com/csgofloat/extension/issues/155#issuecomment-1639781914
+
     // We want to inject the ID of the extension
     const id = browser.runtime.id;
     const modelUrl = browser.runtime.getURL('src/model_frame.html');
