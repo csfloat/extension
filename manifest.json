@@ -9,6 +9,7 @@
         "48": "icons/48.png",
         "128": "icons/128.png"
     },
+    "options_page": "src/pages/options/index.html",
     "content_scripts": [
         {
             "matches": ["*://*.steamcommunity.com/market/listings/730/*"],
