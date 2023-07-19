@@ -5,8 +5,8 @@ import {runtimeNamespace} from '../utils/detect';
  * Message bus that uses `postMessage` in order to communicate with the background
  * service worker/script.
  *
- * Why? Because the client page on Firefox is not capable of sending a message directly to
- * the extension background (ie. the Steam page).
+ * Why? Because the client page (ie. Steam page) on Firefox is not capable of
+ * sending a message directly to the extension background.
  *
  * So it requires us to do the following dance:
  * page <--(postmessage)--> content script <--(sendmessage)--> background script
