@@ -9,4 +9,5 @@ export enum RequestType {
     CSMONEY_PRICE,
     FETCH_PENDING_TRADES,
     FETCH_SKIN_MODEL,
+    FETCH_EXTENSION_FILE,
 }

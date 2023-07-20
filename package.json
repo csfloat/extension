@@ -11,8 +11,10 @@
         "url": "git+https://github.com/csgofloat/extension.git"
     },
     "scripts": {
-        "build": "webpack --env mode=prod --config webpack.config.js --stats-error-details",
-        "start": "webpack --env mode=development --config webpack.config.js --stats-error-details --watch",
+        "build": "webpack --env mode=prod browser=chrome --config webpack.config.js --stats-error-details",
+        "build_ff": "webpack --env mode=prod browser=firefox --config webpack.config.js --stats-error-details",
+        "start": "webpack --env mode=development browser=chrome --config webpack.config.js --stats-error-details --watch",
+        "start_ff": "webpack --env mode=development browser=firefox --config webpack.config.js --stats-error-details --watch",
         "lint": "eslint --ignore-path .lintignore --ext .js,.ts .",
         "format": "prettier --ignore-path .lintignore --write \"**/*.+(js|ts|json)\"",
         "checkformat": "prettier --ignore-path .lintignore --check \"**/*.+(js|ts|json)\""
@@ -25,6 +27,7 @@
     "homepage": "https://github.com/csgofloat/extension#readme",
     "devDependencies": {
         "@types/chrome": "^0.0.193",
+        "@types/firefox-webext-browser": "^111.0.1",
         "@types/jquery": "^3.5.14",
         "@types/lodash": "^4.14.195",
         "@typescript-eslint/eslint-plugin": "^5.39.0",
