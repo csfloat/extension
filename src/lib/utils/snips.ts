@@ -1,3 +1,3 @@
 export function inPageContext() {
-    return !chrome.extension;
+    return typeof chrome === 'undefined' || !chrome.extension;
 }

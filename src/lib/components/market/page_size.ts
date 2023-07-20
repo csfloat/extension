@@ -6,6 +6,7 @@ import {query, state} from 'lit/decorators.js';
 import {Get} from '../../bridge/handlers/storage_get';
 import {Set} from '../../bridge/handlers/storage_set';
 import {PAGE_SIZE} from '../../storage/keys';
+import {hasQueryParameter} from '../../utils/browser';
 
 @CustomElement()
 export class PageSize extends FloatElement {
@@ -33,7 +34,11 @@ export class PageSize extends FloatElement {
         super.connectedCallback();
 
         const size = await Get(PAGE_SIZE);
-        if (size) {
+
+        // Don't override if the user is manually overriding the start query param
+        // ie. "https://steamcommunity.com/market/listings/730/AK-47%20%7C%20Slate%20%28Field-Tested%29?start=100&count=100"
+        // Steam already has a bug that pagination doesn't work when setting this.
+        if (size && !hasQueryParameter('start')) {
             this.changePageSize(size);
         }
     }
