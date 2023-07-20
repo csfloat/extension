@@ -95,7 +95,7 @@ function injectInventoryFallback() {
         fOnFailure: () => any,
         fOnComplete: () => any
     ) {
-        if (strUrl.startsWith(g_strInventoryLoadURL!) && transport.status !== 200) {
+        if (strUrl.startsWith(g_strInventoryLoadURL!) && transport.status >= 400) {
             // User was rate limited... try the fallback.
             try {
                 const newInventory = await fetchInventoryWithAPIKey();
