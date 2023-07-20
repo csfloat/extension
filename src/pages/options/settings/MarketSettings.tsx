@@ -30,21 +30,6 @@ export const MarketSettings = ({control}: MarketSettingsProps) => {
                     render={({field: {value, ...rest}}) => <Switch checked={value} {...rest} />}
                 />
             </Flex>
-
-            <Divider my="sm" />
-
-            <Flex gap="xl">
-                <Flex direction="column" w={500}>
-                    <Title order={6}>Smart Filter/Sort</Title>
-                    <Text fz="xs">Shows the smart filter and sort buttons in a listing.</Text>
-                </Flex>
-
-                <Controller
-                    control={control}
-                    name="market.smart-filter-sort"
-                    render={({field: {value, ...rest}}) => <Switch checked={value} {...rest} />}
-                />
-            </Flex>
         </Card>
     );
 };

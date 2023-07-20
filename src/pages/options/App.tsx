@@ -20,15 +20,13 @@ import {IconBackpack, IconBuildingStore, IconGitPullRequest, IconInfoCircle, Ico
 import {SettingsPage} from './settings/SettingsPage';
 import {useState} from 'react';
 
-const ALL_PAGE_IDS = ['settings', 'about'] as const;
+const ALL_PAGE_IDS = ['settings'] as const;
 
 type PageId = typeof ALL_PAGE_IDS[number];
 
 const pageIdToComponent = (pageId: PageId) => {
     switch (pageId) {
         case 'settings':
-            return <SettingsPage />;
-        case 'about':
             return <SettingsPage />;
     }
 };
@@ -52,18 +50,6 @@ export const App = () => {
                             variant="light"
                             active={activePageId === 'settings'}
                             onClick={() => setActivePageId('settings')}
-                        />
-
-                        <NavLink
-                            label={<Text size="sm">About</Text>}
-                            icon={
-                                <ThemeIcon color="blue" variant="light">
-                                    <IconInfoCircle size="1rem" />
-                                </ThemeIcon>
-                            }
-                            variant="light"
-                            active={activePageId === 'about'}
-                            onClick={() => setActivePageId('about')}
                         />
                     </Flex>
                 </Navbar>
