@@ -1,6 +1,12 @@
 import {Card, Divider, Flex, Space, Switch, Text, Title} from '@mantine/core';
+import {SettingsType} from '../utils';
+import {Control} from 'react-hook-form';
 
-export const InventorySettings = () => {
+interface InventorySettingsProps {
+    control: Control<SettingsType>;
+}
+
+export const InventorySettings = ({control}: InventorySettingsProps) => {
     return (
         <Card>
             <Flex direction="column">
@@ -14,16 +20,6 @@ export const InventorySettings = () => {
                 <Flex direction="column" w={500}>
                     <Title order={6}>Paint Seed</Title>
                     <Text fz="xs">Show the paint seed of items in an inventory.</Text>
-                </Flex>
-                <Switch />
-            </Flex>
-
-            <Divider my="sm" />
-
-            <Flex gap="xl">
-                <Flex direction="column" w={500}>
-                    <Title order={6}>Smart Filter/Sort</Title>
-                    <Text fz="xs">Shows the smart filter and sort buttons in a listing.</Text>
                 </Flex>
                 <Switch />
             </Flex>

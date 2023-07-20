@@ -1,27 +1,26 @@
-import {Card, Divider, Flex, Space, Switch, Tabs, Text, Title} from '@mantine/core';
-import {IconBackpack, IconBuildingStore} from '@tabler/icons-react';
-import {MarketSettings} from './MarketSettings';
-import {InventorySettings} from './InventorySettings';
+import {Loader} from '@mantine/core';
+import {useEffect, useState} from 'react';
+import {DEFAULT_SETTINGS, SettingsType} from '../utils';
+import {SettingsForm} from './SettingsForm';
 
 export const SettingsPage = () => {
-    return (
-        <Tabs defaultValue="market">
-            <Tabs.List>
-                <Tabs.Tab value="market" icon={<IconBuildingStore size="0.8rem" />}>
-                    Market
-                </Tabs.Tab>
-                <Tabs.Tab value="inventory" icon={<IconBackpack size="0.8rem" />}>
-                    Inventory
-                </Tabs.Tab>
-            </Tabs.List>
+    const [settings, setSettings] = useState<SettingsType>();
 
-            <Tabs.Panel value="market" pt="xs">
-                <MarketSettings />
-            </Tabs.Panel>
+    useEffect(() => {
+        try {
+            chrome.storage.local.get('csgofloat-settings', (data) => {
+                const existingSettings = data['csgofloat-settings'] || {};
 
-            <Tabs.Panel value="inventory" pt="xs">
-                <InventorySettings />
-            </Tabs.Panel>
-        </Tabs>
-    );
+                setSettings({...DEFAULT_SETTINGS, ...existingSettings} as SettingsType);
+            });
+        } catch {
+            setSettings(DEFAULT_SETTINGS);
+        }
+    }, []);
+
+    if (settings === undefined) {
+        return <Loader />;
+    }
+
+    return <SettingsForm settings={settings} />;
 };
