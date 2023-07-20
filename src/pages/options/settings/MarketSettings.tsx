@@ -1,6 +1,6 @@
 import {Card, Divider, Flex, Space, Switch, Text, Title} from '@mantine/core';
 import {Control, Controller} from 'react-hook-form';
-import {SettingsType} from '../utils';
+import {SettingsType} from '../../../settings';
 
 interface MarketSettingsProps {
     control: Control<SettingsType>;

@@ -1,7 +1,9 @@
 import {Handle} from './lib/bridge/server';
 import {InternalResponseBundle} from './lib/bridge/types';
 import MessageSender = chrome.runtime.MessageSender;
-import {DEFAULT_SETTINGS} from './pages/options/utils';
+import {DEFAULT_SETTINGS, SettingsType} from './settings';
+import {StorageKey} from './lib/storage/keys';
+import {gStore} from './lib/storage/store';
 
 function unifiedHandler(request: any, sender: MessageSender, sendResponse: (response?: any) => void) {
     Handle(request, sender)
@@ -31,13 +33,9 @@ chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => 
     return true;
 });
 
-chrome.storage.local.get('csgofloat-settings', (data) => {
-    const settings = data['csgofloat-settings'] || {};
-
-    chrome.storage.local.set({
-        'csgofloat-settings': {
-            ...DEFAULT_SETTINGS,
-            ...settings,
-        },
+gStore.get<SettingsType>(StorageKey.SETTINGS).then((settings) => {
+    gStore.set<SettingsType>(StorageKey.SETTINGS, {
+        ...DEFAULT_SETTINGS,
+        ...(settings || {}),
     });
 });

@@ -1,6 +1,6 @@
 import {Card, Divider, Flex, Space, Switch, Text, Title} from '@mantine/core';
-import {SettingsType} from '../utils';
-import {Control} from 'react-hook-form';
+import {Control, Controller} from 'react-hook-form';
+import {SettingsType} from '../../../settings';
 
 interface InventorySettingsProps {
     control: Control<SettingsType>;
@@ -21,7 +21,12 @@ export const InventorySettings = ({control}: InventorySettingsProps) => {
                     <Title order={6}>Paint Seed</Title>
                     <Text fz="xs">Show the paint seed of items in an inventory.</Text>
                 </Flex>
-                <Switch />
+
+                <Controller
+                    control={control}
+                    name="inventory.paint-seed"
+                    render={({field: {value, ...rest}}) => <Switch checked={value} {...rest} />}
+                />
             </Flex>
         </Card>
     );

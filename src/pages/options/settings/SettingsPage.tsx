@@ -1,21 +1,19 @@
 import {Loader} from '@mantine/core';
 import {useEffect, useState} from 'react';
-import {DEFAULT_SETTINGS, SettingsType} from '../utils';
+
 import {SettingsForm} from './SettingsForm';
+import {DEFAULT_SETTINGS, SettingsType} from '../../../settings';
+import {gStore} from '../../../lib/storage/store';
+import {StorageKey} from '../../../lib/storage/keys';
 
 export const SettingsPage = () => {
     const [settings, setSettings] = useState<SettingsType>();
 
     useEffect(() => {
-        try {
-            chrome.storage.local.get('csgofloat-settings', (data) => {
-                const existingSettings = data['csgofloat-settings'] || {};
-
-                setSettings({...DEFAULT_SETTINGS, ...existingSettings} as SettingsType);
-            });
-        } catch {
-            setSettings(DEFAULT_SETTINGS);
-        }
+        gStore
+            .get<SettingsType>(StorageKey.SETTINGS)
+            .then((settings) => setSettings({...DEFAULT_SETTINGS, ...(settings || {})}))
+            .catch(() => setSettings(DEFAULT_SETTINGS));
     }, []);
 
     if (settings === undefined) {

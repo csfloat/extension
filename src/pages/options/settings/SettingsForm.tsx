@@ -1,10 +1,12 @@
-import {Card, Divider, Flex, Space, Switch, Tabs, Text, Title} from '@mantine/core';
+import {Tabs} from '@mantine/core';
 import {IconBackpack, IconBuildingStore} from '@tabler/icons-react';
-import {SettingsType} from '../utils';
-import {Controller, useForm} from 'react-hook-form';
+import {useForm} from 'react-hook-form';
 import {useEffect} from 'react';
 import {MarketSettings} from './MarketSettings';
 import {InventorySettings} from './InventorySettings';
+import {SettingsType} from '../../../settings';
+import {gStore} from '../../../lib/storage/store';
+import {StorageKey} from '../../../lib/storage/keys';
 
 interface SettingsFormProps {
     settings: SettingsType;
@@ -23,7 +25,7 @@ export const SettingsForm = ({settings}: SettingsFormProps) => {
     useEffect(() => {
         if (isDirty) {
             handleSubmit((data) => {
-                chrome.storage.local.set({'csgofloat-settings': data});
+                gStore.set<SettingsType>(StorageKey.SETTINGS, data);
                 reset(data);
             })();
         }
