@@ -11,6 +11,7 @@ import {FetchSkinModel} from './fetch_skin_model';
 import {StorageRemove} from './storage_remove';
 import {RequestType} from './types';
 import {FetchExtensionFile} from './fetch_extension_file';
+import {OpenOptionsPage} from './open_options_page';
 
 export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.EXECUTE_SCRIPT_ON_PAGE]: ExecuteScriptOnPage,
@@ -24,4 +25,5 @@ export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.FETCH_PENDING_TRADES]: FetchPendingTrades,
     [RequestType.FETCH_SKIN_MODEL]: FetchSkinModel,
     [RequestType.FETCH_EXTENSION_FILE]: FetchExtensionFile,
+    [RequestType.OPEN_OPTIONS_PAGE]: OpenOptionsPage,
 };
