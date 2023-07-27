@@ -104,36 +104,38 @@ export class SkinViewer extends FloatElement {
             return nothing;
         }
 
-        return this.isEnabled
-            ? html`
-                  <div class="btn-container">
-                      <csgofloat-steam-button
-                          .text="${this.loadingIfApplicable('3D', Showing.MODEL)}"
-                          @click="${this.toggle3D}"
-                      ></csgofloat-steam-button>
+        if (!this.isEnabled) {
+            return nothing;
+        }
 
-                      <csgofloat-steam-button
-                          .text="${this.loadingIfApplicable('Screenshot', Showing.SCREENSHOT)}"
-                          @click="${this.toggleScreenshot}"
-                      ></csgofloat-steam-button>
-                  </div>
-                  ${this.showing === Showing.MODEL && this.response?.modelLink
-                      ? html`
-                            <div>
-                                <iframe
-                                    class="iframe-3d"
-                                    src="${window.CSGOFLOAT_MODEL_FRAME_URL}?url=${this.response?.modelLink}"
-                                ></iframe>
-                            </div>
-                        `
-                      : nothing}
-                  <img
-                      class="screenshot"
-                      ?hidden="${this.showing !== Showing.SCREENSHOT || !this.response?.screenshotLink}"
-                      src="${this.response?.screenshotLink}"
-                  />
-              `
-            : nothing;
+        return html`
+            <div class="btn-container">
+                <csgofloat-steam-button
+                    .text="${this.loadingIfApplicable('3D', Showing.MODEL)}"
+                    @click="${this.toggle3D}"
+                ></csgofloat-steam-button>
+
+                <csgofloat-steam-button
+                    .text="${this.loadingIfApplicable('Screenshot', Showing.SCREENSHOT)}"
+                    @click="${this.toggleScreenshot}"
+                ></csgofloat-steam-button>
+            </div>
+            ${this.showing === Showing.MODEL && this.response?.modelLink
+                ? html`
+                      <div>
+                          <iframe
+                              class="iframe-3d"
+                              src="${window.CSGOFLOAT_MODEL_FRAME_URL}?url=${this.response?.modelLink}"
+                          ></iframe>
+                      </div>
+                  `
+                : nothing}
+            <img
+                class="screenshot"
+                ?hidden="${this.showing !== Showing.SCREENSHOT || !this.response?.screenshotLink}"
+                src="${this.response?.screenshotLink}"
+            />
+        `;
     }
 
     async fetchModel() {
