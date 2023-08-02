@@ -4,7 +4,6 @@ import {css, html, HTMLTemplateResult} from 'lit';
 import '../common/ui/steam-button';
 import './page_size';
 import './sort_listings';
-import './ad_banner';
 import '../filter/filter_container';
 
 @CustomElement()
