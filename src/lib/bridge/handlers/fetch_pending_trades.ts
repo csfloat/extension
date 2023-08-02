@@ -12,10 +12,28 @@ export interface FetchPendingTradesResponse {
 export const FetchPendingTrades = new SimpleHandler<FetchPendingTradesRequest, FetchPendingTradesResponse>(
     RequestType.FETCH_PENDING_TRADES,
     async (req) => {
-        return fetch(`https://csgofloat.com/api/v1/me/pending-trades`, {
-            credentials: 'include',
-        }).then((resp) => {
+        try {
+            const resp = await fetch(`https://csfloat.com/api/v1/me/pending-trades`, {
+                credentials: 'include',
+            });
+
+            if (resp.status !== 200) {
+                throw new Error('invalid status');
+            }
+
             return resp.json() as Promise<FetchPendingTradesResponse>;
-        });
+        } catch (e) {
+            // Try the old CSGOFloat URL (in case they have an old session from there)
+            // Of note, this can be removed ~1 week after the migration.
+            const resp = await fetch(`https://csgofloat.com/api/v1/me/pending-trades`, {
+                credentials: 'include',
+            });
+
+            if (resp.status !== 200) {
+                throw new Error('invalid status');
+            }
+
+            return resp.json();
+        }
     }
 );
