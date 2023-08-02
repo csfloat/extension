@@ -61,8 +61,9 @@ export async function init(scriptPath: string, ifPage: () => any) {
     // Don't allow the page script to run this.
     if (inPageContext()) {
         // @ts-ignore Set global identifier for other extensions to use
-        window.csgofloat = true;
         window.csfloat = true;
+        // @ts-ignore Deprecated name
+        window.csgofloat = true;
 
         ifPage();
         return;
