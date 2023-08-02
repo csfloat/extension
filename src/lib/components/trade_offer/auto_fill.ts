@@ -105,6 +105,41 @@ export class AutoFill extends FloatElement {
         `;
     }
 
+    renderBulkAutoFillDialog(rawTrades: Trade[]): HTMLTemplateResult {
+        // Remove items already included and non-pending
+        const fTrades = rawTrades
+            .filter(
+                (trade) => !g_rgCurrentTradeStatus.me.assets.find((a) => a.assetid === trade.contract.item.asset_id)
+            )
+            .filter((trade) => trade.state === TradeState.PENDING);
+
+        // Bulk implies > 1
+        if (fTrades.length <= 1) {
+            return html``;
+        }
+
+        const totalValue = fTrades.map((e) => e.contract.price).reduce((acc, e) => acc + e, 0);
+
+        return html`
+            <div class="container" style="margin: 20px 0 20px 0;">
+                <div>
+                    <div class="float-icon">
+                        <img
+                            src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/79/798a12316637ad8fbb91ddb7dc63f770b680bd19_full.jpg"
+                            style="height: 32px;"
+                        />
+                    </div>
+                    <span class="item-name"> Detected ${fTrades.length} Sales </span>
+                    <div class="sale-info">Total Value: $${(totalValue / 100).toFixed(2)}</div>
+                </div>
+                <csfloat-steam-button
+                    .text="${'Auto-Fill All Items'}"
+                    @click="${() => this.autoFillAll(fTrades)}"
+                ></csfloat-steam-button>
+            </div>
+        `;
+    }
+
     getSaleInfo(item: Item): HTMLTemplateResult {
         if (item.float_value) {
             return html`
@@ -157,12 +192,20 @@ export class AutoFill extends FloatElement {
     protected render(): HTMLTemplateResult {
         if (!this.pendingTradesResponse) return html``;
 
+        const tradesToBuyer = this.pendingTradesResponse.trades_to_send.filter(
+            (e) => e.buyer_id === UserThem?.strSteamId
+        );
+
         return html`
-            ${this.pendingTradesResponse.trades_to_send
-                .filter((e) => e.buyer_id === UserThem?.strSteamId)
-                .map((e) => this.renderAutoFillDialog(e))}
+            ${this.renderBulkAutoFillDialog(tradesToBuyer)} ${tradesToBuyer.map((e) => this.renderAutoFillDialog(e))}
             ${this.showWarningDialog()}
         `;
+    }
+
+    autoFillAll(trades: Trade[]) {
+        for (const trade of trades) {
+            this.autoFill(trade);
+        }
     }
 
     autoFill(trade: Trade) {
