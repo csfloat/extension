@@ -4,7 +4,7 @@
   </a>
 </p>
 
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/Step7750/CSGOFloat/LICENSE)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/csfloat/extension/LICENSE)
 [![Website](https://img.shields.io/website-up-down-green-red/https/csfloat.com.svg)](https://csfloat.com)
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/d/jjicbefpemnphinccgikpdaagjebbnhg.svg)](https://chrome.google.com/webstore/detail/csgofloat-market-checker/jjicbefpemnphinccgikpdaagjebbnhg)
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/stars/jjicbefpemnphinccgikpdaagjebbnhg.svg)](https://chrome.google.com/webstore/detail/csgofloat-market-checker/jjicbefpemnphinccgikpdaagjebbnhg)
@@ -36,4 +36,4 @@ Please see [`src/`](/src/README.md) for an overview of how the extension works a
 
 ## Changelog
 
-See [Releases](https://github.com/csgofloat/extension/releases) for release notes.
+See [Releases](https://github.com/csfloat/extension/releases) for release notes.
