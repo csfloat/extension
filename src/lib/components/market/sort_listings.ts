@@ -58,16 +58,16 @@ export class SortListings extends FloatElement {
 
     protected render(): HTMLTemplateResult {
         return html`
-            <csgofloat-steam-button
+            <csfloat-steam-button
                 .text="${this.computeButtonText(SortType.FLOAT)}"
                 @click="${() => this.onClick(SortType.FLOAT)}"
-            ></csgofloat-steam-button>
+            ></csfloat-steam-button>
 
             ${this.isFadeSkin
-                ? html`<csgofloat-steam-button
+                ? html`<csfloat-steam-button
                       .text="${this.computeButtonText(SortType.FADE)}"
                       @click="${() => this.onClick(SortType.FADE)}"
-                  ></csgofloat-steam-button>`
+                  ></csfloat-steam-button>`
                 : nothing}
         `;
     }

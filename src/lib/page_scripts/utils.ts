@@ -21,7 +21,7 @@ async function initiateFirefox(scriptPath: string) {
 
     // Why do we need to use manual DOM script injection and
     // fetch the text of the script?
-    // See https://github.com/csgofloat/extension/issues/155#issuecomment-1639781914
+    // See https://github.com/csfloat/extension/issues/155#issuecomment-1639781914
 
     // We want to inject the ID of the extension
     const id = browser.runtime.id;
@@ -29,8 +29,8 @@ async function initiateFirefox(scriptPath: string) {
     const entryScript = document.createElement('script');
     entryScript.appendChild(
         document.createTextNode(`
-        window.CSGOFLOAT_EXTENSION_ID = '${id}';
-        window.CSGOFLOAT_MODEL_FRAME_URL = '${modelUrl}';
+        window.CSFLOAT_EXTENSION_ID = '${id}';
+        window.CSFLOAT_MODEL_FRAME_URL = '${modelUrl}';
     `)
     );
     document.head.appendChild(entryScript);
@@ -61,6 +61,8 @@ export async function init(scriptPath: string, ifPage: () => any) {
     // Don't allow the page script to run this.
     if (inPageContext()) {
         // @ts-ignore Set global identifier for other extensions to use
+        window.csfloat = true;
+        // @ts-ignore Deprecated name
         window.csgofloat = true;
 
         ifPage();
@@ -74,11 +76,11 @@ export async function init(scriptPath: string, ifPage: () => any) {
     }
 
     console.log(
-        `%c CSGOFloat Market Checker (v${chrome.runtime.getManifest().version}) by Step7750 `,
+        `%c CSFloat Market Checker (v${chrome.runtime.getManifest().version}) by Step7750 `,
         'background: #004594; color: #fff;'
     );
     console.log(
-        '%c Changelog can be found here: https://github.com/csgofloat/extension ',
+        '%c Changelog can be found here: https://github.com/csfloat/extension ',
         'background: #004594; color: #fff;'
     );
 }

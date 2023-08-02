@@ -1,8 +1,8 @@
-.csgofloat-stickers-container {
+.csfloat-stickers-container {
     float: right;
 }
 
-.csgofloat-easy-inspect {
+.csfloat-easy-inspect {
     position: absolute;
     height: 74px;
     width: 74px;
@@ -15,18 +15,18 @@
     font-size: 20px;
 }
 
-.market_recent_listing_row:hover .csgofloat-easy-inspect {
+.market_recent_listing_row:hover .csfloat-easy-inspect {
     display: initial;
 }
 
 /* Powers animation for shining float boxes */
-.csgofloat-shine {
+.csfloat-shine {
     overflow: hidden;
 }
 
 /* Based on https://jsfiddle.net/AntonTrollback/nqQc7/ */
-.csgofloat-shine:after {
-    animation: csgofloat-shine-frames 4s ease-in-out infinite;
+.csfloat-shine:after {
+    animation: csfloat-shine-frames 4s ease-in-out infinite;
     content: '';
     position: absolute;
     top: -110%;
@@ -46,7 +46,7 @@
     );
 }
 
-@keyframes csgofloat-shine-frames {
+@keyframes csfloat-shine-frames {
     50% {
         opacity: 1;
         top: -30%;

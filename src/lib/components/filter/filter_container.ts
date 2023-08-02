@@ -36,11 +36,11 @@ export class FilterContainer extends FloatElement {
         return html`
             ${this.filters.map((filter) => {
                 return html`<div>
-                    <csgofloat-filter-view .filter="${filter}"></csgofloat-filter-view>
+                    <csfloat-filter-view .filter="${filter}"></csfloat-filter-view>
                     <hr />
                 </div>`;
             })}
-            <csgofloat-filter-creator @newFilter="${this.onNewFilter}"></csgofloat-filter-creator>
+            <csfloat-filter-creator @newFilter="${this.onNewFilter}"></csfloat-filter-creator>
         `;
     }
 

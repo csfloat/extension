@@ -58,7 +58,7 @@ export class AutoFill extends FloatElement {
             this.pendingTradesResponse = await ClientSend(FetchPendingTrades, {});
         } catch (e: any) {
             console.error(
-                'failed to fetch pending trades on CSGOFloat Market, they are likely not logged in.',
+                'failed to fetch pending trades on CSFloat Market, they are likely not logged in.',
                 e.toString()
             );
         }
@@ -74,7 +74,7 @@ export class AutoFill extends FloatElement {
 
     renderAutoFillDialog(trade: Trade): HTMLTemplateResult {
         if (trade.state !== TradeState.PENDING) {
-            // Make sure they accepted the sale on CSGOFloat first
+            // Make sure they accepted the sale on CSFloat first
             return html``;
         }
 
@@ -97,10 +97,10 @@ export class AutoFill extends FloatElement {
                     <span class="item-name"> ${item.market_hash_name} </span>
                     ${this.getSaleInfo(item)}
                 </div>
-                <csgofloat-steam-button
+                <csfloat-steam-button
                     .text="${'Auto-Fill'}"
                     @click="${() => this.autoFill(trade)}"
-                ></csgofloat-steam-button>
+                ></csfloat-steam-button>
             </div>
         `;
     }
@@ -118,9 +118,9 @@ export class AutoFill extends FloatElement {
     }
 
     /**
-     * Show a warning to users if trade includes item with csgofloat note that doesn't match an existing sale
+     * Show a warning to users if trade includes item with csfloat note that doesn't match an existing sale
      *
-     * Tries to prevent scenarios where malicious actors send offer with CSGOFloat text requesting an item
+     * Tries to prevent scenarios where malicious actors send offer with CSFloat text requesting an item
      */
     showWarningDialog(): HTMLTemplateResult {
         if (!this.hasAutoFillText()) {
@@ -146,7 +146,7 @@ export class AutoFill extends FloatElement {
                     </div>
                     <span class="item-name"> Warning! </span>
                     <div class="sale-info">
-                        Some of the items in the offer were not purchased from you on CSGOFloat Market (or you're logged
+                        Some of the items in the offer were not purchased from you on CSFloat Market (or you're logged
                         into the wrong account)
                     </div>
                 </div>
@@ -179,7 +179,7 @@ export class AutoFill extends FloatElement {
         if (note) {
             (
                 note as HTMLTextAreaElement
-            ).value = `CSGOFloat Market Trade Offer #${trade.id} \n\nThanks for using CSGOFloat!`;
+            ).value = `CSFloat Market Trade Offer #${trade.id} \n\nThanks for using CSFloat!`;
         }
     }
 
@@ -188,7 +188,9 @@ export class AutoFill extends FloatElement {
         if (tradeMessages.length > 0) {
             const sanitized = (tradeMessages[0] as HTMLElement).innerText.trim().replace(/ /g, '').toLowerCase();
 
-            return sanitized.includes('csgofloat') || sanitized.includes('floatmarket');
+            return (
+                sanitized.includes('csgofloat') || sanitized.includes('floatmarket') || sanitized.includes('csfloat')
+            );
         }
 
         return false;
