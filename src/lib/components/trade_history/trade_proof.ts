@@ -23,11 +23,11 @@ export class TradeProof extends FloatElement {
         return this.proofNumber
             ? html` <span>Proof: ${this.proofNumber}</span> `
             : html`
-                  <csgofloat-steam-button
+                  <csfloat-steam-button
                       @click="${this.onClick}"
-                      .text="${this.isProcessing ? 'Computing Proof...' : 'CSGOFloat Proof'}"
+                      .text="${this.isProcessing ? 'Computing Proof...' : 'CSFloat Proof'}"
                   >
-                  </csgofloat-steam-button>
+                  </csfloat-steam-button>
               `;
     }
 

@@ -84,7 +84,7 @@ function getFloatDbLink(info: ItemInfo, order: OrderType): string {
         }
     }
 
-    return `https://csgofloat.com/db?defIndex=${info.defindex}&paintIndex=${
+    return `https://csfloat.com/db?defIndex=${info.defindex}&paintIndex=${
         info.paintindex
     }&order=${order}&category=${getFloatDbCategory(info)}`;
 }

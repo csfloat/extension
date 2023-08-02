@@ -97,22 +97,22 @@ export class SkinViewer extends FloatElement {
 
         return html`
             <div class="btn-container">
-                <csgofloat-steam-button
+                <csfloat-steam-button
                     .text="${this.loadingIfApplicable('3D', Showing.MODEL)}"
                     @click="${this.toggle3D}"
-                ></csgofloat-steam-button>
+                ></csfloat-steam-button>
 
-                <csgofloat-steam-button
+                <csfloat-steam-button
                     .text="${this.loadingIfApplicable('Screenshot', Showing.SCREENSHOT)}"
                     @click="${this.toggleScreenshot}"
-                ></csgofloat-steam-button>
+                ></csfloat-steam-button>
             </div>
             ${this.showing === Showing.MODEL && this.response?.modelLink
                 ? html`
                       <div>
                           <iframe
                               class="iframe-3d"
-                              src="${window.CSGOFLOAT_MODEL_FRAME_URL}?url=${this.response?.modelLink}"
+                              src="${window.CSFLOAT_MODEL_FRAME_URL}?url=${this.response?.modelLink}"
                           ></iframe>
                       </div>
                   `

@@ -55,7 +55,7 @@ export class FloatElement extends LitElement {
     ];
 
     static tag(): string {
-        return `csgofloat-${camelToDashCase(this.name)}`;
+        return `csfloat-${camelToDashCase(this.name)}`;
     }
 
     static elem(): any {

@@ -37,16 +37,16 @@ export class UtilityBelt extends FloatElement {
     protected render(): HTMLTemplateResult {
         return html`
             <div class="utility-container">
-                <csgofloat-sort-listings></csgofloat-sort-listings>
-                <csgofloat-page-size class="page-selector"></csgofloat-page-size>
-                <a class="github" href="https://csgofloat.com" target="_blank">Powered by CSGOFloat</a>
+                <csfloat-sort-listings></csfloat-sort-listings>
+                <csfloat-page-size class="page-selector"></csfloat-page-size>
+                <a class="github" href="https://csfloat.com" target="_blank">Powered by CSFloat</a>
                 <hr />
-                <csgofloat-filter-container
+                <csfloat-filter-container
                     ?hidden="${!this.marketHashName}"
                     .key="${this.marketHashName}"
-                ></csgofloat-filter-container>
+                ></csfloat-filter-container>
             </div>
-            <csgofloat-ad-banner></csgofloat-ad-banner>
+            <csfloat-ad-banner></csfloat-ad-banner>
         `;
     }
 
