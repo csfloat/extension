@@ -34,6 +34,26 @@ CSGOFloat has an extension for Firefox/Chrome that lets you fetch floats directl
 
 Please see [`src/`](/src/README.md) for an overview of how the extension works and underlying tech. Contributions are welcome!
 
+### How to Build (Release)
+
+> `npm install`
+> 
+> `npm run build`
+
+The resultant build will be in the `dist/` directory.
+
+Note: You can also use `npm run build_ff` for Firefox
+
+### How to Build (Development)
+
+> `npm install`
+> 
+> `npm run start`
+
+Load the `dist/` directory as a temporary extension in Chrome. Code changes will automatically trigger a re-build.
+
+Note: You can also use `npm run start_ff` for Firefox
+
 ## Changelog
 
 See [Releases](https://github.com/csfloat/extension/releases) for release notes.
