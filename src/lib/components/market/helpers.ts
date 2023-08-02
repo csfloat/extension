@@ -21,13 +21,13 @@ export function getMarketInspectLink(listingId: string): string | undefined {
  * Inlines stickers into a market item row HTML showing the image and wear
  *
  * @param itemNameBlock Element with `.market_listing_item_name_block`
- * @param itemInfo Item Info for the item from csgofloat API
+ * @param itemInfo Item Info for the item from csfloat API
  * @param asset Steam Asset for the item
  */
 export function inlineStickers(itemNameBlock: JQuery<Element>, itemInfo: ItemInfo, asset: rgAsset) {
     if (!itemNameBlock) return;
 
-    if (itemNameBlock.find('.csgofloat-stickers-container').length) {
+    if (itemNameBlock.find('.csfloat-stickers-container').length) {
         // Don't inline stickers if they're already inlined
         return;
     }
@@ -67,7 +67,7 @@ export function inlineStickers(itemNameBlock: JQuery<Element>, itemInfo: ItemInf
         .reduce((acc, v) => acc + v, '');
 
     itemNameBlock.prepend(`
-        <div class="csgofloat-stickers-container">
+        <div class="csfloat-stickers-container">
             ${result}
         </div>
     `);
@@ -82,6 +82,6 @@ export function inlineEasyInspect(itemImgContainer: JQuery<Element>, inspectLink
     if (!itemImgContainer || !inspectLink) return;
 
     itemImgContainer.append(`
-        <a class="csgofloat-easy-inspect" href="${inspectLink}">🔍</a>
+        <a class="csfloat-easy-inspect" href="${inspectLink}">🔍</a>
     `);
 }

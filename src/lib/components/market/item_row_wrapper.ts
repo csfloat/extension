@@ -154,7 +154,7 @@ export class ItemRowWrapper extends FloatElement {
                 </div>
             `;
         } else if (this.error) {
-            return html`<div style="color: orangered">CSGOFloat ${this.error}</div>`;
+            return html`<div style="color: orangered">CSFloat ${this.error}</div>`;
         } else {
             return html`<div>Loading...</div>`;
         }

@@ -154,7 +154,7 @@ export interface CInventory {
         ShowInventoryLoadError: () => void;
         RetryLoad: () => any;
 
-        // Annotated by CSGOFloat, see {@link fallback.ts}
+        // Annotated by CSFloat, see {@link fallback.ts}
         g_ShowInventoryLoadError: () => void;
         g_AddInventoryData: (data: any) => void;
         g_GetInventoryLoadURL: () => string;

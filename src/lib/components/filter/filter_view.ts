@@ -46,18 +46,18 @@ export class FilterView extends FloatElement {
                     value="${this.filter.getColour()}"
                 />
                 <div class="expression">${this.filter.getExpression()}</div>
-                <csgofloat-steam-button
+                <csfloat-steam-button
                     .text="${'Global'}"
                     .type="${this.filter.getIsGlobal() ? 'green_white' : 'grey_white'}"
                     @click="${this.onToggleGlobal}"
                     class="global-btn"
-                ></csgofloat-steam-button>
-                <csgofloat-steam-button
+                ></csfloat-steam-button>
+                <csfloat-steam-button
                     .text="${'Remove'}"
                     .type="${'grey_white'}"
                     @click="${this.onRemove}"
                     class="remove-btn"
-                ></csgofloat-steam-button>
+                ></csfloat-steam-button>
             </div>
         `;
     }

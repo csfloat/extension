@@ -25,7 +25,7 @@ export async function ClientSend<Req, Resp>(handler: RequestHandler<Req, Resp>, 
         return new Promise((resolve, reject) => {
             // @ts-ignore Bad types
             runtimeNamespace().runtime.sendMessage(
-                window.CSGOFLOAT_EXTENSION_ID || chrome.runtime.id,
+                window.CSFLOAT_EXTENSION_ID || chrome.runtime.id,
                 bundle,
                 // @ts-ignore Bad types
                 (resp: InternalResponseBundle) => {
