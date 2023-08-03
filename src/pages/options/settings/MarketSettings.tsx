@@ -1,12 +1,16 @@
-import {Card, Divider, Flex, Space, Switch, Text, Title} from '@mantine/core';
-import {Control, Controller} from 'react-hook-form';
-import {SettingsType} from '../../../settings';
+import {Card, Divider, Flex, Skeleton, Space, Switch, Text, Title} from '@mantine/core';
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import {GetSetting, SetSetting, Settings} from '../../../settings';
 
-interface MarketSettingsProps {
-    control: Control<SettingsType>;
-}
+export const MarketSettings = () => {
+    const queryClient = useQueryClient();
 
-export const MarketSettings = ({control}: MarketSettingsProps) => {
+    const query = useQuery({queryKey: ['3d-screenshot-buttons'], queryFn: () => GetSetting('3d-screenshot-buttons')});
+    const mutation = useMutation<void, unknown, Settings['3d-screenshot-buttons']>({
+        mutationFn: (value) => SetSetting('3d-screenshot-buttons', value),
+        onSuccess: () => queryClient.invalidateQueries(['3d-screenshot-buttons']),
+    });
+
     return (
         <Card>
             <Flex direction="column">
@@ -17,18 +21,21 @@ export const MarketSettings = ({control}: MarketSettingsProps) => {
             <Space h="sm" />
 
             <Flex gap="xl">
-                <Flex direction="column" w={500}>
-                    <Title order={6}>3D/Screenshot Buttons</Title>
-                    <Text fz="xs">
-                        Shows buttons under a listing to quickly view 3d model or screenshot of the specific item.
-                    </Text>
-                </Flex>
+                {query.isLoading ? (
+                    <Skeleton height={8} />
+                ) : (
+                    <>
+                        <Flex direction="column" w={500}>
+                            <Title order={6}>3D/Screenshot Buttons</Title>
+                            <Text fz="xs">
+                                Shows buttons under a listing to quickly view 3d model or screenshot of the specific
+                                item.
+                            </Text>
+                        </Flex>
 
-                <Controller
-                    control={control}
-                    name="market.3d-screenshot-buttons"
-                    render={({field: {value, ...rest}}) => <Switch checked={value} {...rest} />}
-                />
+                        <Switch checked={query.data} onChange={(e) => mutation.mutate(e.currentTarget.checked)} />
+                    </>
+                )}
             </Flex>
         </Card>
     );

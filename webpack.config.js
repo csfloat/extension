@@ -75,6 +75,13 @@ module.exports = (env) => {
                     },
                     exclude: /node_modules/,
                 },
+                // For some reason, we need this in order to use @tanstack/react-query
+                {
+                    test: /\.m?js$/,
+                    resolve: {
+                        fullySpecified: false,
+                    },
+                },
             ],
         },
         plugins: [

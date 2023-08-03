@@ -1,24 +1,20 @@
-import {Loader} from '@mantine/core';
-import {useEffect, useState} from 'react';
+import {Tabs} from '@mantine/core';
 
-import {SettingsForm} from './SettingsForm';
-import {DEFAULT_SETTINGS, SettingsType} from '../../../settings';
-import {gStore} from '../../../lib/storage/store';
-import {StorageKey} from '../../../lib/storage/keys';
+import {IconBuildingStore} from '@tabler/icons-react';
+import {MarketSettings} from './MarketSettings';
 
 export const SettingsPage = () => {
-    const [settings, setSettings] = useState<SettingsType>();
+    return (
+        <Tabs defaultValue="market">
+            <Tabs.List>
+                <Tabs.Tab value="market" icon={<IconBuildingStore size="0.8rem" />}>
+                    Market
+                </Tabs.Tab>
+            </Tabs.List>
 
-    useEffect(() => {
-        gStore
-            .get<SettingsType>(StorageKey.SETTINGS)
-            .then((settings) => setSettings({...DEFAULT_SETTINGS, ...(settings || {})}))
-            .catch(() => setSettings(DEFAULT_SETTINGS));
-    }, []);
-
-    if (settings === undefined) {
-        return <Loader />;
-    }
-
-    return <SettingsForm settings={settings} />;
+            <Tabs.Panel value="market" pt="xs">
+                <MarketSettings />
+            </Tabs.Panel>
+        </Tabs>
+    );
 };

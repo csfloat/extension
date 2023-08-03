@@ -11,4 +11,6 @@ export enum RequestType {
     FETCH_SKIN_MODEL,
     FETCH_EXTENSION_FILE,
     OPEN_OPTIONS_PAGE,
+    SETTINGS_GET,
+    SETTINGS_SET,
 }
