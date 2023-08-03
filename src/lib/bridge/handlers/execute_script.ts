@@ -17,8 +17,8 @@ export const ExecuteScriptOnPage = new PrivilegedHandler(
             world: 'MAIN',
             args: [chrome.runtime.id, chrome.runtime.getURL('src/model_frame.html')],
             func: function ExtensionId(extensionId, modelFrameUrl) {
-                window.CSGOFLOAT_EXTENSION_ID = extensionId;
-                window.CSGOFLOAT_MODEL_FRAME_URL = modelFrameUrl;
+                window.CSFLOAT_EXTENSION_ID = extensionId;
+                window.CSFLOAT_MODEL_FRAME_URL = modelFrameUrl;
             },
         });
 

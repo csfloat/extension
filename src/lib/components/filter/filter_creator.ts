@@ -90,14 +90,14 @@ export class FilterCreator extends FloatElement {
             >
                 ${this.error ? 'X' : '✓'}
             </div>
-            <csgofloat-steam-button
+            <csfloat-steam-button
                 ?hidden="${this.error || !this.expression}"
                 class="add-btn"
                 .text="${'Add Filter'}"
                 @click="${this.onAddFilter}"
-            ></csgofloat-steam-button>
+            ></csfloat-steam-button>
             <div class="compile-error">${(this.expression && this.error) || nothing}</div>
-            <csgofloat-filter-help ?hidden="${!this.showHelp}"></csgofloat-filter-help>
+            <csfloat-filter-help ?hidden="${!this.showHelp}"></csfloat-filter-help>
         `;
     }
 

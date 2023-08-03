@@ -33,7 +33,7 @@ Typically, only being able to access the DOM (ie. HTML env) of the page is not e
 changes to the page for your extension.
 
 Historically, many extensions would use on-demand script injection into the page in order to retrieve a variable,
-call a function, or mutate page-JS state. This is what our extension [used to do](https://github.com/csgofloat/extension/blob/ca85d56e3b268330537daf6bc6be7837213cc7a4/lib/bridge.js)
+call a function, or mutate page-JS state. This is what our extension [used to do](https://github.com/csfloat/extension/blob/ca85d56e3b268330537daf6bc6be7837213cc7a4/lib/bridge.js)
 and what others like CSGO-Trader [currently do](https://github.com/gergelyszabo94/csgo-trader-extension/blob/216df0e4eb6c481c893426d2324b93da026e92d3/extension/src/utils/injection.js#L4) (as of 2022/10/01).
 
 Pros
@@ -50,13 +50,13 @@ Cons
 Since Steam's Content Security Policy restrictions are applied to the content script's AJAX requests, typically event messaging to the background
 script is done. The background script is not restricted and will perform the request for us and send back the result.
 
-This is the mechanism you'd need to use whenever you fetch an HTTPS resource (like `https://api.csgofloat.com`).
+This is the mechanism you'd need to use whenever you fetch an HTTPS resource (like `https://api.csfloat.com`).
 
 A naiive example would be:
 
 `content_script.js`
 ```javascript
-chrome.runtime.sendMessage({type1: 'https://api.csgofloat.com/?url=steam://....'}, (response) => {
+chrome.runtime.sendMessage({type1: 'https://api.csfloat.com/?url=steam://....'}, (response) => {
     // do something
 });
 ```
@@ -81,11 +81,11 @@ Cons
 * Type-checking is _hard_, easy to lose context of what you expect a request to return
 
 
-### How CSGOFloat's Extension Works
+### How CSFloat's Extension Works
 
 #### Accessing the Page's JS runtime
 
-Almost the entirety of CSGOFloat's Extension runs within the page context and **not** the content script.
+Almost the entirety of CSFloat's Extension runs within the page context and **not** the content script.
 
 This allows us to easily access page globals, call Steam's functions, override their functions. Additionally, this gives a clear
 consistent environment to think about as a developer.
@@ -99,7 +99,7 @@ script. This effectively tells Chrome to re-run the script, but in the page inst
 Now that our scripts run within the page, we still want to be able to make AJAX requests to other domains outside of
 Steam's Content Security Policy.
 
-CSGOFloat's Extension similarly uses the mechanism of making the actual request in a background script, but
+CSFloat's Extension similarly uses the mechanism of making the actual request in a background script, but
 creates an abstraction layer on top.
 
 Dubbed the "bridge", it allows for **type safe** request and response handling between the page and background script.
@@ -117,7 +117,7 @@ You can find more details in `/bridge`.
 When try to mutate a page, you also want the ability to create new UI components, potentially _reusing_ the styling
 on the page. For example, you'd create a component that shows the float for a given item.
 
-CSGOFloat's Extension uses Web Components via the library [Lit](https://lit.dev/). Each UI mutation is a separate
+CSFloat's Extension uses Web Components via the library [Lit](https://lit.dev/). Each UI mutation is a separate
 component that has its own state management and rendering logic.
 
 You can find our components in `/components`.

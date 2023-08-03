@@ -27,7 +27,7 @@ function convertToFirefoxManifest(manifest) {
     };
     cp.browser_specific_settings = {
         gecko: {
-            id: 'ff_extension@csgofloat.com',
+            id: '{194d0dc6-7ada-41c6-88b8-95d7636fe43c}',
             strict_min_version: '109.0',
         },
     };

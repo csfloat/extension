@@ -1,9 +1,9 @@
 {
     "manifest_version": 3,
-    "name": "CSGOFloat Market Checker",
-    "short_name": "CSGOFloat",
-    "version": "3.1.0",
-    "description": "Dedicated API for fetching the float value, paint seed, and screenshots of CS:GO items on the Steam Market or Inventories",
+    "name": "CSFloat Market Checker",
+    "short_name": "CSFloat",
+    "version": "3.2.0",
+    "description": "Shows the float value, paint seed, and screenshots of Counter-Strike (CS:GO & CS2) items on the Steam Market or Inventories",
     "icons": {
         "16": "icons/16.png",
         "48": "icons/48.png",

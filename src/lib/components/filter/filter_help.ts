@@ -11,7 +11,7 @@ export class FilterHelp extends FloatElement {
 
             <b>Note: </b> If multiple filters match an item, it will be highlighted with the average colour<br><br>
 
-            <b>New: </b> You can now filter based on <a href="https://db.csgofloat.com">FloatDB</a> ranks and item price!<br><br>
+            <b>New: </b> You can now filter based on <a href="https://db.csfloat.com">FloatDB</a> ranks and item price!<br><br>
 
             <b>Examples: </b>
             <ul>

@@ -97,7 +97,7 @@ export class SelectedItemInfo extends FloatElement {
                 <div>Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}</div>
                 <div>Paint Seed: ${formatSeed(this.itemInfo)}</div>
                 ${fadePercentage !== undefined ? html`<div>Fade: ${floor(fadePercentage, 5)}%</div>` : nothing}
-                ${this.renderListOnCSGOFloat()} ${this.renderFloatMarketListing()}
+                ${this.renderListOnCSFloat()} ${this.renderFloatMarketListing()}
             </div>
         `;
     }
@@ -109,8 +109,8 @@ export class SelectedItemInfo extends FloatElement {
 
         return html`
             <div class="market-btn-container">
-                <a class="market-btn" href="https://csgofloat.com/item/${this.stallListing.id}" target="_blank">
-                    <img src="https://csgofloat.com/assets/full_logo.png" height="21" style="margin-right: 5px;" />
+                <a class="market-btn" href="https://csfloat.com/item/${this.stallListing.id}" target="_blank">
+                    <img src="https://csfloat.com/assets/full_logo.png" height="21" style="margin-right: 5px;" />
                     <span>
                         Listed for
                         <b>$${(this.stallListing.price / 100).toFixed(2)}</b>
@@ -120,7 +120,7 @@ export class SelectedItemInfo extends FloatElement {
         `;
     }
 
-    renderListOnCSGOFloat(): TemplateResult<1> {
+    renderListOnCSFloat(): TemplateResult<1> {
         if (this.stallListing) {
             // Don't tell them to list it if it's already listed...
             return html``;
@@ -133,9 +133,9 @@ export class SelectedItemInfo extends FloatElement {
 
         return html`
             <div class="market-btn-container">
-                <a class="market-btn" href="https://csgofloat.com" target="_blank">
+                <a class="market-btn" href="https://csfloat.com" target="_blank">
                     <span>List on </span>
-                    <img src="https://csgofloat.com/assets/full_logo.png" height="21" style="margin-left: 5px;" />
+                    <img src="https://csfloat.com/assets/full_logo.png" height="21" style="margin-left: 5px;" />
                 </a>
             </div>
         `;

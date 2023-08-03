@@ -1,5 +1,5 @@
 /**
- * Types related to CSGOFloat Market
+ * Types related to CSFloat Market
  */
 
 export interface Item {

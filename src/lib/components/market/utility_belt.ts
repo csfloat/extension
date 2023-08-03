@@ -4,7 +4,6 @@ import {css, html, HTMLTemplateResult} from 'lit';
 import '../common/ui/steam-button';
 import './page_size';
 import './sort_listings';
-import './ad_banner';
 import '../filter/filter_container';
 import {ClientSend} from '../../bridge/client';
 import {OpenOptionsPage} from '../../bridge/handlers/open_options_page';
@@ -58,9 +57,9 @@ export class UtilityBelt extends FloatElement {
         return html`
             <div class="utility-container">
                 <div class="buttons-container">
-                    <csgofloat-sort-listings></csgofloat-sort-listings>
-                    <csgofloat-page-size class="page-selector"></csgofloat-page-size>
-                    <a class="github" href="https://csgofloat.com" target="_blank">Powered by CSGOFloat</a>
+                    <csfloat-sort-listings></csfloat-sort-listings>
+                    <csfloat-page-size class="page-selector"></csfloat-page-size>
+                    <a class="github" href="https://csfloat.com" target="_blank">Powered by CSFloat</a>
                     <a class="settings-icon-wrapper" @click="${() => ClientSend(OpenOptionsPage, undefined)}">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -83,12 +82,12 @@ export class UtilityBelt extends FloatElement {
                     </a>
                 </div>
                 <hr />
-                <csgofloat-filter-container
+                <csfloat-filter-container
                     ?hidden="${!this.marketHashName}"
                     .key="${this.marketHashName}"
-                ></csgofloat-filter-container>
+                ></csfloat-filter-container>
             </div>
-            <csgofloat-ad-banner></csgofloat-ad-banner>
+            <csfloat-ad-banner></csfloat-ad-banner>
         `;
     }
 
