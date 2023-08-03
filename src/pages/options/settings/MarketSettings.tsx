@@ -15,7 +15,7 @@ export const MarketSettings = () => {
         <Card>
             <Flex direction="column">
                 <Title order={4}>Market Settings</Title>
-                <Text fz="xs">Configure CSGOFloat Market Checker features in the market page and its listings.</Text>
+                <Text fz="xs">Configure CSFloat Market Checker features in the market page and its listings.</Text>
             </Flex>
 
             <Space h="sm" />

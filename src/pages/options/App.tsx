@@ -57,7 +57,7 @@ export const App = () => {
             header={
                 <Header height={60} p="xs">
                     <Group pl="md">
-                        <Image width={160} src="https://csgofloat.com/assets/full_logo.png" alt="CSGOFloat Logo" />
+                        <Image width={160} src="https://csfloat.com/assets/full_logo.png" alt="CSFloat Logo" />
                         <Title order={2}>Market Checker</Title>
                     </Group>
                 </Header>
