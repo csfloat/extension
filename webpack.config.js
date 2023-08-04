@@ -31,6 +31,9 @@ function convertToFirefoxManifest(manifest) {
             strict_min_version: '109.0',
         },
     };
+    cp.options_ui = {
+        page: 'src/pages/options/index.html',
+    };
     return cp;
 }
 
