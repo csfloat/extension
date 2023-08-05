@@ -110,7 +110,7 @@ export class SelectedItemInfo extends FloatElement {
         return html`
             <div class="market-btn-container">
                 <a class="market-btn" href="https://csfloat.com/item/${this.stallListing.id}" target="_blank">
-                    <img src="https://csfloat.com/assets/full_logo.png" height="21" style="margin-right: 5px;" />
+                    <img src="https://csfloat.com/assets/n_full_logo.png" height="21" style="margin-right: 5px;" />
                     <span>
                         Listed for
                         <b>$${(this.stallListing.price / 100).toFixed(2)}</b>
@@ -135,7 +135,7 @@ export class SelectedItemInfo extends FloatElement {
             <div class="market-btn-container">
                 <a class="market-btn" href="https://csfloat.com" target="_blank">
                     <span>List on </span>
-                    <img src="https://csfloat.com/assets/full_logo.png" height="21" style="margin-left: 5px;" />
+                    <img src="https://csfloat.com/assets/n_full_logo.png" height="21" style="margin-left: 5px;" />
                 </a>
             </div>
         `;
