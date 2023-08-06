@@ -22,7 +22,7 @@ import {useState} from 'react';
 
 const ALL_PAGE_IDS = ['settings'] as const;
 
-type PageId = typeof ALL_PAGE_IDS[number];
+type PageId = (typeof ALL_PAGE_IDS)[number];
 
 const pageIdToComponent = (pageId: PageId) => {
     switch (pageId) {
@@ -57,7 +57,7 @@ export const App = () => {
             header={
                 <Header height={60} p="xs">
                     <Group pl="md">
-                        <Image width={160} src="https://csfloat.com/assets/full_logo.png" alt="CSFloat Logo" />
+                        <Image width={130} src="https://csfloat.com/assets/n_full_logo.png" alt="CSFloat Logo" />
                         <Title order={2}>Market Checker</Title>
                     </Group>
                 </Header>
