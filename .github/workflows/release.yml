@@ -1,26 +1,26 @@
 name: Extension Release
 
 on:
-    workflow_dispatch:
-        inputs:
-            version:
-                description: 'Version'
-                required: true
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version'
+        required: true
 
 jobs:
-    release:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Update manifest/package.json version
-              run: |
-                  jq '.version = $ENV.VERSION' manifest.json
-                  jq '.version = $ENV.VERSION' package.json
-                  jq '.version = $ENV.VERSION | .packages."".version = $ENV.VERSION' package-lock.json
-              env:
-                  VERSION: ${{ inputs.version }}
+  release:
+    runs-on: ubuntu-latest
+      steps:
+        - name: Update manifest/package.json version
+          run: |
+            jq '.version = $ENV.VERSION' manifest.json
+            jq '.version = $ENV.VERSION' package.json
+            jq '.version = $ENV.VERSION | .packages."".version = $ENV.VERSION' package-lock.json
+          env:
+            VERSION: ${{ inputs.version }}
 
-            - name: Add and commit
-              uses: EndBug/add-and-commit@v9
-              with:
-                  message: 'Bumps Version to v${{ inputs.version }}'
-                  tag: 'v${{ inputs.version }}'
+        - name: Add and commit
+          uses: EndBug/add-and-commit@v9
+          with:
+            message: 'Bumps Version to v${{ inputs.version }}'
+            tag: 'v${{ inputs.version }}'
