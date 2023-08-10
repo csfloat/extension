@@ -1,0 +1,17 @@
+name: Extension Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version'
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Version: $VERSION"
+        env:
+          VERSION: ${{ inputs.version }}
