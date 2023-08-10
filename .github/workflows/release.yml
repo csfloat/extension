@@ -1,3 +1,5 @@
+name: Extension Release
+
 on:
     workflow_dispatch:
         inputs:
@@ -10,7 +12,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Update manifest/package.json version
-            - run: |
+              run: |
                   jq '.version = $ENV.VERSION' manifest.json
                   jq '.version = $ENV.VERSION' package.json
                   jq '.version = $ENV.VERSION | .packages."".version = $ENV.VERSION' package-lock.json
@@ -18,7 +20,7 @@ jobs:
                   VERSION: ${{ inputs.version }}
 
             - name: Add and commit
-            - uses: EndBug/add-and-commit@v9
+              uses: EndBug/add-and-commit@v9
               with:
                   message: 'Bumps Version to v${{ inputs.version }}'
                   tag: 'v${{ inputs.version }}'
