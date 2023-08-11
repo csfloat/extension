@@ -41,7 +41,7 @@ module.exports = (env) => {
             getPathEntries('./src/lib/page_scripts/*.ts'),
             getPathEntries('./src/lib/types/*.d.ts'),
             getPathEntries('./src/background.ts'),
-            getPathEntries('./src/**/*.js'),
+            getPathEntries('./src/**/*.js')
         ),
         output: {
             path: path.join(__dirname, 'dist'),
