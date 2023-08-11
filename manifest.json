@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "CSFloat Market Checker",
   "short_name": "CSFloat",
-  "version": "9.0.0",
+  "version": "10.0.0",
   "description": "Shows the float value, paint seed, and screenshots of Counter-Strike (CS:GO & CS2) items on the Steam Market or Inventories",
   "icons": {
     "16": "icons/16.png",
