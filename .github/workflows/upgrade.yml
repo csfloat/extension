@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version'
+        description: Version
         required: true
 
 jobs:
@@ -29,13 +29,13 @@ jobs:
       - name: Add and commit
         uses: EndBug/add-and-commit@v9
         with:
-          message: 'Bumps Version to v${{ inputs.version }}'
-          tag: 'v${{ inputs.version }}'
+          message: "Bumps Version to v${{ inputs.version }}"
+          tag: "v${{ inputs.version }}"
 
       - name: Prettify code
         uses: creyD/prettier_action@v4.3
         with:
-          prettier_options: "--tab-width 4"
+          prettier_options: "--tab-width 4 --write manifest.json package.json package-lock.json"
           same_commit: true
 
       - name: Push changes
