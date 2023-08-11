@@ -20,17 +20,18 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - run: |
+      - name: Build and compress
+        run: |
           npm install
           npm run build
           zip -r extension-chrome.zip dist
           npm run build_ff
           zip -r extension-firefox.zip dist
 
-        - uses: "marvinpinto/action-automatic-releases@latest"
-          with:
-            repo_token: "${{ secrets.GITHUB_TOKEN }}"
-            prerelease: false
-            files: |
-              extension-chrome.zip
-              extension-firefox.zip
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          files: |
+            extension-chrome.zip
+            extension-firefox.zip
