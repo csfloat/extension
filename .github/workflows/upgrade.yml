@@ -10,11 +10,6 @@ on:
 jobs:
   upgrade:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [16.x]
-
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v3
@@ -30,11 +25,20 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
 
-      - name: Add and commit
-        uses: EndBug/add-and-commit@v9
-        with:
-          message: 'Bumps Version to v${{ inputs.version }}'
-          tag: 'v${{ inputs.version }}'
+      - name: Create Pull Request
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git checkout -b "${BRANCH_NAME}"
+          git add .
+          git commit -m "Bumps Version to v${VERSION}"
+          git tag "v${VERSION}"
+          git push --set-upstream origin "${BRANCH_NAME}"
+          gh pr create -B master -H "${BRANCH_NAME}" --title "Bumps Version to v${VERSION}"
+        env:
+          VERSION: ${{ inputs.version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: version-bump/${{ inputs.version }}
 
       - name: Prettify code
         uses: creyD/prettier_action@v4.3
@@ -46,25 +50,3 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
-
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Build and compress
-        run: |
-          npm install
-          npm run build
-          zip -r extension-chrome.zip dist
-          npm run build_ff
-          zip -r extension-firefox.zip dist
-
-      - name: Release
-        uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: false
-          files: |
-            extension-chrome.zip
-            extension-firefox.zip
