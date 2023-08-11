@@ -14,7 +14,7 @@ jobs:
       - name: Checkout Branch
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           fetch-depth: 0
 
       - name: Update manifest/package.json version
@@ -40,5 +40,5 @@ jobs:
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.PAT }}
+          github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           branch: ${{ github.ref }}
