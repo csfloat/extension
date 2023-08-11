@@ -34,7 +34,7 @@ jobs:
           git commit -m "Bumps Version to v${VERSION}"
           git tag "v${VERSION}"
           git push --set-upstream origin "${BRANCH_NAME}"
-          gh pr create -B master -H "${BRANCH_NAME}" --title "Bumps Version to v${VERSION}"
+          gh pr create -B master -H "${BRANCH_NAME}" --title "Bumps Version to v${VERSION}" --body "Bumps Version to v${VERSION}"
         env:
           VERSION: ${{ inputs.version }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
