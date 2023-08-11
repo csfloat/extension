@@ -23,6 +23,9 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
 
+      - name: Prettify code
+        uses: creyD/prettier_action@v4.3
+
       - name: Add and commit
         uses: EndBug/add-and-commit@v9
         with:
