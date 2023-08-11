@@ -16,6 +16,7 @@ jobs:
 
       - name: Update manifest/package.json version
         run: |
+          ./version-check.sh
           jq '.version = $ENV.VERSION' manifest.json
           jq '.version = $ENV.VERSION' package.json
           jq '.version = $ENV.VERSION | .packages."".version = $ENV.VERSION' package-lock.json
@@ -27,3 +28,9 @@ jobs:
         with:
           message: 'Bumps Version to v${{ inputs.version }}'
           tag: 'v${{ inputs.version }}'
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
