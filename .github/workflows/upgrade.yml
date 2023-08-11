@@ -25,29 +25,19 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
 
-      - name: Commit and Add
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git checkout -b "${BRANCH_NAME}"
-          git add .
-          git commit -m "Bumps Version to v${VERSION}"
-        env:
-          VERSION: ${{ inputs.version }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH_NAME: version-bump/${{ inputs.version }}
+      - name: Add and commit
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: 'Bumps Version to v${{ inputs.version }}'
+          tag: 'v${{ inputs.version }}'
 
       - name: Prettify code
         uses: creyD/prettier_action@v4.3
         with:
           same_commit: true
 
-      - name: Create Pull Request
-        run: |
-          git tag "v${VERSION}"
-          git push --set-upstream origin "${BRANCH_NAME}"
-          gh pr create -B master -H "${BRANCH_NAME}" --title "Bumps Version to v${VERSION}" --body "Bumps Version to v${VERSION}"
-        env:
-          VERSION: ${{ inputs.version }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH_NAME: version-bump/${{ inputs.version }}
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.PAT }}
+          branch: ${{ github.ref }}
