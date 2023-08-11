@@ -10,6 +10,11 @@ on:
 jobs:
   upgrade:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x]
+
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v3
@@ -41,3 +46,25 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Build and compress
+        run: |
+          npm install
+          npm run build
+          zip -r extension-chrome.zip dist
+          npm run build_ff
+          zip -r extension-firefox.zip dist
+
+      - name: Release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          files: |
+            extension-chrome.zip
+            extension-firefox.zip
