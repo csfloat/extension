@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Update manifest/package.json version
         run: |
@@ -23,14 +25,16 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
 
-      - name: Prettify code
-        uses: creyD/prettier_action@v4.3
-
       - name: Add and commit
         uses: EndBug/add-and-commit@v9
         with:
           message: 'Bumps Version to v${{ inputs.version }}'
           tag: 'v${{ inputs.version }}'
+
+      - name: Prettify code
+        uses: creyD/prettier_action@v4.3
+        with:
+          same_commit: true
 
       - name: Push changes
         uses: ad-m/github-push-action@master
