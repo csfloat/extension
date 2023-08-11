@@ -1,4 +1,4 @@
-name: Extension Release
+name: Extension Upgrade
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ on:
         required: true
 
 jobs:
-  release:
+  upgrade:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Branch
