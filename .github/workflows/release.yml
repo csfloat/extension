@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version'
+        description: "Version"
         required: true
 
 jobs:
@@ -23,11 +23,15 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
 
-      - name: Add and commit
-        uses: EndBug/add-and-commit@v9
-        with:
-          message: 'Bumps Version to v${{ inputs.version }}'
-          tag: 'v${{ inputs.version }}'
+      - name: Add, commit, and tag
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Bumps Version to v$VERSION"
+          git tag "v$VERSION"
+        env:
+          VERSION: ${{ inputs.version }}
 
       - name: Push changes
         uses: ad-m/github-push-action@master
