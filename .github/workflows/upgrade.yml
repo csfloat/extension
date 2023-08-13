@@ -33,7 +33,7 @@ jobs:
           jq '.version = $ENV.VERSION' package.json > tmp && mv tmp package.json
           jq '.version = $ENV.VERSION | .packages."".version = $ENV.VERSION' package-lock.json > tmp && mv tmp package-lock.json
           npm install
-          npm run format
+          npx prettier --write manifest.json package.json package-lock.json
         env:
           VERSION: ${{ inputs.version }}
 
