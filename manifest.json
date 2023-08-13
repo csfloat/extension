@@ -1,57 +1,90 @@
 {
-    "manifest_version": 3,
-    "name": "CSFloat Market Checker",
-    "short_name": "CSFloat",
-    "version": "3.2.0",
-    "description": "Shows the float value, paint seed, and screenshots of Counter-Strike (CS:GO & CS2) items on the Steam Market or Inventories",
-    "icons": {
-        "16": "icons/16.png",
-        "48": "icons/48.png",
-        "128": "icons/128.png"
+  "manifest_version": 3,
+  "name": "CSFloat Market Checker",
+  "short_name": "CSFloat",
+  "version": "22.0.0",
+  "description": "Shows the float value, paint seed, and screenshots of Counter-Strike (CS:GO & CS2) items on the Steam Market or Inventories",
+  "icons": {
+    "16": "icons/16.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.steamcommunity.com/market/listings/730/*"
+      ],
+      "js": [
+        "src/lib/page_scripts/market_listing.js"
+      ],
+      "css": [
+        "src/global.css"
+      ]
     },
-    "content_scripts": [
-        {
-            "matches": ["*://*.steamcommunity.com/market/listings/730/*"],
-            "js": ["src/lib/page_scripts/market_listing.js"],
-            "css": ["src/global.css"]
-        },
-        {
-            "matches": [
-                "*://*.steamcommunity.com/id/*/tradehistory*",
-                "*://*.steamcommunity.com/profiles/*/tradehistory*"
-            ],
-            "js": ["src/lib/page_scripts/trade_history.js"],
-            "css": ["src/global.css"]
-        },
-        {
-            "matches": ["*://*.steamcommunity.com/id/*/inventory*", "*://*.steamcommunity.com/profiles/*/inventory*"],
-            "js": ["src/lib/page_scripts/inventory.js"],
-            "css": ["src/global.css"]
-        },
-        {
-            "matches": ["*://*.steamcommunity.com/tradeoffer/*"],
-            "js": ["src/lib/page_scripts/trade_offer.js"],
-            "css": ["src/global.css"]
-        }
-    ],
-    "background": {
-        "service_worker": "src/background.js",
-        "type": "module"
-    },
-    "permissions": ["storage", "scripting"],
-    "host_permissions": [
-        "*://*.steamcommunity.com/market/listings/730/*",
-        "*://*.steamcommunity.com/id/*/inventory*",
+    {
+      "matches": [
         "*://*.steamcommunity.com/id/*/tradehistory*",
-        "*://*.steamcommunity.com/profiles/*/inventory*"
-    ],
-    "externally_connectable": {
-        "matches": ["*://*.steamcommunity.com/*"]
+        "*://*.steamcommunity.com/profiles/*/tradehistory*"
+      ],
+      "js": [
+        "src/lib/page_scripts/trade_history.js"
+      ],
+      "css": [
+        "src/global.css"
+      ]
     },
-    "web_accessible_resources": [
-        {
-            "resources": ["src/model_frame.html", "src/model_frame.js"],
-            "matches": ["https://steamcommunity.com/*"]
-        }
+    {
+      "matches": [
+        "*://*.steamcommunity.com/id/*/inventory*",
+        "*://*.steamcommunity.com/profiles/*/inventory*"
+      ],
+      "js": [
+        "src/lib/page_scripts/inventory.js"
+      ],
+      "css": [
+        "src/global.css"
+      ]
+    },
+    {
+      "matches": [
+        "*://*.steamcommunity.com/tradeoffer/*"
+      ],
+      "js": [
+        "src/lib/page_scripts/trade_offer.js"
+      ],
+      "css": [
+        "src/global.css"
+      ]
+    }
+  ],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*.steamcommunity.com/market/listings/730/*",
+    "*://*.steamcommunity.com/id/*/inventory*",
+    "*://*.steamcommunity.com/id/*/tradehistory*",
+    "*://*.steamcommunity.com/profiles/*/inventory*"
+  ],
+  "externally_connectable": {
+    "matches": [
+      "*://*.steamcommunity.com/*"
     ]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/model_frame.html",
+        "src/model_frame.js"
+      ],
+      "matches": [
+        "https://steamcommunity.com/*"
+      ]
+    }
+  ]
 }
