@@ -10,6 +10,11 @@ on:
 jobs:
   upgrade:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x]
+
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v3
@@ -17,12 +22,18 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           fetch-depth: 0
 
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
       - name: Update manifest/package.json version
         run: |
           ./scripts/version-check.sh
           jq '.version = $ENV.VERSION' manifest.json > tmp && mv tmp manifest.json
           jq '.version = $ENV.VERSION' package.json > tmp && mv tmp package.json
           jq '.version = $ENV.VERSION | .packages."".version = $ENV.VERSION' package-lock.json > tmp && mv tmp package-lock.json
+          npm install
+          npm run format
         env:
           VERSION: ${{ inputs.version }}
 
@@ -31,12 +42,6 @@ jobs:
         with:
           message: "Bumps Version to v${{ inputs.version }}"
           tag: "v${{ inputs.version }}"
-
-      - name: Prettify code
-        uses: creyD/prettier_action@v4.3
-        with:
-          prettier_options: "--tab-width 4 --single-quote --no-bracket-spacing --print-width 120 --write package-lock.json package.json manifest.json"
-          same_commit: true
 
       - name: Push changes
         uses: ad-m/github-push-action@master
