@@ -19,7 +19,7 @@ jobs:
 
       - name: Update manifest/package.json version
         run: |
-          ./version-check.sh
+          ./scripts/version-check.sh
           jq '.version = $ENV.VERSION' manifest.json > tmp && mv tmp manifest.json
           jq '.version = $ENV.VERSION' package.json > tmp && mv tmp package.json
           jq '.version = $ENV.VERSION | .packages."".version = $ENV.VERSION' package-lock.json > tmp && mv tmp package-lock.json

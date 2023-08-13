@@ -1,4 +1,4 @@
-CURRENT_VERSION=$(jq '.version' manifest.json | tr -d '"')
+CURRENT_VERSION=$(jq '.version' ../manifest.json | tr -d '"')
 NEW_VERSION="$VERSION"
 
 if ! echo "$CURRENT_VERSION" | grep -Eq '^[0-9]+.[0-9]+.[0-9]+$'; then

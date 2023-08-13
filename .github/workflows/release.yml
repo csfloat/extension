@@ -25,6 +25,7 @@ jobs:
           npm install
           npm run build
           zip -r extension-chrome.zip dist
+          rm -rf dist
           npm run build_ff
           zip -r extension-firefox.zip dist
 
