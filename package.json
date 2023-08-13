@@ -1,60 +1,60 @@
 {
-    "name": "csfloat-extension",
-    "version": "3.2.0",
-    "description": "Dedicated API for fetching the float value, paint seed, and screenshots of CS:GO items on the Steam Market or Inventories",
-    "main": ".eslintrc",
-    "directories": {
-        "lib": "src/lib"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/csfloat/extension.git"
-    },
-    "scripts": {
-        "build": "webpack --env mode=prod browser=chrome --config webpack.config.js --stats-error-details",
-        "build_ff": "webpack --env mode=prod browser=firefox --config webpack.config.js --stats-error-details",
-        "start": "webpack --env mode=development browser=chrome --config webpack.config.js --stats-error-details --watch",
-        "start_ff": "webpack --env mode=development browser=firefox --config webpack.config.js --stats-error-details --watch",
-        "lint": "eslint --ignore-path .lintignore --ext .js,.ts .",
-        "format": "prettier --ignore-path .lintignore --write \"**/*.+(js|ts|json)\"",
-        "checkformat": "prettier --ignore-path .lintignore --check \"**/*.+(js|ts|json)\""
-    },
-    "author": "step7750",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/csfloat/extension/issues"
-    },
-    "homepage": "https://github.com/csfloat/extension#readme",
-    "devDependencies": {
-        "@types/chrome": "^0.0.193",
-        "@types/firefox-webext-browser": "^111.0.1",
-        "@types/jquery": "^3.5.14",
-        "@types/lodash": "^4.14.195",
-        "@typescript-eslint/eslint-plugin": "^5.39.0",
-        "@typescript-eslint/parser": "^5.39.0",
-        "copy-webpack-plugin": "^11.0.0",
-        "csgo-fade-percentage-calculator": "^1.1.2",
-        "css-loader": "^6.7.1",
-        "decorator-cache-getter": "^1.0.0",
-        "eslint": "8.22.0",
-        "eslint-config-prettier": "^8.5.0",
-        "fast-json-stable-stringify": "^2.1.0",
-        "file-loader": "^6.2.0",
-        "filtrex": "^3.0.0",
-        "glob": "^8.0.3",
-        "html-loader": "^4.1.0",
-        "ignore-loader": "^0.1.2",
-        "lit": "^2.3.0",
-        "lit-html": "^2.3.1",
-        "lodash": "^4.17.21",
-        "lodash-decorators": "^6.0.1",
-        "mini-css-extract-plugin": "^2.6.1",
-        "prettier": "^2.7.1",
-        "rxjs": "^7.5.7",
-        "sass-loader": "^13.0.2",
-        "ts-loader": "^9.3.1",
-        "typescript": "^4.7.4",
-        "webpack": "^5.74.0",
-        "webpack-cli": "^4.10.0"
-    }
+  "name": "csfloat-extension",
+  "version": "21.0.0",
+  "description": "Dedicated API for fetching the float value, paint seed, and screenshots of CS:GO items on the Steam Market or Inventories",
+  "main": ".eslintrc",
+  "directories": {
+    "lib": "src/lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/csfloat/extension.git"
+  },
+  "scripts": {
+    "build": "webpack --env mode=prod browser=chrome --config webpack.config.js --stats-error-details",
+    "build_ff": "webpack --env mode=prod browser=firefox --config webpack.config.js --stats-error-details",
+    "start": "webpack --env mode=development browser=chrome --config webpack.config.js --stats-error-details --watch",
+    "start_ff": "webpack --env mode=development browser=firefox --config webpack.config.js --stats-error-details --watch",
+    "lint": "eslint --ignore-path .lintignore --ext .js,.ts .",
+    "format": "prettier --ignore-path .lintignore --write \"**/*.+(js|ts|json)\"",
+    "checkformat": "prettier --ignore-path .lintignore --check \"**/*.+(js|ts|json)\""
+  },
+  "author": "step7750",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/csfloat/extension/issues"
+  },
+  "homepage": "https://github.com/csfloat/extension#readme",
+  "devDependencies": {
+    "@types/chrome": "^0.0.193",
+    "@types/firefox-webext-browser": "^111.0.1",
+    "@types/jquery": "^3.5.14",
+    "@types/lodash": "^4.14.195",
+    "@typescript-eslint/eslint-plugin": "^5.39.0",
+    "@typescript-eslint/parser": "^5.39.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "csgo-fade-percentage-calculator": "^1.1.2",
+    "css-loader": "^6.7.1",
+    "decorator-cache-getter": "^1.0.0",
+    "eslint": "8.22.0",
+    "eslint-config-prettier": "^8.5.0",
+    "fast-json-stable-stringify": "^2.1.0",
+    "file-loader": "^6.2.0",
+    "filtrex": "^3.0.0",
+    "glob": "^8.0.3",
+    "html-loader": "^4.1.0",
+    "ignore-loader": "^0.1.2",
+    "lit": "^2.3.0",
+    "lit-html": "^2.3.1",
+    "lodash": "^4.17.21",
+    "lodash-decorators": "^6.0.1",
+    "mini-css-extract-plugin": "^2.6.1",
+    "prettier": "^2.7.1",
+    "rxjs": "^7.5.7",
+    "sass-loader": "^13.0.2",
+    "ts-loader": "^9.3.1",
+    "typescript": "^4.7.4",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  }
 }
