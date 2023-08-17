@@ -1,0 +1,50 @@
+name: Extension Upgrade
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version
+        required: true
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x]
+
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Update manifest/package.json version
+        run: |
+          ./scripts/version-check.sh
+          jq '.version = $ENV.VERSION' manifest.json > tmp && mv tmp manifest.json
+          jq '.version = $ENV.VERSION' package.json > tmp && mv tmp package.json
+          jq '.version = $ENV.VERSION | .packages."".version = $ENV.VERSION' package-lock.json > tmp && mv tmp package-lock.json
+          npm install
+          npx prettier --write manifest.json package.json package-lock.json
+        env:
+          VERSION: ${{ inputs.version }}
+
+      - name: Add and commit
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: "Bumps Version to v${{ inputs.version }}"
+          tag: "v${{ inputs.version }}"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          branch: ${{ github.ref }}
