@@ -54,7 +54,7 @@ Load the `dist/` directory as a temporary extension in Chrome. Code changes will
 
 Note: You can also use `npm run start_ff` for Firefox
 
-## Releasing
+## Releases
 
 If you're ready to release a new version of the extension, the process of automatically packaging for each browser
 is handled for you!
