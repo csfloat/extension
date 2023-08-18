@@ -28,7 +28,6 @@ jobs:
           rm -rf dist
           npm run build_ff
           (cd dist && zip -r ../extension-firefox.zip .)
-          zip -r extension-firefox.zip dist/*
 
       - uses: "marvinpinto/action-automatic-releases@v1.2.1"
         with:
