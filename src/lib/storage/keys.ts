@@ -1,7 +1,7 @@
 /**
  * Keys for use as the raw "key" in local/sync storage for a row
  */
-import {StoredSettings} from '../../settings';
+import {type StoredSettings} from '../../settings';
 import {SerializedFilter} from '../filter/types';
 
 export enum StorageKey {
