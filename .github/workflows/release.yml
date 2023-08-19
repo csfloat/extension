@@ -24,10 +24,10 @@ jobs:
         run: |
           npm install
           npm run build
-          zip -r extension-chrome.zip dist
+          (cd dist && zip -r ../extension-chrome.zip .)
           rm -rf dist
           npm run build_ff
-          zip -r extension-firefox.zip dist
+          (cd dist && zip -r ../extension-firefox.zip .)
 
       - uses: "marvinpinto/action-automatic-releases@v1.2.1"
         with:
