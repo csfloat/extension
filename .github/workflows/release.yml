@@ -1,0 +1,38 @@
+name: Extension Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: "ubuntu-latest"
+
+    strategy:
+      matrix:
+        node-version: [16.x]
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Build and compress
+        run: |
+          npm install
+          npm run build
+          (cd dist && zip -r ../extension-chrome.zip .)
+          rm -rf dist
+          npm run build_ff
+          (cd dist && zip -r ../extension-firefox.zip .)
+
+      - uses: "marvinpinto/action-automatic-releases@v1.2.1"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          files: |
+            extension-chrome.zip
+            extension-firefox.zip
