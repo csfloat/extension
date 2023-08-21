@@ -29,4 +29,4 @@ jobs:
     
     - name: Check Circular Dependencies
       run: |
-        npx --yes madge --circular --extensions ts ./
+        npx dpdm --no-warning --no-tree --exit-code circular:1 ./
