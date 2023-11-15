@@ -39,7 +39,8 @@ export class PageSize extends FloatElement {
         // ie. "https://steamcommunity.com/market/listings/730/AK-47%20%7C%20Slate%20%28Field-Tested%29?start=100&count=100"
         // Steam already has a bug that pagination doesn't work when setting this.
         if (size && !hasQueryParameter('start')) {
-            this.changePageSize(size);
+            // Temporarily disable changing page size (https://twitter.com/csfloatcom/status/1724684828388610091)
+            // this.changePageSize(size);
         }
     }
 
