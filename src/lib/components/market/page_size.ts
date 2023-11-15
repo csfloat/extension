@@ -51,7 +51,7 @@ export class PageSize extends FloatElement {
     changePageSize(newSize: number) {
         this.selectedSize = newSize;
         g_oSearchResults.m_cPageSize = newSize;
-        g_oSearchResults.GoToPage(0, false);
+        g_oSearchResults.GoToPage(0, true);
 
         Set<number>(PAGE_SIZE, newSize);
     }
