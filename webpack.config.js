@@ -1,7 +1,9 @@
 const path = require('path');
 const glob = require('glob');
+const fs = require('fs');
 const CopyPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
 
 const CHROME_KEY =
@@ -29,6 +31,9 @@ function convertToFirefoxManifest(manifest) {
             strict_min_version: '109.0',
         },
     };
+    cp.options_ui = {
+        page: 'src/pages/options/index.html',
+    };
     return cp;
 }
 
@@ -42,18 +47,22 @@ module.exports = (env) => {
             getPathEntries('./src/lib/types/*.d.ts'),
             getPathEntries('./src/background.ts'),
             getPathEntries('./src/**/*.js'),
+            getPathEntries('./src/pages/**/*.tsx')
         ),
         output: {
             path: path.join(__dirname, 'dist'),
             filename: '[name].js',
         },
         resolve: {
-            extensions: ['.ts', '.js', '.html'],
+            alias: {
+                process: 'process/browser',
+            },
+            extensions: ['.ts', '.js', '.html', '.tsx'],
         },
         module: {
             rules: [
                 {
-                    test: /\.ts$/,
+                    test: /\.(ts|tsx)$/,
                     loader: 'ts-loader',
                     exclude: /node_modules|\.d\.ts$/,
                 },
@@ -69,9 +78,19 @@ module.exports = (env) => {
                     },
                     exclude: /node_modules/,
                 },
+                // For some reason, we need this in order to use @tanstack/react-query
+                {
+                    test: /\.m?js$/,
+                    resolve: {
+                        fullySpecified: false,
+                    },
+                },
             ],
         },
         plugins: [
+            new webpack.ProvidePlugin({
+                process: 'process/browser',
+            }),
             new MiniCssExtractPlugin(),
             new webpack.SourceMapDevToolPlugin({}),
             new CopyPlugin({
@@ -101,6 +120,15 @@ module.exports = (env) => {
                     },
                 ],
             }),
+            ...fs.readdirSync(path.join(__dirname, 'src', 'pages')).map(
+                (pageName) =>
+                    new HtmlWebpackPlugin({
+                        template: path.join(__dirname, 'src', 'pages', pageName, 'index.html'),
+                        filename: `./src/pages/${pageName}/index.html`,
+                        chunks: [`./src/pages/${pageName}/index`],
+                        cache: false,
+                    })
+            ),
         ],
         stats: {
             errorDetails: true,

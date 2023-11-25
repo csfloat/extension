@@ -1,6 +1,7 @@
 /**
  * Keys for use as the raw "key" in local/sync storage for a row
  */
+import {StoredSettings} from '../../settings';
 import {SerializedFilter} from '../filter/types';
 
 export enum StorageKey {
@@ -8,6 +9,7 @@ export enum StorageKey {
     PAGE_SIZE = 'pageSize',
     ITEM_FILTERS = 'expressions',
     GLOBAL_FILTERS = 'global',
+    SETTINGS = 'settings',
 }
 
 export type DynamicStorageKey = string;
@@ -45,3 +47,4 @@ export const PAGE_SIZE = newRow<number>(StorageKey.PAGE_SIZE);
 // Dynamic prefixes should be the market hash name of the item
 export const DYNAMIC_ITEM_FILTERS = newDynamicRow<SerializedFilter[]>(StorageKey.ITEM_FILTERS);
 export const GLOBAL_FILTERS = newRow<SerializedFilter[]>(StorageKey.GLOBAL_FILTERS);
+export const SETTINGS = newRow<StoredSettings>(StorageKey.SETTINGS);

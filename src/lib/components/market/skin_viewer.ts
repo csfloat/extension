@@ -11,6 +11,7 @@ import {getMarketInspectLink} from './helpers';
 import {rgAsset, ListingData} from '../../types/steam';
 import {AppId, ContextId} from '../../types/steam_constants';
 import {isSkin} from '../../utils/skin';
+import {Get} from '../../bridge/handlers/settings_get';
 
 enum Showing {
     NONE,
@@ -74,8 +75,13 @@ export class SkinViewer extends FloatElement {
     @state()
     private showing: Showing = Showing.NONE;
 
+    @state()
+    private isEnabled = false;
+
     async connectedCallback() {
         super.connectedCallback();
+
+        this.isEnabled = await Get('3d-screenshot-buttons');
     }
 
     loadingIfApplicable(text: string, type: Showing) {
@@ -92,6 +98,10 @@ export class SkinViewer extends FloatElement {
         }
 
         if (this.asset && !isSkin(this.asset)) {
+            return nothing;
+        }
+
+        if (!this.isEnabled) {
             return nothing;
         }
 

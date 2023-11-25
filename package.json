@@ -30,6 +30,8 @@
         "@types/firefox-webext-browser": "^111.0.1",
         "@types/jquery": "^3.5.14",
         "@types/lodash": "^4.14.195",
+        "@types/react": "^18.2.18",
+        "@types/react-dom": "^18.2.7",
         "@typescript-eslint/eslint-plugin": "^5.39.0",
         "@typescript-eslint/parser": "^5.39.0",
         "copy-webpack-plugin": "^11.0.0",
@@ -43,6 +45,7 @@
         "filtrex": "^3.0.0",
         "glob": "^8.0.3",
         "html-loader": "^4.1.0",
+        "html-webpack-plugin": "^5.5.3",
         "ignore-loader": "^0.1.2",
         "lit": "^2.3.0",
         "lit-html": "^2.3.1",
@@ -50,11 +53,21 @@
         "lodash-decorators": "^6.0.1",
         "mini-css-extract-plugin": "^2.6.1",
         "prettier": "^2.7.1",
+        "process": "^0.11.10",
         "rxjs": "^7.5.7",
         "sass-loader": "^13.0.2",
         "ts-loader": "^9.3.1",
         "typescript": "^4.7.4",
         "webpack": "^5.74.0",
         "webpack-cli": "^4.10.0"
+    },
+    "dependencies": {
+        "@emotion/react": "^11.11.1",
+        "@mantine/core": "^6.0.17",
+        "@mantine/hooks": "^6.0.17",
+        "@tabler/icons-react": "^2.30.0",
+        "@tanstack/react-query": "^4.32.1",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0"
     }
 }
