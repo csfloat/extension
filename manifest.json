@@ -52,6 +52,10 @@
         {
             "resources": ["src/model_frame.html", "src/model_frame.js"],
             "matches": ["https://steamcommunity.com/*"]
+        },
+        {
+            "resources": ["src/version.txt"],
+            "matches": ["https://csfloat.com/*"]
         }
     ]
 }
