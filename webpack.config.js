@@ -118,6 +118,15 @@ module.exports = (env) => {
                             return JSON.stringify(processed, null, 2);
                         },
                     },
+                    {
+                        from: 'manifest.json',
+                        to: 'src/version.txt',
+                        transform(raw) {
+                            let processed = JSON.parse(raw.toString());
+
+                            return processed.version;
+                        },
+                    },
                 ],
             }),
             ...fs.readdirSync(path.join(__dirname, 'src', 'pages')).map(

@@ -1,5 +1,5 @@
 import {SimpleHandler} from './main';
-import {Contract, User} from '../../types/float_market';
+import {Contract} from '../../types/float_market';
 import {RequestType} from './types';
 
 export interface FetchStallRequest {
@@ -7,8 +7,7 @@ export interface FetchStallRequest {
 }
 
 export interface FetchStallResponse {
-    listings?: Contract[];
-    user?: User;
+    data?: Contract[];
 }
 
 export interface FetchStallResponseError {

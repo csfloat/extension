@@ -52,6 +52,18 @@ Load the `dist/` directory as a temporary extension in Chrome. Code changes will
 
 Note: You can also use `npm run start_ff` for Firefox
 
+## Releases
+
+If you're ready to release a new version of the extension, the process of automatically packaging for each browser
+is handled for you!
+
+Steps
+* Go to the [`upgrade.yml`](https://github.com/csfloat/extension/actions/workflows/upgrade.yml) Workflow
+* Click "Run Workflow"
+* Set the version to the next version (X.X.X)
+  * NOTE: Do not prepend "v" in front of the version
+* Click "Run Workflow" (Green) 
+
 ## Changelog
 
 See [Releases](https://github.com/csfloat/extension/releases) for release notes.

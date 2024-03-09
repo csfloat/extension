@@ -12,7 +12,7 @@ class StallFetcher extends SimpleCachedQueue<FetchStallRequest, FetchStallRespon
             return await ClientSend(FetchStall, req);
         } catch (e) {
             // Stub out to prevent future calls
-            return {listings: []};
+            return {data: []};
         }
     }
 }

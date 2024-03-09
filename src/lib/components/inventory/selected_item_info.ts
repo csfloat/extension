@@ -78,7 +78,7 @@ export class SelectedItemInfo extends FloatElement {
             return;
         }
 
-        return (this.stall.listings || []).find((e) => e.item.asset_id === this.asset?.assetid);
+        return (this.stall.data || []).find((e) => e.item.asset_id === this.asset?.assetid);
     }
 
     protected render(): HTMLTemplateResult {
