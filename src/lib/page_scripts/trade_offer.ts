@@ -7,7 +7,6 @@ import {deserializeForm} from '../utils/browser';
 import {AppId} from '../types/steam_constants';
 import {ClientSend} from '../bridge/client';
 import {AnnotateOffer} from '../bridge/handlers/annotate_offer';
-import {of} from 'rxjs';
 
 init('src/lib/page_scripts/trade_offer.js', main);
 
