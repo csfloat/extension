@@ -11,6 +11,7 @@ import {StorageRemove} from './storage_remove';
 import {RequestType} from './types';
 import {FetchExtensionFile} from './fetch_extension_file';
 import {AnnotateOffer} from './annotate_offer';
+import {ExtensionVersion} from './extension_version';
 
 export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.EXECUTE_SCRIPT_ON_PAGE]: ExecuteScriptOnPage,
@@ -24,4 +25,5 @@ export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.FETCH_SKIN_MODEL]: FetchSkinModel,
     [RequestType.FETCH_EXTENSION_FILE]: FetchExtensionFile,
     [RequestType.ANNOTATE_OFFER]: AnnotateOffer,
+    [RequestType.EXTENSION_VERSION]: ExtensionVersion,
 };
