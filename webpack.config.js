@@ -29,6 +29,12 @@ function convertToFirefoxManifest(manifest) {
             strict_min_version: '109.0',
         },
     };
+    // Allow getting the extension version from CSFloat page in Firefox
+    cp.content_scripts.push({
+        matches: ['*://*.csfloat.com/*'],
+        js: ['src/lib/page_scripts/csfloat.js'],
+    });
+    cp.host_permissions.push('*://*.csfloat.com/*');
     return cp;
 }
 
