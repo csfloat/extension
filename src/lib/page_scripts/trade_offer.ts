@@ -3,10 +3,16 @@ import '../components/trade_offer/trade_item_holder_metadata';
 import '../components/trade_offer/auto_fill';
 import {ClassIdAndInstanceId, rgDescription, rgInventoryAsset, TradeInventory} from '../types/steam';
 import {fetchRegisteredSteamAPIKey} from '../utils/key';
+import {deserializeForm} from '../utils/browser';
+import {AppId} from '../types/steam_constants';
+import {ClientSend} from '../bridge/client';
+import {AnnotateOffer} from '../bridge/handlers/annotate_offer';
+import {of} from 'rxjs';
 
 init('src/lib/page_scripts/trade_offer.js', main);
 
 async function main() {
+    injectAnnotateOffer();
     injectInventoryFallback();
 }
 
@@ -116,4 +122,60 @@ function injectInventoryFallback() {
             fOnComplete
         );
     };
+}
+
+interface JsonTradeofferAsset {
+    appid: number;
+    contextid: string;
+    amount: number;
+    assetid: string;
+}
+
+interface JsonTradeoffer {
+    me: {
+        assets: JsonTradeofferAsset[];
+    };
+    them: {
+        assets: JsonTradeofferAsset[];
+    };
+    version: number;
+}
+
+function injectAnnotateOffer() {
+    // Annotate offers for use in CSFloat Market, if the user isn't logged into CSFloat this does nothing
+    // Similarly if they don't have an active sale, it does nothing
+    $J(document).on('ajaxComplete', async (event, request, settings) => {
+        if (!settings.url.includes('tradeoffer/new/send')) {
+            // Ignore requests that aren't a new trade offer
+            return;
+        }
+
+        const offer_id = request?.responseJSON?.tradeofferid;
+
+        if (!offer_id) {
+            // Something wrong with the format
+            return;
+        }
+
+        let assets_to_send: string[] = [];
+        let assets_to_receive: string[] = [];
+        const deserialized = deserializeForm(settings.data) as {json_tradeoffer?: string};
+
+        if (deserialized && deserialized.json_tradeoffer) {
+            try {
+                const parsed = JSON.parse(deserialized.json_tradeoffer) as JsonTradeoffer;
+                assets_to_send = parsed.me.assets.filter((e) => e.appid === AppId.CSGO).map((e) => e.assetid);
+                assets_to_receive = parsed.them.assets.filter((e) => e.appid === AppId.CSGO).map((e) => e.assetid);
+            } catch (e) {
+                console.error('failed to parse json tradeoffer', e, deserialized.json_tradeoffer);
+                // Still proceed with annotating the offer id on a best-effort
+            }
+        }
+
+        await ClientSend(AnnotateOffer, {
+            assets_to_send,
+            assets_to_receive,
+            offer_id: offer_id,
+        });
+    });
 }
