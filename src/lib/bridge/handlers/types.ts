@@ -13,4 +13,5 @@ export enum RequestType {
     EXTENSION_VERSION,
     SEND_COOKIES,
     HAS_PERMISSIONS,
+    META_SETTINGS,
 }

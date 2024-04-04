@@ -7,6 +7,7 @@ import {ClientSend} from '../../bridge/client';
 import {state} from 'lit/decorators.js';
 import {FetchPendingTrades} from '../../bridge/handlers/fetch_pending_trades';
 import {HasPermissions} from '../../bridge/handlers/has_permissions';
+import {MetaSettings} from '../../bridge/handlers/meta_settings';
 
 @CustomElement()
 @InjectAfter(
@@ -56,6 +57,11 @@ export class AutoTrackWidget extends FloatElement {
         super.connectedCallback();
 
         try {
+            const meta = await ClientSend(MetaSettings, {});
+            if (!meta.enable_auto_trade) {
+                return;
+            }
+
             await ClientSend(FetchPendingTrades, {});
 
             const hasPermissions = await ClientSend(HasPermissions, {permissions: ['cookies', 'alarms']});
@@ -63,7 +69,7 @@ export class AutoTrackWidget extends FloatElement {
                 this.show = true;
             }
         } catch (e) {
-            console.info('user is not logged into CSFloat');
+            console.info('user is not logged into CSFloat or something went wrong');
         }
     }
 
