@@ -20,7 +20,17 @@ function unifiedHandler(request: any, sender: MessageSender, sendResponse: (resp
         });
 }
 
+function requestPermissions(permissions: string[], sendResponse: any) {
+    chrome.permissions.request({permissions}, (granted) => sendResponse(granted));
+
+    return true;
+}
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.message === 'requestPermissions') {
+        return requestPermissions(request.permissions, sendResponse);
+    }
+
     unifiedHandler(request, sender, sendResponse);
     return true;
 });

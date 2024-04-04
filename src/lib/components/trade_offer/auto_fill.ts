@@ -9,7 +9,6 @@ import {Observe} from '../../utils/observers';
 
 import '../common/ui/steam-button';
 import {AppId, ContextId} from '../../types/steam_constants';
-import {SendCookies} from '../../bridge/handlers/send_cookies';
 
 @CustomElement()
 @InjectBefore('div.trade_area')
@@ -106,31 +105,6 @@ export class AutoFill extends FloatElement {
         `;
     }
 
-    renderAutoManageTradeOffers() {
-        return html`
-            <div class="container" style="margin: 20px 0 20px 0;">
-                <div>
-                    <div class="float-icon">
-                        <img
-                            src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/79/798a12316637ad8fbb91ddb7dc63f770b680bd19_full.jpg"
-                            style="height: 32px;"
-                        />
-                    </div>
-                    <span class="item-name"> Automatically Create Offers </span>
-                    <div class="sale-info">Allow CSFloat to automatically track and create offers.</div>
-                </div>
-                <csfloat-steam-button
-                    .text="${'Enable Auto Trading'}"
-                    @click="${() => this.enableAutoTrading()}"
-                ></csfloat-steam-button>
-            </div>
-        `;
-    }
-
-    async enableAutoTrading() {
-        await ClientSend(SendCookies, {});
-    }
-
     renderBulkAutoFillDialog(rawTrades: Trade[]): HTMLTemplateResult {
         // Remove items already included and non-pending
         const fTrades = rawTrades
@@ -224,7 +198,7 @@ export class AutoFill extends FloatElement {
 
         return html`
             ${this.renderBulkAutoFillDialog(tradesToBuyer)} ${tradesToBuyer.map((e) => this.renderAutoFillDialog(e))}
-            ${this.showWarningDialog()} ${this.renderAutoManageTradeOffers()}
+            ${this.showWarningDialog()}
         `;
     }
 

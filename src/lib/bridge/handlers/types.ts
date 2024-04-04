@@ -12,4 +12,5 @@ export enum RequestType {
     ANNOTATE_OFFER,
     EXTENSION_VERSION,
     SEND_COOKIES,
+    HAS_PERMISSIONS,
 }

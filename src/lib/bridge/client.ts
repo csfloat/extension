@@ -2,6 +2,7 @@ import {InternalRequestBundle, InternalResponseBundle, RequestHandler, Version} 
 import {isFirefox, runtimeNamespace} from '../utils/detect';
 import {inPageContext} from '../utils/snips';
 import {g_PostMessageBus} from '../bus/post_message_bus';
+import {DeferredPromise} from '../utils/deferred_promise';
 
 function canUseSendMessage() {
     // Not supported in Firefox Page Context
@@ -22,21 +23,23 @@ export async function ClientSend<Req, Resp>(handler: RequestHandler<Req, Resp>, 
     };
 
     if (canUseSendMessage()) {
-        return new Promise((resolve, reject) => {
+        const promise = new DeferredPromise<Resp>();
+
+        // @ts-ignore Bad types
+        runtimeNamespace().runtime.sendMessage(
+            window.CSFLOAT_EXTENSION_ID || chrome.runtime.id,
+            bundle,
             // @ts-ignore Bad types
-            runtimeNamespace().runtime.sendMessage(
-                window.CSFLOAT_EXTENSION_ID || chrome.runtime.id,
-                bundle,
-                // @ts-ignore Bad types
-                (resp: InternalResponseBundle) => {
-                    if (resp?.response) {
-                        resolve(resp.response);
-                    } else {
-                        reject(resp?.error);
-                    }
+            (resp: InternalResponseBundle) => {
+                if (resp?.response) {
+                    promise.resolve(resp.response);
+                } else {
+                    promise.reject(resp?.error);
                 }
-            );
-        });
+            }
+        );
+
+        return promise.promise();
     } else {
         // Fallback to postmessage bus for browsers that don't implement
         // specs fully
