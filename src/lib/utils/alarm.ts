@@ -9,7 +9,7 @@ export async function setupCookieAlarm(initial = false) {
         permissions: ['alarms', 'cookies'],
     })) as boolean;
 
-    if (!granted) {
+    if (!granted || !chrome.alarms) {
         return;
     }
 
@@ -32,7 +32,7 @@ export async function setupCookieAlarm(initial = false) {
 }
 
 function createAlarmListener() {
-    chrome.alarms.onAlarm.addListener(async (alarm) => {
+    chrome.alarms?.onAlarm?.addListener(async (alarm) => {
         if (alarm.name !== COOKIE_ALARM_NAME) {
             return;
         }
