@@ -39,6 +39,8 @@
         "type": "module"
     },
     "permissions": ["storage", "scripting"],
+    "optional_permissions": ["cookies"],
+    "optional_host_permissions": ["https://steamcommunity.com/"],
     "host_permissions": [
         "*://*.steamcommunity.com/market/listings/730/*",
         "*://*.steamcommunity.com/id/*/inventory*",

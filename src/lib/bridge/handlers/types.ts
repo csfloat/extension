@@ -11,4 +11,5 @@ export enum RequestType {
     FETCH_EXTENSION_FILE,
     ANNOTATE_OFFER,
     EXTENSION_VERSION,
+    SEND_COOKIES,
 }
