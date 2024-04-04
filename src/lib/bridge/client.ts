@@ -27,7 +27,7 @@ export async function ClientSend<Req, Resp>(handler: RequestHandler<Req, Resp>, 
 
         // @ts-ignore Bad types
         runtimeNamespace().runtime.sendMessage(
-            window.CSFLOAT_EXTENSION_ID || chrome.runtime.id,
+            (typeof window !== 'undefined' && window.CSFLOAT_EXTENSION_ID) || chrome.runtime.id,
             bundle,
             // @ts-ignore Bad types
             (resp: InternalResponseBundle) => {

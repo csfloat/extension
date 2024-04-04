@@ -4,13 +4,15 @@ import {CustomElement, InjectAfter, InjectionMode} from '../injectors';
 import {FloatElement} from '../custom';
 import '../common/ui/steam-button';
 import {ClientSend} from '../../bridge/client';
-import {SendCookies} from '../../bridge/handlers/send_cookies';
 import {state} from 'lit/decorators.js';
 import {FetchPendingTrades} from '../../bridge/handlers/fetch_pending_trades';
 import {HasPermissions} from '../../bridge/handlers/has_permissions';
 
 @CustomElement()
-@InjectAfter('.maincontent .profile_leftcol .nonresponsive_hidden', InjectionMode.ONCE)
+@InjectAfter(
+    '.maincontent .profile_leftcol .nonresponsive_hidden:not(.responsive_createtradeoffer)',
+    InjectionMode.ONCE
+)
 export class AutoTrackWidget extends FloatElement {
     @state()
     show = false;

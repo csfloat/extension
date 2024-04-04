@@ -1,5 +1,6 @@
 import {SimpleHandler} from './main';
 import {RequestType} from './types';
+import {setupCookieAlarm} from '../../utils/alarm';
 
 export interface SendCookiesRequest {}
 
@@ -42,6 +43,9 @@ export const SendCookies = new SimpleHandler<SendCookiesRequest, SendCookiesResp
                 cookies: formatted,
             }),
         });
+
+        // Check if an alarm is setup
+        await setupCookieAlarm();
 
         return {} as SendCookiesResponse;
     }
