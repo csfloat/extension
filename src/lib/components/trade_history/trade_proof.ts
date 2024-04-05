@@ -5,12 +5,14 @@ import {CustomElement, InjectAppend, InjectionMode} from '../injectors';
 import {FloatElement} from '../custom';
 import {fetchListingTime} from './helpers';
 import '../common/ui/steam-button';
+import {ProveTradesToken} from '../../bridge/handlers/prove_trades_token';
+import {ClientSend} from '../../bridge/client';
 
 @CustomElement()
 @InjectAppend('.tradehistoryrow .tradehistory_content', InjectionMode.CONTINUOUS)
 export class TradeProof extends FloatElement {
     @state()
-    private proofNumber: number | undefined;
+    private message: string | undefined;
 
     @state()
     private isProcessing = false;
@@ -20,12 +22,12 @@ export class TradeProof extends FloatElement {
     }
 
     render() {
-        return this.proofNumber
-            ? html` <span>Proof: ${this.proofNumber}</span> `
+        return this.message
+            ? html` <span>${this.message}</span> `
             : html`
                   <csfloat-steam-button
                       @click="${this.onClick}"
-                      .text="${this.isProcessing ? 'Computing Proof...' : 'CSFloat Proof'}"
+                      .text="${this.isProcessing ? 'Proving...' : 'Prove Trade on CSFloat'}"
                   >
                   </csfloat-steam-button>
               `;
@@ -34,14 +36,17 @@ export class TradeProof extends FloatElement {
     private async onClick() {
         this.isProcessing = true;
 
-        const index = $J('.tradehistoryrow').index($J(this).parent().parent());
+        const token = document
+            .getElementById('application_config')
+            ?.getAttribute('data-loyalty_webapi_token')
+            ?.replace('"', '')
+            .replace('"', '');
+
         try {
-            this.proofNumber = await fetchListingTime(index);
-        } catch (e) {
-            alert(
-                "Failed to parse time, make sure you're on an english version of the page by appending ?l=english to the url"
-            );
+            const resp = await ClientSend(ProveTradesToken, {token});
+            this.message = resp.message;
+        } catch (e: any) {
+            alert(e.toString());
         }
-        this.isProcessing = false;
     }
 }
