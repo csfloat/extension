@@ -12,10 +12,6 @@ import {RequestType} from './types';
 import {FetchExtensionFile} from './fetch_extension_file';
 import {AnnotateOffer} from './annotate_offer';
 import {ExtensionVersion} from './extension_version';
-import {SendCookies} from './send_cookies';
-import {HasPermissions} from './has_permissions';
-import {MetaSettings} from './meta_settings';
-import {ProveTradesToken} from './prove_trades_token';
 
 export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.EXECUTE_SCRIPT_ON_PAGE]: ExecuteScriptOnPage,
@@ -30,8 +26,4 @@ export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.FETCH_EXTENSION_FILE]: FetchExtensionFile,
     [RequestType.ANNOTATE_OFFER]: AnnotateOffer,
     [RequestType.EXTENSION_VERSION]: ExtensionVersion,
-    [RequestType.SEND_COOKIES]: SendCookies,
-    [RequestType.HAS_PERMISSIONS]: HasPermissions,
-    [RequestType.META_SETTINGS]: MetaSettings,
-    [RequestType.PROVE_TRADES_TOKEN]: ProveTradesToken,
 };
