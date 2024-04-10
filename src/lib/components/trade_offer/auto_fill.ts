@@ -163,7 +163,7 @@ export class AutoFill extends FloatElement {
         }
 
         const hasItemWithNoSale = g_rgCurrentTradeStatus.me.assets.find(
-            (a) => !this.pendingTradesResponse?.trades_to_send.find((b) => b.contract.item.asset_id === a.assetid)
+            (a) => !this.pendingTradesResponse?.trades.find((b) => b.contract.item.asset_id === a.assetid)
         );
 
         if (!hasItemWithNoSale) {
@@ -192,9 +192,7 @@ export class AutoFill extends FloatElement {
     protected render(): HTMLTemplateResult {
         if (!this.pendingTradesResponse) return html``;
 
-        const tradesToBuyer = this.pendingTradesResponse.trades_to_send.filter(
-            (e) => e.buyer_id === UserThem?.strSteamId
-        );
+        const tradesToBuyer = this.pendingTradesResponse.trades.filter((e) => e.buyer_id === UserThem?.strSteamId);
 
         return html`
             ${this.renderBulkAutoFillDialog(tradesToBuyer)} ${tradesToBuyer.map((e) => this.renderAutoFillDialog(e))}
