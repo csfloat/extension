@@ -2,8 +2,8 @@ import {SimpleHandler} from './main';
 import {RequestType} from './types';
 
 export interface AnnotateOfferRequest {
-    assets_to_send: string[];
-    assets_to_receive: string[];
+    given_asset_ids: string[];
+    received_asset_ids: string[];
     offer_id: string;
 }
 
@@ -12,7 +12,7 @@ export interface AnnotateOfferResponse {}
 export const AnnotateOffer = new SimpleHandler<AnnotateOfferRequest, AnnotateOfferResponse>(
     RequestType.ANNOTATE_OFFER,
     async (req) => {
-        const resp = await fetch(`https://csfloat.com/api/v1/trades/annotate-offer`, {
+        const resp = await fetch(`https://csfloat.com/api/v1/trades/steam-status/new-offer`, {
             credentials: 'include',
             method: 'POST',
             headers: {
