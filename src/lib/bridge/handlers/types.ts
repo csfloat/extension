@@ -12,4 +12,5 @@ export enum RequestType {
     ANNOTATE_OFFER,
     EXTENSION_VERSION,
     TRADE_HISTORY_STATUS,
+    TRADE_OFFER_STATUS,
 }

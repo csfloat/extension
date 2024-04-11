@@ -1,11 +1,7 @@
 import {Handle} from './lib/bridge/server';
 import {InternalResponseBundle} from './lib/bridge/types';
 import MessageSender = chrome.runtime.MessageSender;
-import {
-    PING_CSFLOAT_TRADE_STATUS_ALARM_NAME,
-    pingTradeHistory,
-    pingTradeStatus,
-} from './lib/alarms/csfloat_trade_pings';
+import {PING_CSFLOAT_TRADE_STATUS_ALARM_NAME, pingTradeStatus} from './lib/alarms/csfloat_trade_pings';
 
 function unifiedHandler(request: any, sender: MessageSender, sendResponse: (response?: any) => void) {
     Handle(request, sender)
