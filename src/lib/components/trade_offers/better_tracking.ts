@@ -7,6 +7,7 @@ import {ClientSend} from '../../bridge/client';
 import {state} from 'lit/decorators.js';
 import {FetchPendingTrades} from '../../bridge/handlers/fetch_pending_trades';
 import {HasPermissions} from '../../bridge/handlers/has_permissions';
+import {PingSetupExtension} from '../../bridge/handlers/ping_setup_extension';
 
 @CustomElement()
 @InjectAfter(
@@ -60,6 +61,8 @@ export class BetterTrackingWidget extends FloatElement {
             });
 
             if (hasPermissions.granted) {
+                // In case they switched accounts on CSFloat or Steam or initial ping was lost, send redundant pings
+                ClientSend(PingSetupExtension, {});
                 return;
             }
 
@@ -86,7 +89,7 @@ export class BetterTrackingWidget extends FloatElement {
                                   style="height: 32px;"
                               />
                           </div>
-                          <span class="item-name"> Improve Offer Tracking on CSFloat </span>
+                          <span class="item-name">Setup Offer Tracking on CSFloat</span>
                           <div class="sale-info">Verify trades faster while preserving your privacy.</div>
                       </div>
                       <csfloat-steam-button id="csfloat-enable-enhanced" .text="${'Enable'}"></csfloat-steam-button>
