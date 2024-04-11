@@ -5,6 +5,7 @@ import {environment} from '../../../environment';
 
 export interface FetchPendingTradesRequest {
     state?: string;
+    limit?: number;
 }
 
 export interface FetchPendingTradesResponse {
@@ -16,9 +17,13 @@ export const FetchPendingTrades = new SimpleHandler<FetchPendingTradesRequest, F
     RequestType.FETCH_PENDING_TRADES,
     async (req) => {
         const state = req.state ? req.state : 'pending';
-        const resp = await fetch(`${environment.csfloat_base_api_url}/v1/me/trades?state=${state}&limit=100&page=0`, {
-            credentials: 'include',
-        });
+        const limit = req.limit ? req.limit : 100;
+        const resp = await fetch(
+            `${environment.csfloat_base_api_url}/v1/me/trades?state=${state}&limit=${limit}&page=0`,
+            {
+                credentials: 'include',
+            }
+        );
 
         if (resp.status !== 200) {
             throw new Error('invalid status');

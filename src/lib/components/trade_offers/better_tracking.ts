@@ -66,9 +66,9 @@ export class BetterTrackingWidget extends FloatElement {
                 return;
             }
 
-            const trades = await ClientSend(FetchPendingTrades, {state: 'queued,pending'});
+            const trades = await ClientSend(FetchPendingTrades, {state: 'queued,pending,verified', limit: 1});
             if (trades.count === 0) {
-                // They aren't actively using the site, no need to show this
+                // They aren't actively using CSFloat Market, no need to show this
                 return;
             }
 
