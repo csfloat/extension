@@ -2,7 +2,6 @@ import {Trade} from '../types/float_market';
 import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 import cheerio from 'cheerio';
 import {AppId} from '../types/steam_constants';
-import {ClientSend} from '../bridge/client';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
 
 export async function pingTradeHistory(pendingTrades: Trade[]) {
@@ -105,17 +104,26 @@ async function getTradeHistoryFromAPI(accessToken: string): Promise<TradeHistory
     }
 
     const data = (await resp.json()) as TradeHistoryAPIResponse;
-    return data.response.trades.map((e) => {
-        return {
-            other_party_url: `https://steamcommunity.com/profiles/${e.steamid_other}`,
-            received_assets: (e.assets_received || []).map((e) => {
-                return {asset_id: e.assetid, new_asset_id: e.new_assetid};
-            }),
-            given_assets: (e.assets_given || []).map((e) => {
-                return {asset_id: e.assetid, new_asset_id: e.new_assetid};
-            }),
-        } as TradeHistoryStatus;
-    });
+    return data.response.trades
+        .map((e) => {
+            return {
+                other_party_url: `https://steamcommunity.com/profiles/${e.steamid_other}`,
+                received_assets: (e.assets_received || [])
+                    .filter((e) => e.appid === AppId.CSGO)
+                    .map((e) => {
+                        return {asset_id: e.assetid, new_asset_id: e.new_assetid};
+                    }),
+                given_assets: (e.assets_given || [])
+                    .filter((e) => e.appid === AppId.CSGO)
+                    .map((e) => {
+                        return {asset_id: e.assetid, new_asset_id: e.new_assetid};
+                    }),
+            } as TradeHistoryStatus;
+        })
+        .filter((e) => {
+            // Remove non-CS related assets
+            return e.received_assets.length > 0 || e.given_assets.length > 0;
+        });
 }
 
 function parseTradeHistoryHTML(body: string): TradeHistoryStatus[] {
