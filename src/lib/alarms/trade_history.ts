@@ -2,6 +2,8 @@ import {Trade} from '../types/float_market';
 import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 import cheerio from 'cheerio';
 import {AppId} from '../types/steam_constants';
+import {ClientSend} from '../bridge/client';
+import {HasPermissions} from '../bridge/handlers/has_permissions';
 
 export async function pingTradeHistory(pendingTrades: Trade[]) {
     const history = await getTradeHistory();
@@ -36,16 +38,27 @@ async function getTradeHistory(): Promise<TradeHistoryStatus[]> {
     });
 
     const body = await resp.text();
-    const webAPIToken = /data-loyalty_webapi_token=\"&quot;([a-zA-Z0-9\_\.-]+)&quot;\"/.exec(body);
-    if (webAPIToken && webAPIToken.length > 1) {
-        try {
-            const history = await getTradeHistoryFromAPI(webAPIToken[1]);
-            if (history.length > 0) {
-                // Hedge in case this endpoint gets killed, only return if there are results, fallback to HTML parser
-                return history;
+
+    const hasPermissions = await HasPermissions.handleRequest(
+        {
+            permissions: [],
+            origins: ['*://*.steampowered.com/*'],
+        },
+        {}
+    );
+
+    if (hasPermissions.granted) {
+        const webAPIToken = /data-loyalty_webapi_token=\"&quot;([a-zA-Z0-9\_\.-]+)&quot;\"/.exec(body);
+        if (webAPIToken && webAPIToken.length > 1) {
+            try {
+                const history = await getTradeHistoryFromAPI(webAPIToken[1]);
+                if (history.length > 0) {
+                    // Hedge in case this endpoint gets killed, only return if there are results, fallback to HTML parser
+                    return history;
+                }
+            } catch (e) {
+                console.error(e);
             }
-        } catch (e) {
-            console.error(e);
         }
 
         // Fallback to HTML parsing
@@ -70,8 +83,8 @@ interface TradeHistoryAPIResponse {
             tradeid: string;
             steamid_other: string;
             status: number;
-            assets_given: HistoryAsset[];
-            assets_received: HistoryAsset[];
+            assets_given?: HistoryAsset[];
+            assets_received?: HistoryAsset[];
         }[];
     };
 }
@@ -95,10 +108,10 @@ async function getTradeHistoryFromAPI(accessToken: string): Promise<TradeHistory
     return data.response.trades.map((e) => {
         return {
             other_party_url: `https://steamcommunity.com/profiles/${e.steamid_other}`,
-            received_assets: e.assets_received.map((e) => {
+            received_assets: (e.assets_received || []).map((e) => {
                 return {asset_id: e.assetid, new_asset_id: e.new_assetid};
             }),
-            given_assets: e.assets_given.map((e) => {
+            given_assets: (e.assets_given || []).map((e) => {
                 return {asset_id: e.assetid, new_asset_id: e.new_assetid};
             }),
         } as TradeHistoryStatus;

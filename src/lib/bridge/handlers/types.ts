@@ -13,4 +13,5 @@ export enum RequestType {
     EXTENSION_VERSION,
     TRADE_HISTORY_STATUS,
     TRADE_OFFER_STATUS,
+    HAS_PERMISSIONS,
 }

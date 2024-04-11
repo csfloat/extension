@@ -2,7 +2,9 @@ import {SimpleHandler} from './main';
 import {Trade} from '../../types/float_market';
 import {RequestType} from './types';
 
-export interface FetchPendingTradesRequest {}
+export interface FetchPendingTradesRequest {
+    state?: string;
+}
 
 export interface FetchPendingTradesResponse {
     count: number;
@@ -12,7 +14,8 @@ export interface FetchPendingTradesResponse {
 export const FetchPendingTrades = new SimpleHandler<FetchPendingTradesRequest, FetchPendingTradesResponse>(
     RequestType.FETCH_PENDING_TRADES,
     async (req) => {
-        const resp = await fetch(`https://csfloat.com/api/v1/me/trades?state=pending&limit=100&page=0`, {
+        const state = req.state ? req.state : 'pending';
+        const resp = await fetch(`https://csfloat.com/api/v1/me/trades?state=${state}&limit=100&page=0`, {
             credentials: 'include',
         });
 

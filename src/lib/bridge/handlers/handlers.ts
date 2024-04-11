@@ -14,6 +14,7 @@ import {AnnotateOffer} from './annotate_offer';
 import {ExtensionVersion} from './extension_version';
 import {TradeHistoryStatus} from './trade_history_status';
 import {TradeOfferStatus} from './trade_offer_status';
+import {HasPermissions} from './has_permissions';
 
 export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.EXECUTE_SCRIPT_ON_PAGE]: ExecuteScriptOnPage,
@@ -30,4 +31,5 @@ export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.EXTENSION_VERSION]: ExtensionVersion,
     [RequestType.TRADE_HISTORY_STATUS]: TradeHistoryStatus,
     [RequestType.TRADE_OFFER_STATUS]: TradeOfferStatus,
+    [RequestType.HAS_PERMISSIONS]: HasPermissions,
 };
