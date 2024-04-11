@@ -39,6 +39,16 @@ export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     await TradeOfferStatus.handleRequest({sent_offers: offersForCSFloat}, {});
 }
 
+interface TradeOffersAPIResponse {
+    response: {
+        trade_offers_sent: {
+            tradeofferid: string;
+            accountid_other: string;
+            trade_offer_state: TradeOfferState;
+        }[];
+    };
+}
+
 async function getEnglishSentTradeOffersHTML(): Promise<cheerio.Root> {
     const resp = await fetch(`https://steamcommunity.com/id/me/tradeoffers/sent`, {
         credentials: 'include',

@@ -1,10 +1,15 @@
 import {SimpleHandler} from './main';
 import {RequestType} from './types';
 
+export interface TradeHistoryAsset {
+    asset_id: string;
+    new_asset_id?: string;
+}
+
 export interface TradeHistoryStatus {
     other_party_url: string;
-    received_asset_ids: string[];
-    given_asset_ids: string[];
+    received_assets: TradeHistoryAsset[];
+    given_assets: TradeHistoryAsset[];
 }
 
 export interface TradeHistoryStatusRequest {
