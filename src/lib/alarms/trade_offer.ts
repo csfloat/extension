@@ -2,22 +2,12 @@ import cheerio from 'cheerio';
 import {TradeOfferState} from '../types/steam_constants';
 import {Trade} from '../types/float_market';
 import {TradeOfferStatus} from '../bridge/handlers/trade_offer_status';
+import {HasPermissions} from '../bridge/handlers/has_permissions';
 
 interface OfferStatus {
     offer_id: string;
     state: TradeOfferState;
 }
-
-const BANNER_TO_STATE: {[banner: string]: TradeOfferState} = {
-    accepted: TradeOfferState.Accepted,
-    counter: TradeOfferState.Countered,
-    expired: TradeOfferState.Expired,
-    cancel: TradeOfferState.Canceled,
-    declined: TradeOfferState.Declined,
-    invalid: TradeOfferState.InvalidItems,
-    'mobile confirmation': TradeOfferState.CreatedNeedsConfirmation,
-    escrow: TradeOfferState.InEscrow,
-};
 
 export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     const offers = await getSentTradeOffers();
@@ -37,16 +27,6 @@ export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     }
 
     await TradeOfferStatus.handleRequest({sent_offers: offersForCSFloat}, {});
-}
-
-interface TradeOffersAPIResponse {
-    response: {
-        trade_offers_sent: {
-            tradeofferid: string;
-            accountid_other: string;
-            trade_offer_state: TradeOfferState;
-        }[];
-    };
 }
 
 async function getEnglishSentTradeOffersHTML(): Promise<cheerio.Root> {
@@ -77,7 +57,81 @@ async function getEnglishSentTradeOffersHTML(): Promise<cheerio.Root> {
 async function getSentTradeOffers(): Promise<OfferStatus[]> {
     const doc = await getEnglishSentTradeOffersHTML();
 
-    const offerStatuses = doc('.tradeoffer')
+    const hasPermissions = await HasPermissions.handleRequest(
+        {
+            permissions: [],
+            origins: ['*://*.steampowered.com/*'],
+        },
+        {}
+    );
+
+    // We generally prefer to use the API when available, but who knows when things get shut down
+    if (hasPermissions.granted) {
+        const token = doc('#application_config')?.attr('data-loyalty_webapi_token')?.replace('"', '').replace('"', '');
+        if (token) {
+            try {
+                const offers = await getTradeOffersFromAPI(token);
+                if (offers.length > 0) {
+                    // Hedge in case this endpoint gets killed, only return if there are results, fallback to HTML parser
+                    return offers;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Fallback to HTML parsing
+    }
+
+    return parseTradeOffersHTML(doc);
+}
+
+interface TradeOffersAPIResponse {
+    response: {
+        trade_offers_sent: {
+            tradeofferid: string;
+            accountid_other: string;
+            trade_offer_state: TradeOfferState;
+        }[];
+    };
+}
+
+async function getTradeOffersFromAPI(accessToken: string): Promise<OfferStatus[]> {
+    const resp = await fetch(
+        `https://api.steampowered.com/IEconService/GetTradeOffers/v1/?access_token=${accessToken}&get_sent_offers=true`,
+        {
+            credentials: 'include',
+            // Expect redirect since we're using `me` above
+            redirect: 'follow',
+        }
+    );
+
+    if (resp.status !== 200) {
+        throw new Error('invalid status');
+    }
+
+    const data = (await resp.json()) as TradeOffersAPIResponse;
+    return data.response.trade_offers_sent.map((e) => {
+        return {
+            offer_id: e.tradeofferid,
+            state: e.trade_offer_state,
+        } as OfferStatus;
+    });
+}
+
+const BANNER_TO_STATE: {[banner: string]: TradeOfferState} = {
+    accepted: TradeOfferState.Accepted,
+    counter: TradeOfferState.Countered,
+    expired: TradeOfferState.Expired,
+    cancel: TradeOfferState.Canceled,
+    declined: TradeOfferState.Declined,
+    invalid: TradeOfferState.InvalidItems,
+    'mobile confirmation': TradeOfferState.CreatedNeedsConfirmation,
+    escrow: TradeOfferState.InEscrow,
+};
+
+function parseTradeOffersHTML(doc: cheerio.Root): OfferStatus[] {
+    return doc('.tradeoffer')
         .toArray()
         .map((e) => {
             const elem = doc(e);
@@ -118,6 +172,4 @@ async function getSentTradeOffers(): Promise<OfferStatus[]> {
             };
         })
         .filter((e) => !!e.offer_id);
-
-    return offerStatuses;
 }
