@@ -103,9 +103,12 @@ module.exports = (env) => {
                         transform(raw) {
                             let processed = JSON.parse(raw.toString());
 
-                            console.log();
                             if (mode === 'development' && env.browser === 'chrome') {
                                 processed.key = CHROME_KEY;
+                            }
+
+                            if (mode === 'development') {
+                                processed.host_permissions.push('http://localhost:8080/*');
                             }
 
                             if (env.browser === 'firefox') {
