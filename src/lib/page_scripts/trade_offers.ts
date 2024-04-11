@@ -1,6 +1,8 @@
 import {init} from './utils';
 import '../components/trade_offers/better_tracking';
 import {inPageContext} from '../utils/snips';
+import {ClientSend} from '../bridge/client';
+import {PingSetupExtension} from '../bridge/handlers/ping_setup_extension';
 
 init('src/lib/page_scripts/trade_offers.js', main);
 
@@ -28,6 +30,7 @@ if (!inPageContext()) {
                 (granted) => {
                     if (granted) {
                         widget[0].parentElement?.removeChild(widget[0]);
+                        ClientSend(PingSetupExtension, {});
                     } else {
                         alert('Failed to obtain permissions');
                     }
