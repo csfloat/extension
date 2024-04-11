@@ -41,6 +41,7 @@
         "eslint-config-prettier": "^8.5.0",
         "fast-json-stable-stringify": "^2.1.0",
         "file-loader": "^6.2.0",
+        "file-replace-loader": "^1.4.0",
         "filtrex": "^3.0.0",
         "glob": "^8.0.3",
         "html-loader": "^4.1.0",

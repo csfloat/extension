@@ -1,5 +1,6 @@
 import {SimpleHandler} from './main';
 import {RequestType} from './types';
+import {environment} from '../../../environment';
 
 export interface TradeHistoryAsset {
     asset_id: string;
@@ -21,7 +22,7 @@ export interface TradeHistoryStatusResponse {}
 export const TradeHistoryStatus = new SimpleHandler<TradeHistoryStatusRequest, TradeHistoryStatusResponse>(
     RequestType.TRADE_HISTORY_STATUS,
     async (req) => {
-        const resp = await fetch(`https://csfloat.com/api/v1/trades/steam-status/trade-history`, {
+        const resp = await fetch(`${environment.csfloat_base_api_url}/v1/trades/steam-status/trade-history`, {
             credentials: 'include',
             method: 'POST',
             headers: {
