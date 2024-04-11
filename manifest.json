@@ -51,7 +51,7 @@
         "*://*.steamcommunity.com/profiles/*/inventory*"
     ],
     "optional_host_permissions": [
-        "*://*.steampowered.com/*"
+        "*://*.steampowered.com/*", "*://*.csfloat.com/*"
     ],
     "externally_connectable": {
         "matches": ["*://*.steamcommunity.com/*"]
