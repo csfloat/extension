@@ -50,9 +50,7 @@
         "*://*.steamcommunity.com/id/*/tradehistory*",
         "*://*.steamcommunity.com/profiles/*/inventory*"
     ],
-    "optional_host_permissions": [
-        "*://*.steampowered.com/*"
-    ],
+    "optional_host_permissions": ["*://*.steampowered.com/*"],
     "externally_connectable": {
         "matches": ["*://*.steamcommunity.com/*"]
     },
