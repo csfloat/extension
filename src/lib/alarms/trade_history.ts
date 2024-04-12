@@ -94,8 +94,6 @@ async function getTradeHistoryFromAPI(accessToken: string): Promise<TradeHistory
         `https://api.steampowered.com/IEconService/GetTradeHistory/v1/?access_token=${accessToken}&max_trades=50`,
         {
             credentials: 'include',
-            // Expect redirect since we're using `me` above
-            redirect: 'follow',
         }
     );
 

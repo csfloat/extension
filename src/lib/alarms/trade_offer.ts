@@ -101,8 +101,6 @@ async function getTradeOffersFromAPI(accessToken: string): Promise<OfferStatus[]
         `https://api.steampowered.com/IEconService/GetTradeOffers/v1/?access_token=${accessToken}&get_sent_offers=true`,
         {
             credentials: 'include',
-            // Expect redirect since we're using `me` above
-            redirect: 'follow',
         }
     );
 
