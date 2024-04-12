@@ -43,13 +43,14 @@
         "service_worker": "src/background.js",
         "type": "module"
     },
-    "permissions": ["storage", "scripting"],
+    "permissions": ["storage", "scripting", "alarms"],
     "host_permissions": [
         "*://*.steamcommunity.com/market/listings/730/*",
         "*://*.steamcommunity.com/id/*/inventory*",
         "*://*.steamcommunity.com/id/*/tradehistory*",
         "*://*.steamcommunity.com/profiles/*/inventory*"
     ],
+    "optional_host_permissions": ["*://*.steampowered.com/*"],
     "externally_connectable": {
         "matches": ["*://*.steamcommunity.com/*"]
     },

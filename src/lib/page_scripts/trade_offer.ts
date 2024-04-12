@@ -156,15 +156,15 @@ function injectAnnotateOffer() {
             return;
         }
 
-        let assets_to_send: string[] = [];
-        let assets_to_receive: string[] = [];
+        let given_asset_ids: string[] = [];
+        let received_asset_ids: string[] = [];
         const deserialized = deserializeForm(settings.data) as {json_tradeoffer?: string};
 
         if (deserialized && deserialized.json_tradeoffer) {
             try {
                 const parsed = JSON.parse(deserialized.json_tradeoffer) as JsonTradeoffer;
-                assets_to_send = parsed.me.assets.filter((e) => e.appid === AppId.CSGO).map((e) => e.assetid);
-                assets_to_receive = parsed.them.assets.filter((e) => e.appid === AppId.CSGO).map((e) => e.assetid);
+                given_asset_ids = parsed.me.assets.filter((e) => e.appid === AppId.CSGO).map((e) => e.assetid);
+                received_asset_ids = parsed.them.assets.filter((e) => e.appid === AppId.CSGO).map((e) => e.assetid);
             } catch (e) {
                 console.error('failed to parse json tradeoffer', e, deserialized.json_tradeoffer);
                 // Still proceed with annotating the offer id on a best-effort
@@ -172,8 +172,8 @@ function injectAnnotateOffer() {
         }
 
         await ClientSend(AnnotateOffer, {
-            assets_to_send,
-            assets_to_receive,
+            given_asset_ids,
+            received_asset_ids,
             offer_id: offer_id,
         });
     });

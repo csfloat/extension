@@ -9,12 +9,16 @@ import {Observe} from '../../utils/observers';
 
 import '../common/ui/steam-button';
 import {AppId, ContextId} from '../../types/steam_constants';
+import {HasPermissions} from '../../bridge/handlers/has_permissions';
 
 @CustomElement()
 @InjectBefore('div.trade_area')
 export class AutoFill extends FloatElement {
     @state()
     private pendingTradesResponse: FetchPendingTradesResponse | undefined;
+
+    @state()
+    private hasPermissions = false;
 
     static styles = [
         ...FloatElement.styles,
@@ -23,11 +27,12 @@ export class AutoFill extends FloatElement {
                 margin-top: 10px;
                 margin-bottom: 10px;
                 padding: 15px;
-                background-color: rgb(48, 48, 48);
+                background-color: #15171c;
                 color: white;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                border-radius: 6px;
             }
 
             .container.warning {
@@ -53,6 +58,16 @@ export class AutoFill extends FloatElement {
 
     async connectedCallback() {
         super.connectedCallback();
+
+        try {
+            const hasPermissions = await ClientSend(HasPermissions, {
+                permissions: [],
+                origins: ['*://*.steampowered.com/*'],
+            });
+            this.hasPermissions = hasPermissions.granted;
+        } catch (e) {
+            console.error('failed to check permissions', e);
+        }
 
         try {
             this.pendingTradesResponse = await ClientSend(FetchPendingTrades, {});
@@ -90,7 +105,7 @@ export class AutoFill extends FloatElement {
                 <div>
                     <div class="float-icon">
                         <img
-                            src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/79/798a12316637ad8fbb91ddb7dc63f770b680bd19_full.jpg"
+                            src="https://avatars.cloudflare.steamstatic.com/6ab5219d0bbcce1300a2c6d7cbc638da52edda48_full.jpg"
                             style="height: 32px;"
                         />
                     </div>
@@ -125,7 +140,7 @@ export class AutoFill extends FloatElement {
                 <div>
                     <div class="float-icon">
                         <img
-                            src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/79/798a12316637ad8fbb91ddb7dc63f770b680bd19_full.jpg"
+                            src="https://avatars.cloudflare.steamstatic.com/6ab5219d0bbcce1300a2c6d7cbc638da52edda48_full.jpg"
                             style="height: 32px;"
                         />
                     </div>
@@ -163,7 +178,7 @@ export class AutoFill extends FloatElement {
         }
 
         const hasItemWithNoSale = g_rgCurrentTradeStatus.me.assets.find(
-            (a) => !this.pendingTradesResponse?.trades_to_send.find((b) => b.contract.item.asset_id === a.assetid)
+            (a) => !this.pendingTradesResponse?.trades.find((b) => b.contract.item.asset_id === a.assetid)
         );
 
         if (!hasItemWithNoSale) {
@@ -175,7 +190,7 @@ export class AutoFill extends FloatElement {
                 <div>
                     <div class="float-icon">
                         <img
-                            src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/79/798a12316637ad8fbb91ddb7dc63f770b680bd19_full.jpg"
+                            src="https://avatars.cloudflare.steamstatic.com/6ab5219d0bbcce1300a2c6d7cbc638da52edda48_full.jpg"
                             style="height: 32px;"
                         />
                     </div>
@@ -189,16 +204,38 @@ export class AutoFill extends FloatElement {
         `;
     }
 
+    showPermissionWarningDialog(tradesToBuyer: Trade[]): HTMLTemplateResult {
+        if (this.hasPermissions || tradesToBuyer.length === 0) {
+            return html``;
+        }
+
+        return html`
+            <div class="container warning">
+                <div>
+                    <div class="float-icon">
+                        <img
+                            src="https://avatars.cloudflare.steamstatic.com/6ab5219d0bbcce1300a2c6d7cbc638da52edda48_full.jpg"
+                            style="height: 32px;"
+                        />
+                    </div>
+                    <span class="item-name"> Warning! </span>
+                    <div class="sale-info">
+                        You have not setup trade verification for CSFloat, you must enable it on your
+                        <a href="https://steamcommunity.com/id/me/tradeoffers/" target="_blank">Trade Offers page</a>!
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
     protected render(): HTMLTemplateResult {
         if (!this.pendingTradesResponse) return html``;
 
-        const tradesToBuyer = this.pendingTradesResponse.trades_to_send.filter(
-            (e) => e.buyer_id === UserThem?.strSteamId
-        );
+        const tradesToBuyer = this.pendingTradesResponse.trades.filter((e) => e.buyer_id === UserThem?.strSteamId);
 
         return html`
-            ${this.renderBulkAutoFillDialog(tradesToBuyer)} ${tradesToBuyer.map((e) => this.renderAutoFillDialog(e))}
-            ${this.showWarningDialog()}
+            ${this.showPermissionWarningDialog(tradesToBuyer)} ${this.renderBulkAutoFillDialog(tradesToBuyer)}
+            ${tradesToBuyer.map((e) => this.renderAutoFillDialog(e))} ${this.showWarningDialog()}
         `;
     }
 
