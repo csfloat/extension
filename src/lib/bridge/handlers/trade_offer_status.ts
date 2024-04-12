@@ -8,8 +8,14 @@ export interface TradeOfferStatus {
     state: TradeOfferState;
 }
 
+export enum TradeOffersType {
+    API = 1,
+    HTML = 2,
+}
+
 export interface TradeOfferStatusRequest {
     sent_offers: TradeOfferStatus[];
+    type?: TradeOffersType;
 }
 
 export interface TradeOfferStatusResponse {}

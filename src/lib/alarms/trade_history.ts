@@ -1,11 +1,11 @@
 import {Trade} from '../types/float_market';
-import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
+import {TradeHistoryStatus, TradeHistoryType} from '../bridge/handlers/trade_history_status';
 import cheerio from 'cheerio';
 import {AppId} from '../types/steam_constants';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
 
 export async function pingTradeHistory(pendingTrades: Trade[]) {
-    const history = await getTradeHistory();
+    const {history, type} = await getTradeHistory();
 
     // premature optimization in case it's 100 trades
     const assetsToFind = pendingTrades.reduce((acc, e) => {
@@ -26,10 +26,10 @@ export async function pingTradeHistory(pendingTrades: Trade[]) {
         return;
     }
 
-    await TradeHistoryStatus.handleRequest({history: historyForCSFloat}, {});
+    await TradeHistoryStatus.handleRequest({history: historyForCSFloat, type}, {});
 }
 
-async function getTradeHistory(): Promise<TradeHistoryStatus[]> {
+async function getTradeHistory(): Promise<{history: TradeHistoryStatus[]; type: TradeHistoryType}> {
     const resp = await fetch(`https://steamcommunity.com/id/me/tradehistory`, {
         credentials: 'include',
         // Expect redirect since we're using `me` above
@@ -53,7 +53,7 @@ async function getTradeHistory(): Promise<TradeHistoryStatus[]> {
                 const history = await getTradeHistoryFromAPI(webAPIToken[1]);
                 if (history.length > 0) {
                     // Hedge in case this endpoint gets killed, only return if there are results, fallback to HTML parser
-                    return history;
+                    return {history, type: TradeHistoryType.API};
                 }
             } catch (e) {
                 console.error(e);
@@ -67,7 +67,7 @@ async function getTradeHistory(): Promise<TradeHistoryStatus[]> {
         throw 'Too many requests';
     }
 
-    return parseTradeHistoryHTML(body);
+    return {history: parseTradeHistoryHTML(body), type: TradeHistoryType.HTML};
 }
 
 interface HistoryAsset {

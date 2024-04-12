@@ -1,7 +1,7 @@
 import cheerio from 'cheerio';
 import {TradeOfferState} from '../types/steam_constants';
 import {Trade} from '../types/float_market';
-import {TradeOfferStatus} from '../bridge/handlers/trade_offer_status';
+import {TradeOfferStatus, TradeOffersType} from '../bridge/handlers/trade_offer_status';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
 
 interface OfferStatus {
@@ -10,7 +10,7 @@ interface OfferStatus {
 }
 
 export async function pingSentTradeOffers(pendingTrades: Trade[]) {
-    const offers = await getSentTradeOffers();
+    const {offers, type} = await getSentTradeOffers();
 
     const offersToFind = pendingTrades.reduce((acc, e) => {
         acc[e.steam_offer.id] = true;
@@ -26,7 +26,7 @@ export async function pingSentTradeOffers(pendingTrades: Trade[]) {
         return;
     }
 
-    await TradeOfferStatus.handleRequest({sent_offers: offersForCSFloat}, {});
+    await TradeOfferStatus.handleRequest({sent_offers: offersForCSFloat, type}, {});
 }
 
 async function getEnglishSentTradeOffersHTML(): Promise<cheerio.Root> {
@@ -54,7 +54,7 @@ async function getEnglishSentTradeOffersHTML(): Promise<cheerio.Root> {
     return cheerio.load(await englishResp.text());
 }
 
-async function getSentTradeOffers(): Promise<OfferStatus[]> {
+async function getSentTradeOffers(): Promise<{offers: OfferStatus[]; type: TradeOffersType}> {
     const doc = await getEnglishSentTradeOffersHTML();
 
     const hasPermissions = await HasPermissions.handleRequest(
@@ -73,7 +73,7 @@ async function getSentTradeOffers(): Promise<OfferStatus[]> {
                 const offers = await getTradeOffersFromAPI(token);
                 if (offers.length > 0) {
                     // Hedge in case this endpoint gets killed, only return if there are results, fallback to HTML parser
-                    return offers;
+                    return {offers, type: TradeOffersType.API};
                 }
             } catch (e) {
                 console.error(e);
@@ -83,7 +83,7 @@ async function getSentTradeOffers(): Promise<OfferStatus[]> {
         // Fallback to HTML parsing
     }
 
-    return parseTradeOffersHTML(doc);
+    return {offers: parseTradeOffersHTML(doc), type: TradeOffersType.HTML};
 }
 
 interface TradeOffersAPIResponse {

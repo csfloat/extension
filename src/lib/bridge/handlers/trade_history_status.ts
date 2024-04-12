@@ -13,8 +13,14 @@ export interface TradeHistoryStatus {
     given_assets: TradeHistoryAsset[];
 }
 
+export enum TradeHistoryType {
+    API = 1,
+    HTML = 2,
+}
+
 export interface TradeHistoryStatusRequest {
     history: TradeHistoryStatus[];
+    type?: TradeHistoryType;
 }
 
 export interface TradeHistoryStatusResponse {}
