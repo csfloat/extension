@@ -23,11 +23,12 @@ export class AutoFill extends FloatElement {
                 margin-top: 10px;
                 margin-bottom: 10px;
                 padding: 15px;
-                background-color: rgb(48, 48, 48);
+                background-color: #15171c;
                 color: white;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                border-radius: 6px;
             }
 
             .container.warning {
@@ -90,7 +91,7 @@ export class AutoFill extends FloatElement {
                 <div>
                     <div class="float-icon">
                         <img
-                            src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/79/798a12316637ad8fbb91ddb7dc63f770b680bd19_full.jpg"
+                            src="https://avatars.cloudflare.steamstatic.com/6ab5219d0bbcce1300a2c6d7cbc638da52edda48_full.jpg"
                             style="height: 32px;"
                         />
                     </div>
@@ -125,7 +126,7 @@ export class AutoFill extends FloatElement {
                 <div>
                     <div class="float-icon">
                         <img
-                            src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/79/798a12316637ad8fbb91ddb7dc63f770b680bd19_full.jpg"
+                            src="https://avatars.cloudflare.steamstatic.com/6ab5219d0bbcce1300a2c6d7cbc638da52edda48_full.jpg"
                             style="height: 32px;"
                         />
                     </div>
@@ -175,7 +176,7 @@ export class AutoFill extends FloatElement {
                 <div>
                     <div class="float-icon">
                         <img
-                            src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/79/798a12316637ad8fbb91ddb7dc63f770b680bd19_full.jpg"
+                            src="https://avatars.cloudflare.steamstatic.com/6ab5219d0bbcce1300a2c6d7cbc638da52edda48_full.jpg"
                             style="height: 32px;"
                         />
                     </div>
