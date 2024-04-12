@@ -47,7 +47,7 @@ async function getTradeHistory(): Promise<{history: TradeHistoryStatus[]; type: 
     );
 
     if (hasPermissions.granted) {
-        const webAPIToken = /data-loyalty_webapi_token=\"&quot;([a-zA-Z0-9\_\.-]+)&quot;\"/.exec(body);
+        const webAPIToken = /data-loyalty_webapi_token="&quot;([a-zA-Z0-9_.-]+)&quot;"/.exec(body);
         if (webAPIToken && webAPIToken.length > 1) {
             try {
                 const history = await getTradeHistoryFromAPI(webAPIToken[1]);
@@ -138,7 +138,7 @@ function parseTradeHistoryHTML(body: string): TradeHistoryStatus[] {
         });
 
     const matches = body.matchAll(
-        /HistoryPageCreateItemHover\( \'trade(\d+)_(received|given)item\d+\', 730, \'2\', \'(\d+)\', \'1\' \);/g
+        /HistoryPageCreateItemHover\( 'trade(\d+)_(received|given)item\d+', 730, '2', '(\d+)', '1' \);/g
     );
     for (const match of matches) {
         const [text, index, type, assetId] = match;
