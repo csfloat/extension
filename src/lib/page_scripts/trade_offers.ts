@@ -25,7 +25,7 @@ if (!inPageContext()) {
                 {
                     message: 'requestPermissions',
                     permissions: [],
-                    origins: ['*://*.steampowered.com/*', '*://*.csfloat.com/*'],
+                    origins: ['*://*.steampowered.com/*'],
                 },
                 (granted) => {
                     if (granted) {
