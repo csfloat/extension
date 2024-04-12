@@ -1,4 +1,3 @@
-import cheerio from 'cheerio';
 import {TradeOfferState} from '../types/steam_constants';
 import {Trade} from '../types/float_market';
 import {TradeOfferStatus, TradeOffersType} from '../bridge/handlers/trade_offer_status';
@@ -29,7 +28,7 @@ export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     await TradeOfferStatus.handleRequest({sent_offers: offersForCSFloat, type}, {});
 }
 
-async function getEnglishSentTradeOffersHTML(): Promise<cheerio.Root> {
+async function getEnglishSentTradeOffersHTML(): Promise<string> {
     const resp = await fetch(`https://steamcommunity.com/id/me/tradeoffers/sent`, {
         credentials: 'include',
         // Expect redirect since we're using `me` above
@@ -38,10 +37,9 @@ async function getEnglishSentTradeOffersHTML(): Promise<cheerio.Root> {
 
     const body = await resp.text();
 
-    const doc = cheerio.load(body);
-    if (doc('html').attr('lang') === 'en') {
+    if (body.match(/<html .+? lang="en">/)) {
         // Already english, return
-        return doc;
+        return body;
     }
 
     // Explicitly fetch in english instead (we need to use the redirect URL)
@@ -51,11 +49,11 @@ async function getEnglishSentTradeOffersHTML(): Promise<cheerio.Root> {
         redirect: 'follow',
     });
 
-    return cheerio.load(await englishResp.text());
+    return englishResp.text();
 }
 
 async function getSentTradeOffers(): Promise<{offers: OfferStatus[]; type: TradeOffersType}> {
-    const doc = await getEnglishSentTradeOffersHTML();
+    const body = await getEnglishSentTradeOffersHTML();
 
     const hasPermissions = await HasPermissions.handleRequest(
         {
@@ -67,10 +65,10 @@ async function getSentTradeOffers(): Promise<{offers: OfferStatus[]; type: Trade
 
     // We generally prefer to use the API when available, but who knows when things get shut down
     if (hasPermissions.granted) {
-        const token = doc('#application_config')?.attr('data-loyalty_webapi_token')?.replace('"', '').replace('"', '');
-        if (token) {
+        const webAPIToken = /data-loyalty_webapi_token="&quot;([a-zA-Z0-9_.-]+)&quot;"/.exec(body);
+        if (webAPIToken && webAPIToken.length > 1) {
             try {
-                const offers = await getTradeOffersFromAPI(token);
+                const offers = await getTradeOffersFromAPI(webAPIToken[1]);
                 if (offers.length > 0) {
                     // Hedge in case this endpoint gets killed, only return if there are results, fallback to HTML parser
                     return {offers, type: TradeOffersType.API};
@@ -83,7 +81,7 @@ async function getSentTradeOffers(): Promise<{offers: OfferStatus[]; type: Trade
         // Fallback to HTML parsing
     }
 
-    return {offers: parseTradeOffersHTML(doc), type: TradeOffersType.HTML};
+    return {offers: parseTradeOffersHTML(body), type: TradeOffersType.HTML};
 }
 
 interface TradeOffersAPIResponse {
@@ -128,34 +126,23 @@ const BANNER_TO_STATE: {[banner: string]: TradeOfferState} = {
     escrow: TradeOfferState.InEscrow,
 };
 
-function parseTradeOffersHTML(doc: cheerio.Root): OfferStatus[] {
-    return doc('.tradeoffer')
-        .toArray()
+function parseTradeOffersHTML(body: string): OfferStatus[] {
+    const matches = body.matchAll(
+        /<div class="tradeoffer" id="tradeofferid_(\d+?)">.+?tradeoffer_items_ctn(.+?inactive.+?tradeoffer_items_banner\s*">([^<]+))?/gms
+    );
+    return [...matches]
         .map((e) => {
-            const elem = doc(e);
-            const offerID = doc(e).attr('id')?.replace('tradeofferid_', '');
-            if (!offerID || !/^\d+$/.test(offerID)) {
-                // Invalid element
-                return {offer_id: '', state: TradeOfferState.Invalid};
-            }
+            const offerID = e[1];
 
-            const isActive = !elem.find('.tradeoffer_items_ctn')?.hasClass('inactive');
-            if (isActive) {
+            if (!e[2]) {
+                // It is active since it didn't match on inactive groups
                 return {
                     offer_id: offerID,
                     state: TradeOfferState.Active,
                 };
             }
 
-            // Try to deduce the state from banner text...
-            const bannerText = elem.find('.tradeoffer_items_banner')?.text().toLowerCase();
-            if (!bannerText) {
-                return {
-                    offer_id: offerID,
-                    state: TradeOfferState.Invalid,
-                };
-            }
-
+            const bannerText = e[3].toLowerCase();
             const stateEntry = Object.entries(BANNER_TO_STATE).find((e) => bannerText.includes(e[0]));
             if (!stateEntry) {
                 return {

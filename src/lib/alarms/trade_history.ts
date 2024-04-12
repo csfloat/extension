@@ -1,6 +1,5 @@
 import {Trade} from '../types/float_market';
 import {TradeHistoryStatus, TradeHistoryType} from '../bridge/handlers/trade_history_status';
-import cheerio from 'cheerio';
 import {AppId} from '../types/steam_constants';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
 
@@ -125,17 +124,16 @@ async function getTradeHistoryFromAPI(accessToken: string): Promise<TradeHistory
 }
 
 function parseTradeHistoryHTML(body: string): TradeHistoryStatus[] {
-    const doc = cheerio.load(body);
-
-    const statuses = doc('.tradehistoryrow .tradehistory_event_description a')
-        .toArray()
-        .map((row) => {
-            return {
-                other_party_url: doc(row).attr('href'),
-                received_assets: [],
-                given_assets: [],
-            } as TradeHistoryStatus;
-        });
+    const links = body.matchAll(
+        /<div class="tradehistory_event_description">.+?<a href="https:\/\/steamcommunity\.com\/(.+?)">/gms
+    );
+    const statuses = [...links].map((e) => {
+        return {
+            other_party_url: `https://steamcommunity.com/${e[1]}`,
+            received_assets: [],
+            given_assets: [],
+        } as TradeHistoryStatus;
+    });
 
     const matches = body.matchAll(
         /HistoryPageCreateItemHover\( 'trade(\d+)_(received|given)item\d+', 730, '2', '(\d+)', '1' \);/g
