@@ -63,7 +63,7 @@
         },
         {
             "resources": ["src/version.txt"],
-            "matches": ["https://csfloat.com/*", "http://localhost:4200/*"]
+            "matches": ["https://csfloat.com/*"]
         }
     ]
 }
