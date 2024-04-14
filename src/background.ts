@@ -1,7 +1,7 @@
 import {Handle} from './lib/bridge/server';
 import {InternalResponseBundle} from './lib/bridge/types';
 import MessageSender = chrome.runtime.MessageSender;
-import {PING_CSFLOAT_TRADE_STATUS_ALARM_NAME, pingTradeStatus} from './lib/alarms/csfloat_trade_pings';
+import {alarmListener, registerTradeAlarmIfPossible} from './lib/alarms/setup';
 
 function unifiedHandler(request: any, sender: MessageSender, sendResponse: (response?: any) => void) {
     Handle(request, sender)
@@ -41,21 +41,13 @@ chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => 
     return true;
 });
 
-chrome.alarms.onAlarm.addListener(async (alarm) => {
-    if (alarm.name === PING_CSFLOAT_TRADE_STATUS_ALARM_NAME) {
-        await pingTradeStatus();
-    }
-});
+if (chrome.alarms) {
+    // Install at the root level to make sure events wake up the service worker
+    chrome.alarms.onAlarm.addListener(alarmListener);
+}
 
 async function checkAlarmState() {
-    const alarm = await chrome.alarms.get(PING_CSFLOAT_TRADE_STATUS_ALARM_NAME);
-
-    if (!alarm) {
-        await chrome.alarms.create(PING_CSFLOAT_TRADE_STATUS_ALARM_NAME, {
-            periodInMinutes: 5,
-            delayInMinutes: 1,
-        });
-    }
+    await registerTradeAlarmIfPossible();
 }
 
 checkAlarmState();

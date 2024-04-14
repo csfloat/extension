@@ -24,7 +24,7 @@ if (!inPageContext()) {
             chrome.runtime.sendMessage(
                 {
                     message: 'requestPermissions',
-                    permissions: [],
+                    permissions: ['alarms'],
                     origins: ['*://*.steampowered.com/*'],
                 },
                 (granted) => {
