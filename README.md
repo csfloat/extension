@@ -14,9 +14,9 @@
 CSFloat has an extension for Firefox/Chrome that lets you fetch floats directly from the market page! You can view the source code for the extensions here!
 
 ## Store Links
-[Chrome Store Link](https://chrome.google.com/webstore/detail/csfloat-market-checker/jjicbefpemnphinccgikpdaagjebbnhg) [v3+]
+[Chrome Store Link](https://chrome.google.com/webstore/detail/csfloat-market-checker/jjicbefpemnphinccgikpdaagjebbnhg) [v4+]
 
-[Firefox Add-ons Link](https://addons.mozilla.org/en-US/firefox/addon/csgofloat/) [v3+]
+[Firefox Add-ons Link](https://addons.mozilla.org/en-US/firefox/addon/csgofloat/) [v4+]
 
 ## Features
 
