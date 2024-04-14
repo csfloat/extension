@@ -1,20 +1,16 @@
 import {PING_CSFLOAT_TRADE_STATUS_ALARM_NAME, pingTradeStatus} from './csfloat_trade_pings';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
 
-async function alarmListener(alarm: chrome.alarms.Alarm) {
+export async function alarmListener(alarm: chrome.alarms.Alarm) {
     if (alarm.name === PING_CSFLOAT_TRADE_STATUS_ALARM_NAME) {
         await pingTradeStatus();
     }
 }
 
 async function registerAlarmListenerIfPossible() {
-    const hasPermissions = await HasPermissions.handleRequest({permissions: ['alarms'], origins: []}, {});
-    if (!hasPermissions.granted) {
-        return;
+    if (chrome.alarms) {
+        chrome.alarms.onAlarm.addListener(alarmListener);
     }
-    // Prevent duplicate listeners
-    chrome.alarms.onAlarm.removeListener(alarmListener);
-    chrome.alarms.onAlarm.addListener(alarmListener);
 }
 
 export async function registerTradeAlarmIfPossible() {
@@ -22,6 +18,9 @@ export async function registerTradeAlarmIfPossible() {
     if (!hasPermissions.granted) {
         return;
     }
+
+    await registerAlarmListenerIfPossible();
+
     const alarm = await chrome.alarms.get(PING_CSFLOAT_TRADE_STATUS_ALARM_NAME);
 
     if (!alarm) {
@@ -30,6 +29,4 @@ export async function registerTradeAlarmIfPossible() {
             delayInMinutes: 1,
         });
     }
-
-    await registerAlarmListenerIfPossible();
 }
