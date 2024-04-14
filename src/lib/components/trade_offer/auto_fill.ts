@@ -61,7 +61,7 @@ export class AutoFill extends FloatElement {
 
         try {
             const hasPermissions = await ClientSend(HasPermissions, {
-                permissions: [],
+                permissions: ['alarms'],
                 origins: ['*://*.steampowered.com/*'],
             });
             this.hasPermissions = hasPermissions.granted;

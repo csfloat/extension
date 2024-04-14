@@ -56,7 +56,7 @@ export class BetterTrackingWidget extends FloatElement {
         try {
             // Used for api.steampowered.com requests, all tokens stay on the users' device
             const hasPermissions = await ClientSend(HasPermissions, {
-                permissions: [],
+                permissions: ['alarms'],
                 origins: ['*://*.steampowered.com/*'],
             });
 
@@ -90,7 +90,7 @@ export class BetterTrackingWidget extends FloatElement {
                               />
                           </div>
                           <span class="item-name">Setup Offer Tracking on CSFloat</span>
-                          <div class="sale-info">Verify trades faster while preserving your privacy.</div>
+                          <div class="sale-info">Verify trades while preserving your privacy.</div>
                       </div>
                       <csfloat-steam-button id="csfloat-enable-enhanced" .text="${'Enable'}"></csfloat-steam-button>
                   </div>
