@@ -39,8 +39,25 @@ export class AutoFill extends FloatElement {
                 background-color: rgb(179, 0, 0);
             }
 
+            .notice {
+                background-color: #6775e1;
+                padding: 6px;
+                border-radius: 6px;
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                margin-top: 10px;
+                margin-bottom: 10px;
+                font-size: 15px;
+                color: white;
+            }
+
             .float-icon {
                 float: left;
+            }
+
+            .float-icon > img {
+                border-radius: 5px;
             }
 
             .item-name {
@@ -228,15 +245,55 @@ export class AutoFill extends FloatElement {
         `;
     }
 
+    showAutoFillInfoDialog(tradesToBuyer: Trade[]): HTMLTemplateResult {
+        if (tradesToBuyer.length === 0) {
+            return html``;
+        }
+
+        return html`
+            <div class="notice">
+                <img
+                    src="https://avatars.cloudflare.steamstatic.com/6ab5219d0bbcce1300a2c6d7cbc638da52edda48_full.jpg"
+                    style="height: 32px; border-radius: 5px;"
+                />
+                <div>You must use auto-fill in order to send trades on CSFloat Market.</div>
+            </div>
+        `;
+    }
+
     protected render(): HTMLTemplateResult {
         if (!this.pendingTradesResponse) return html``;
 
         const tradesToBuyer = this.pendingTradesResponse.trades.filter((e) => e.buyer_id === UserThem?.strSteamId);
 
+        const tradesWithoutOffersToBuyer = tradesToBuyer.filter((e) => !e.steam_offer?.state || !e.steam_offer?.id);
+        if (tradesWithoutOffersToBuyer.length > 0) {
+            // Disable them being able to select random items from their inventory (ensure asset IDs match up)
+            this.disableInventoryPicker();
+        }
+
         return html`
-            ${this.showPermissionWarningDialog(tradesToBuyer)} ${this.renderBulkAutoFillDialog(tradesToBuyer)}
-            ${tradesToBuyer.map((e) => this.renderAutoFillDialog(e))} ${this.showWarningDialog()}
+            ${this.showAutoFillInfoDialog(tradesToBuyer)} ${this.showPermissionWarningDialog(tradesToBuyer)}
+            ${this.renderBulkAutoFillDialog(tradesToBuyer)} ${tradesToBuyer.map((e) => this.renderAutoFillDialog(e))}
+            ${this.showWarningDialog()}
         `;
+    }
+
+    disableInventoryPicker() {
+        if (!g_steamID) {
+            return;
+        }
+
+        const elem = document.getElementsByClassName('trade_box_contents');
+        if (!elem || elem.length === 0) {
+            return;
+        }
+
+        // @ts-ignore
+        elem.item(0)?.style.opacity = '0.5';
+
+        // @ts-ignore
+        elem.item(0)?.style.pointerEvents = 'none';
     }
 
     autoFillAll(trades: Trade[]) {
@@ -249,7 +306,9 @@ export class AutoFill extends FloatElement {
         $J('#inventory_select_your_inventory').click();
         const el = UserYou?.findAsset(AppId.CSGO, ContextId.PRIMARY, trade.contract.item.asset_id)?.element;
         if (!el) {
-            console.error('failed to find asset element for id ' + trade.contract.item.asset_id);
+            alert(
+                `Failed to auto-fill asset ${trade.contract.item.asset_id}, you may have traded it away; skipping...`
+            );
             return;
         }
 
