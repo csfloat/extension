@@ -233,10 +233,33 @@ export class AutoFill extends FloatElement {
 
         const tradesToBuyer = this.pendingTradesResponse.trades.filter((e) => e.buyer_id === UserThem?.strSteamId);
 
+        const tradesWithoutOffersToBuyer = tradesToBuyer.filter((e) => !e.steam_offer?.state || !e.steam_offer?.id);
+        if (tradesWithoutOffersToBuyer.length > 0) {
+            // Disable them being able to select random items from their inventory (ensure asset IDs match up)
+            this.disableInventoryPicker();
+        }
+
         return html`
             ${this.showPermissionWarningDialog(tradesToBuyer)} ${this.renderBulkAutoFillDialog(tradesToBuyer)}
             ${tradesToBuyer.map((e) => this.renderAutoFillDialog(e))} ${this.showWarningDialog()}
         `;
+    }
+
+    disableInventoryPicker() {
+        if (!g_steamID) {
+            return;
+        }
+
+        const elem = document.getElementsByClassName('trade_box_contents');
+        if (!elem || elem.length === 0) {
+            return;
+        }
+
+        // @ts-ignore
+        elem.item(0)?.style.opacity = '0.5';
+
+        // @ts-ignore
+        elem.item(0)?.style.pointerEvents = 'none';
     }
 
     autoFillAll(trades: Trade[]) {
@@ -249,7 +272,9 @@ export class AutoFill extends FloatElement {
         $J('#inventory_select_your_inventory').click();
         const el = UserYou?.findAsset(AppId.CSGO, ContextId.PRIMARY, trade.contract.item.asset_id)?.element;
         if (!el) {
-            console.error('failed to find asset element for id ' + trade.contract.item.asset_id);
+            alert(
+                `Failed to auto-fill asset ${trade.contract.item.asset_id}, you may have traded it away; skipping...`
+            );
             return;
         }
 
