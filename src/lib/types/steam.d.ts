@@ -122,6 +122,7 @@ export interface CInventory {
     m_owner?: mOwner;
     owner?: mOwner;
     selectedItem?: InventoryAsset;
+    appid?: number;
 }
 
 export interface CAjaxPagingControls {
@@ -182,6 +183,7 @@ export interface UserSomeone {
     };
     strSteamId: string;
     findAsset: (appId: AppId, contextId: ContextId, itemId: string) => rgAsset;
+    ReloadInventory: (appId: AppId, contextId: ContextId) => void;
 }
 
 export interface CurrentTradeAsset {
@@ -245,6 +247,7 @@ declare global {
     ) => void; // Only populated on create offer pages
     const MoveItemToTrade: (el: HTMLElement) => void; // Only populated on create offer pages
     const g_rgCurrentTradeStatus: CurrentTradeStatus;
+    const ShowItemInventory: (appID: AppId, contextID: ContextId, AssetID?: number) => void;
 }
 
 export {};
