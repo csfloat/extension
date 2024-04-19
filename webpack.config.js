@@ -109,6 +109,11 @@ module.exports = (env) => {
 
                             if (mode === 'development') {
                                 processed.host_permissions.push('http://localhost:8080/*');
+
+                                const versionResource = processed.web_accessible_resources.find((e) =>
+                                    e.resources[0].includes('version.txt')
+                                );
+                                versionResource.matches.push('http://localhost:4200/*');
                             }
 
                             if (env.browser === 'firefox') {
