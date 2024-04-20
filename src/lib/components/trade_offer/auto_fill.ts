@@ -272,6 +272,15 @@ export class AutoFill extends FloatElement {
             this.disableInventoryPicker();
         }
 
+        if (tradesToBuyer.length > 0 && g_ActiveInventory?.appid !== AppId.CSGO) {
+            // Default to CS inventory
+            try {
+                ShowItemInventory(AppId.CSGO, ContextId.PRIMARY);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
         return html`
             ${this.showAutoFillInfoDialog(tradesToBuyer)} ${this.showPermissionWarningDialog(tradesToBuyer)}
             ${this.renderBulkAutoFillDialog(tradesToBuyer)} ${tradesToBuyer.map((e) => this.renderAutoFillDialog(e))}
@@ -284,16 +293,16 @@ export class AutoFill extends FloatElement {
             return;
         }
 
-        const elem = document.getElementsByClassName('trade_box_contents');
-        if (!elem || elem.length === 0) {
+        const elem = document.getElementById('inventories');
+        if (!elem) {
             return;
         }
 
         // @ts-ignore
-        elem.item(0)?.style.opacity = '0.5';
+        elem.style.opacity = '0.5';
 
         // @ts-ignore
-        elem.item(0)?.style.pointerEvents = 'none';
+        elem.style.pointerEvents = 'none';
     }
 
     autoFillAll(trades: Trade[]) {
