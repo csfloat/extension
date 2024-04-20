@@ -16,7 +16,7 @@ CSFloat has an extension for Firefox/Chrome that lets you fetch floats directly 
 ## Store Links
 [Chrome Store Link](https://chrome.google.com/webstore/detail/csfloat-market-checker/jjicbefpemnphinccgikpdaagjebbnhg) [v4+]
 
-[Firefox Add-ons Link](https://addons.mozilla.org/en-US/firefox/addon/csgofloat/) [v4+]
+[Firefox Add-ons Link](https://addons.mozilla.org/en-US/firefox/addon/csgofloat/) [v3+]
 
 ## Features
 
