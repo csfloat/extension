@@ -2,6 +2,7 @@ import {TradeOfferState} from '../types/steam_constants';
 import {Trade} from '../types/float_market';
 import {TradeOfferStatus, TradeOffersType} from '../bridge/handlers/trade_offer_status';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
+import {clearAccessTokenFromStorage, getAccessToken} from './access_token';
 
 interface OfferStatus {
     offer_id: string;
@@ -53,35 +54,20 @@ async function getEnglishSentTradeOffersHTML(): Promise<string> {
 }
 
 async function getSentTradeOffers(): Promise<{offers: OfferStatus[]; type: TradeOffersType}> {
-    const body = await getEnglishSentTradeOffersHTML();
-
-    const hasPermissions = await HasPermissions.handleRequest(
-        {
-            permissions: [],
-            origins: ['*://*.steampowered.com/*'],
-        },
-        {}
-    );
-
-    // We generally prefer to use the API when available, but who knows when things get shut down
-    if (hasPermissions.granted) {
-        const webAPIToken = /data-loyalty_webapi_token="&quot;([a-zA-Z0-9_.-]+)&quot;"/.exec(body);
-        if (webAPIToken && webAPIToken.length > 1) {
-            try {
-                const offers = await getTradeOffersFromAPI(webAPIToken[1]);
-                if (offers.length > 0) {
-                    // Hedge in case this endpoint gets killed, only return if there are results, fallback to HTML parser
-                    return {offers, type: TradeOffersType.API};
-                }
-            } catch (e) {
-                console.error(e);
-            }
+    try {
+        const offers = await getTradeOffersFromAPI();
+        if (offers.length > 0) {
+            // Hedge in case this endpoint gets killed, only return if there are results, fallback to HTML parser
+            return {offers, type: TradeOffersType.API};
+        } else {
+            throw new Error('failed to get trade offers');
         }
-
+    } catch (e) {
+        await clearAccessTokenFromStorage();
         // Fallback to HTML parsing
+        const offers = await getTradeOffersFromHTML();
+        return {offers, type: TradeOffersType.HTML};
     }
-
-    return {offers: parseTradeOffersHTML(body), type: TradeOffersType.HTML};
 }
 
 interface TradeOffersAPIResponse {
@@ -94,7 +80,9 @@ interface TradeOffersAPIResponse {
     };
 }
 
-async function getTradeOffersFromAPI(accessToken: string): Promise<OfferStatus[]> {
+async function getTradeOffersFromAPI(): Promise<OfferStatus[]> {
+    const accessToken = await getAccessToken();
+
     const resp = await fetch(
         `https://api.steampowered.com/IEconService/GetTradeOffers/v1/?access_token=${accessToken}&get_sent_offers=true`,
         {
@@ -125,6 +113,12 @@ const BANNER_TO_STATE: {[banner: string]: TradeOfferState} = {
     'mobile confirmation': TradeOfferState.CreatedNeedsConfirmation,
     escrow: TradeOfferState.InEscrow,
 };
+
+async function getTradeOffersFromHTML(): Promise<OfferStatus[]> {
+    const body = await getEnglishSentTradeOffersHTML();
+
+    return parseTradeOffersHTML(body);
+}
 
 function parseTradeOffersHTML(body: string): OfferStatus[] {
     const matches = body.matchAll(

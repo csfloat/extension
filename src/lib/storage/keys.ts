@@ -8,6 +8,7 @@ export enum StorageKey {
     PAGE_SIZE = 'pageSize',
     ITEM_FILTERS = 'expressions',
     GLOBAL_FILTERS = 'global',
+    ACCESS_TOKEN = 'access_token',
 }
 
 export type DynamicStorageKey = string;
