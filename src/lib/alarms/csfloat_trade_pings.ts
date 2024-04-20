@@ -2,10 +2,23 @@ import {Trade} from '../types/float_market';
 import {FetchPendingTrades} from '../bridge/handlers/fetch_pending_trades';
 import {pingTradeHistory} from './trade_history';
 import {pingSentTradeOffers} from './trade_offer';
+import {HasPermissions} from '../bridge/handlers/has_permissions';
 
 export const PING_CSFLOAT_TRADE_STATUS_ALARM_NAME = 'ping_csfloat_trade_status_alarm';
 
 export async function pingTradeStatus() {
+    const hasPermissions = await HasPermissions.handleRequest(
+        {
+            permissions: [],
+            origins: ['*://*.steampowered.com/*'],
+        },
+        {}
+    );
+    if (!hasPermissions.granted) {
+        // They didn't enable offer tracking, skip for now
+        return;
+    }
+
     let pendingTrades: Trade[];
     try {
         const resp = await FetchPendingTrades.handleRequest({limit: 500}, {});

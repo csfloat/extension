@@ -1,7 +1,7 @@
 import {Trade} from '../types/float_market';
 import {TradeHistoryStatus, TradeHistoryType} from '../bridge/handlers/trade_history_status';
 import {AppId} from '../types/steam_constants';
-import {HasPermissions} from '../bridge/handlers/has_permissions';
+import {clearAccessTokenFromStorage, getAccessToken} from './access_token';
 
 export async function pingTradeHistory(pendingTrades: Trade[]) {
     const {history, type} = await getTradeHistory();
@@ -29,44 +29,20 @@ export async function pingTradeHistory(pendingTrades: Trade[]) {
 }
 
 async function getTradeHistory(): Promise<{history: TradeHistoryStatus[]; type: TradeHistoryType}> {
-    const resp = await fetch(`https://steamcommunity.com/id/me/tradehistory`, {
-        credentials: 'include',
-        // Expect redirect since we're using `me` above
-        redirect: 'follow',
-    });
-
-    const body = await resp.text();
-
-    const hasPermissions = await HasPermissions.handleRequest(
-        {
-            permissions: [],
-            origins: ['*://*.steampowered.com/*'],
-        },
-        {}
-    );
-
-    if (hasPermissions.granted) {
-        const webAPIToken = /data-loyalty_webapi_token="&quot;([a-zA-Z0-9_.-]+)&quot;"/.exec(body);
-        if (webAPIToken && webAPIToken.length > 1) {
-            try {
-                const history = await getTradeHistoryFromAPI(webAPIToken[1]);
-                if (history.length > 0) {
-                    // Hedge in case this endpoint gets killed, only return if there are results, fallback to HTML parser
-                    return {history, type: TradeHistoryType.API};
-                }
-            } catch (e) {
-                console.error(e);
-            }
+    try {
+        const history = await getTradeHistoryFromAPI();
+        if (history.length > 0) {
+            // Hedge in case this endpoint gets killed, only return if there are results, fallback to HTML parser
+            return {history, type: TradeHistoryType.API};
+        } else {
+            throw new Error('failed to get trade history');
         }
-
+    } catch (e) {
+        await clearAccessTokenFromStorage();
         // Fallback to HTML parsing
+        const history = await getTradeHistoryFromHTML();
+        return {history, type: TradeHistoryType.HTML};
     }
-
-    if (body.includes('too many requests')) {
-        throw 'Too many requests';
-    }
-
-    return {history: parseTradeHistoryHTML(body), type: TradeHistoryType.HTML};
 }
 
 interface HistoryAsset {
@@ -87,7 +63,9 @@ interface TradeHistoryAPIResponse {
     };
 }
 
-async function getTradeHistoryFromAPI(accessToken: string): Promise<TradeHistoryStatus[]> {
+async function getTradeHistoryFromAPI(): Promise<TradeHistoryStatus[]> {
+    const accessToken = await getAccessToken();
+
     // This only works if they have granted permission for https://api.steampowered.com
     const resp = await fetch(
         `https://api.steampowered.com/IEconService/GetTradeHistory/v1/?access_token=${accessToken}&max_trades=50`,
@@ -121,6 +99,22 @@ async function getTradeHistoryFromAPI(accessToken: string): Promise<TradeHistory
             // Remove non-CS related assets
             return e.received_assets.length > 0 || e.given_assets.length > 0;
         });
+}
+
+async function getTradeHistoryFromHTML(): Promise<TradeHistoryStatus[]> {
+    const resp = await fetch(`https://steamcommunity.com/id/me/tradehistory`, {
+        credentials: 'include',
+        // Expect redirect since we're using `me` above
+        redirect: 'follow',
+    });
+
+    const body = await resp.text();
+
+    if (body.includes('too many requests')) {
+        throw 'Too many requests';
+    }
+
+    return parseTradeHistoryHTML(body);
 }
 
 function parseTradeHistoryHTML(body: string): TradeHistoryStatus[] {
