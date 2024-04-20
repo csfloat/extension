@@ -8,7 +8,7 @@ export const PING_CSFLOAT_TRADE_STATUS_ALARM_NAME = 'ping_csfloat_trade_status_a
 export async function pingTradeStatus() {
     let pendingTrades: Trade[];
     try {
-        const resp = await FetchPendingTrades.handleRequest({}, {});
+        const resp = await FetchPendingTrades.handleRequest({limit: 500}, {});
         pendingTrades = resp.trades;
     } catch (e) {
         console.error(e);
