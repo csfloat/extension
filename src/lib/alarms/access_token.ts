@@ -9,8 +9,8 @@ interface AccessToken {
 export async function getAccessToken(): Promise<string | null> {
     // Do we have a fresh local copy?
     const tokenData = await gStore.get<AccessToken>(StorageKey.ACCESS_TOKEN);
-    if (tokenData?.token && tokenData.updated_at > Date.now() - 60 * 60 * 1000) {
-        // Token refreshed within the last hour, we can re-use
+    if (tokenData?.token && tokenData.updated_at > Date.now() - 30 * 60 * 1000) {
+        // Token refreshed within the last 30 min, we can re-use
         return tokenData.token;
     }
 
