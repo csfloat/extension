@@ -59,6 +59,7 @@ interface TradeHistoryAPIResponse {
             status: number;
             assets_given?: HistoryAsset[];
             assets_received?: HistoryAsset[];
+            time_escrow_end?: string;
         }[];
     };
 }
@@ -80,6 +81,7 @@ async function getTradeHistoryFromAPI(): Promise<TradeHistoryStatus[]> {
 
     const data = (await resp.json()) as TradeHistoryAPIResponse;
     return data.response.trades
+        .filter((e) => !e.time_escrow_end || new Date(parseInt(e.time_escrow_end) * 1000).getTime() < Date.now())
         .map((e) => {
             return {
                 other_party_url: `https://steamcommunity.com/profiles/${e.steamid_other}`,
