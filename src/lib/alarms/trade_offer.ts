@@ -1,12 +1,14 @@
 import {TradeOfferState} from '../types/steam_constants';
 import {Trade} from '../types/float_market';
 import {TradeOfferStatus, TradeOffersType} from '../bridge/handlers/trade_offer_status';
-import {HasPermissions} from '../bridge/handlers/has_permissions';
 import {clearAccessTokenFromStorage, getAccessToken} from './access_token';
+import {AnnotateOffer} from '../bridge/handlers/annotate_offer';
 
 interface OfferStatus {
     offer_id: string;
     state: TradeOfferState;
+    given_asset_ids?: string[];
+    received_asset_ids?: string[];
 }
 
 export async function pingSentTradeOffers(pendingTrades: Trade[]) {
@@ -22,11 +24,44 @@ export async function pingSentTradeOffers(pendingTrades: Trade[]) {
         return !!offersToFind[e.offer_id];
     });
 
-    if (offersForCSFloat.length === 0) {
-        return;
+    if (offersForCSFloat.length > 0) {
+        await TradeOfferStatus.handleRequest({sent_offers: offersForCSFloat, type}, {});
     }
 
-    await TradeOfferStatus.handleRequest({sent_offers: offersForCSFloat, type}, {});
+    // Any trade offers to attempt to annotate in case they sent the trade offer outside of CSFloat
+    // This is something they shouldn't do, but you can't control the will of users to defy
+    for (const offer of offers) {
+        if (offer.state !== TradeOfferState.Active) {
+            // If it was already accepted, trade history will send the appropriate ping
+            continue;
+        }
+
+        const hasTradeWithNoOfferAnnotated = pendingTrades.find((e) => {
+            if (e.steam_offer.id) {
+                // Already has a steam offer
+                return false;
+            }
+
+            return (offer.given_asset_ids || []).includes(e.contract.item.asset_id);
+        });
+        if (!hasTradeWithNoOfferAnnotated) {
+            // Couldn't find matching trade on CSFloat
+            continue;
+        }
+
+        try {
+            await AnnotateOffer.handleRequest(
+                {
+                    offer_id: offer.offer_id,
+                    given_asset_ids: offer.given_asset_ids || [],
+                    received_asset_ids: offer.received_asset_ids || [],
+                },
+                {}
+            );
+        } catch (e) {
+            console.error(`failed to annotate offer ${offer.offer_id} post-hoc`, e);
+        }
+    }
 }
 
 async function getEnglishSentTradeOffersHTML(): Promise<string> {
@@ -70,12 +105,18 @@ async function getSentTradeOffers(): Promise<{offers: OfferStatus[]; type: Trade
     }
 }
 
+interface TradeOfferItem {
+    assetid: string;
+}
+
 interface TradeOffersAPIResponse {
     response: {
         trade_offers_sent: {
             tradeofferid: string;
             accountid_other: string;
             trade_offer_state: TradeOfferState;
+            items_to_give?: TradeOfferItem[];
+            items_to_receive?: TradeOfferItem[];
         }[];
     };
 }
@@ -99,6 +140,8 @@ async function getTradeOffersFromAPI(): Promise<OfferStatus[]> {
         return {
             offer_id: e.tradeofferid,
             state: e.trade_offer_state,
+            given_asset_ids: (e.items_to_give || []).map((e) => e.assetid),
+            received_asset_ids: (e.items_to_receive || []).map((e) => e.assetid),
         } as OfferStatus;
     });
 }
