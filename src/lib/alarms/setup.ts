@@ -23,9 +23,13 @@ export async function registerTradeAlarmIfPossible() {
 
     const alarm = await chrome.alarms.get(PING_CSFLOAT_TRADE_STATUS_ALARM_NAME);
 
-    if (!alarm) {
+    const hasAlarmWithOutdatedTimer =
+        (alarm?.periodInMinutes && alarm?.periodInMinutes > 3) ||
+        (alarm?.scheduledTime && alarm?.scheduledTime > Date.now() + 10 * 60 * 1000); // Alarm scheduled more than 10 minutes in the future (can be caused by bad system clock)
+
+    if (!alarm || hasAlarmWithOutdatedTimer) {
         await chrome.alarms.create(PING_CSFLOAT_TRADE_STATUS_ALARM_NAME, {
-            periodInMinutes: 5,
+            periodInMinutes: 3,
             delayInMinutes: 1,
         });
     }
