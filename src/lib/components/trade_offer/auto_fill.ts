@@ -10,12 +10,16 @@ import {Observe} from '../../utils/observers';
 import '../common/ui/steam-button';
 import {AppId, ContextId} from '../../types/steam_constants';
 import {HasPermissions} from '../../bridge/handlers/has_permissions';
+import {hasQueryParameter} from '../../utils/browser';
 
 @CustomElement()
 @InjectBefore('div.trade_area')
 export class AutoFill extends FloatElement {
     @state()
     private pendingTradesResponse: FetchPendingTradesResponse | undefined;
+
+    @state()
+    private pendingTradesFailureReason: string | undefined;
 
     @state()
     private hasPermissions = false;
@@ -93,6 +97,7 @@ export class AutoFill extends FloatElement {
                 'failed to fetch pending trades on CSFloat Market, they are likely not logged in.',
                 e.toString()
             );
+            this.pendingTradesFailureReason = e.toString();
         }
 
         Observe(
@@ -245,6 +250,31 @@ export class AutoFill extends FloatElement {
         `;
     }
 
+    showExpectedAutoFillFailWarning(): HTMLTemplateResult {
+        if (!this.pendingTradesFailureReason || !hasQueryParameter('autofill')) {
+            // Loaded correctly or not applicable (no custom auto fill query param)
+            return html``;
+        }
+
+        return html`
+            <div class="container warning">
+                <div>
+                    <div class="float-icon">
+                        <img
+                            src="https://avatars.cloudflare.steamstatic.com/6ab5219d0bbcce1300a2c6d7cbc638da52edda48_full.jpg"
+                            style="height: 32px;"
+                        />
+                    </div>
+                    <span class="item-name"> Warning! </span>
+                    <div class="sale-info">
+                        Your CSFloat extension isn't properly able to fetch pending sales, DO NOT send items manually.
+                        Make sure you're logged into CSFloat!
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
     showAutoFillInfoDialog(tradesToBuyer: Trade[]): HTMLTemplateResult {
         if (tradesToBuyer.length === 0) {
             return html``;
@@ -262,12 +292,20 @@ export class AutoFill extends FloatElement {
     }
 
     protected render(): HTMLTemplateResult {
-        if (!this.pendingTradesResponse) return html``;
+        if (!this.pendingTradesResponse) {
+            // Check if we expected to be able to auto-fill, if so -- show a warning
+            if (hasQueryParameter('autofill')) {
+                this.disableInventoryPicker();
+                return this.showExpectedAutoFillFailWarning();
+            }
+
+            return html``;
+        }
 
         const tradesToBuyer = this.pendingTradesResponse.trades.filter((e) => e.buyer_id === UserThem?.strSteamId);
 
         const tradesWithoutOffersToBuyer = tradesToBuyer.filter((e) => !e.steam_offer?.state || !e.steam_offer?.id);
-        if (tradesWithoutOffersToBuyer.length > 0) {
+        if (tradesWithoutOffersToBuyer.length > 0 || hasQueryParameter('autofill')) {
             // Disable them being able to select random items from their inventory (ensure asset IDs match up)
             this.disableInventoryPicker();
         }
