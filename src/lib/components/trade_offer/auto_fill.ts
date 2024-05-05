@@ -304,7 +304,9 @@ export class AutoFill extends FloatElement {
 
         const tradesToBuyer = this.pendingTradesResponse.trades.filter((e) => e.buyer_id === UserThem?.strSteamId);
 
-        const tradesWithoutOffersToBuyer = tradesToBuyer.filter((e) => !e.steam_offer?.state || !e.steam_offer?.id);
+        const tradesWithoutOffersToBuyer = tradesToBuyer.filter(
+            (e) => !e.steam_offer?.state || !e.steam_offer?.id || ![2, 3].includes(e.steam_offer?.state) // 2, 3 correspond to "active" and "accepted" trade offers
+        );
         if (tradesWithoutOffersToBuyer.length > 0 || hasQueryParameter('autofill')) {
             // Disable them being able to select random items from their inventory (ensure asset IDs match up)
             this.disableInventoryPicker();
