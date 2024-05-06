@@ -3,6 +3,7 @@ import {FetchPendingTrades} from '../bridge/handlers/fetch_pending_trades';
 import {pingTradeHistory} from './trade_history';
 import {pingSentTradeOffers} from './trade_offer';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
+import {PingExtensionStatus} from '../bridge/handlers/ping_extension_status';
 
 export const PING_CSFLOAT_TRADE_STATUS_ALARM_NAME = 'ping_csfloat_trade_status_alarm';
 
@@ -17,6 +18,13 @@ export async function pingTradeStatus() {
     if (!hasPermissions.granted) {
         // They didn't enable offer tracking, skip for now
         return;
+    }
+
+    // Ping status of ext + permissions
+    try {
+        await PingExtensionStatus.handleRequest({}, {});
+    } catch (e) {
+        console.error('failed to ping extension status to csfloat', e);
     }
 
     let pendingTrades: Trade[];

@@ -16,6 +16,7 @@ import {TradeHistoryStatus} from './trade_history_status';
 import {TradeOfferStatus} from './trade_offer_status';
 import {HasPermissions} from './has_permissions';
 import {PingSetupExtension} from './ping_setup_extension';
+import {PingExtensionStatus} from './ping_extension_status';
 
 export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.EXECUTE_SCRIPT_ON_PAGE]: ExecuteScriptOnPage,
@@ -34,4 +35,5 @@ export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.TRADE_OFFER_STATUS]: TradeOfferStatus,
     [RequestType.HAS_PERMISSIONS]: HasPermissions,
     [RequestType.PING_SETUP_EXTENSION]: PingSetupExtension,
+    [RequestType.PING_EXTENSION_STATUS]: PingExtensionStatus,
 };
