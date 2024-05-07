@@ -69,7 +69,7 @@ async function getTradeHistoryFromAPI(): Promise<TradeHistoryStatus[]> {
 
     // This only works if they have granted permission for https://api.steampowered.com
     const resp = await fetch(
-        `https://api.steampowered.com/IEconService/GetTradeHistory/v1/?access_token=${accessToken}&max_trades=50`,
+        `https://api.steampowered.com/IEconService/GetTradeHistory/v1/?access_token=${accessToken}&max_trades=100`,
         {
             credentials: 'include',
         }
