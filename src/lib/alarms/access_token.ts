@@ -8,7 +8,7 @@ interface AccessToken {
 
 export async function getAccessToken(): Promise<string | null> {
     // Do we have a fresh local copy?
-    const tokenData = await gStore.get<AccessToken>(StorageKey.ACCESS_TOKEN);
+    const tokenData = await gStore.getWithStorage<AccessToken>(chrome.storage.local, StorageKey.ACCESS_TOKEN);
     if (tokenData?.token && tokenData.updated_at > Date.now() - 30 * 60 * 1000) {
         // Token refreshed within the last 30 min, we can re-use
         return tokenData.token;
@@ -29,18 +29,23 @@ export async function getAccessToken(): Promise<string | null> {
 
     const token = webAPITokenMatch[1];
 
-    await saveAccessToken(token);
+    try {
+        await saveAccessToken(token);
+    } catch (e) {
+        console.error('failed ot save access token to storage', e);
+    }
 
     return token;
 }
 
 export function saveAccessToken(token: string): Promise<void> {
-    return gStore.set(StorageKey.ACCESS_TOKEN, {
+    // Explicitly use local storage to prevent issues with sync storage quota or connectivity issues
+    return gStore.setWithStorage(chrome.storage.local, StorageKey.ACCESS_TOKEN, {
         token,
         updated_at: Date.now(),
     } as AccessToken);
 }
 
 export function clearAccessTokenFromStorage(): Promise<void> {
-    return gStore.remove(StorageKey.ACCESS_TOKEN);
+    return gStore.removeWithStorage(chrome.storage.local, StorageKey.ACCESS_TOKEN);
 }
