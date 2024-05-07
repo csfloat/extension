@@ -356,7 +356,7 @@ export class AutoFill extends FloatElement {
         const el = UserYou?.findAsset(AppId.CSGO, ContextId.PRIMARY, trade.contract.item.asset_id)?.element;
         if (!el) {
             alert(
-                `Failed to auto-fill asset ${trade.contract.item.asset_id}, you may have traded it away; skipping...`
+                `Failed to auto-fill asset ${trade.contract.item.asset_id}, you may have traded it away -- DO NOT SEND IT MANUALLY!`
             );
             return;
         }
