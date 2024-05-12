@@ -92,7 +92,6 @@ module.exports = (env) => {
             new CopyPlugin({
                 patterns: [
                     {from: 'icons', to: 'icons', context: '.'},
-                    {from: 'src/model_frame.html', to: 'src/', context: '.'},
                     {from: 'src/global.css', to: 'src/', context: '.'},
                     {from: 'src/background_ff.html', to: 'src/', context: '.'},
                     {from: 'src', to: 'raw/', context: '.'},

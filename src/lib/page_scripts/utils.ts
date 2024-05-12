@@ -25,12 +25,10 @@ async function initiateFirefox(scriptPath: string) {
 
     // We want to inject the ID of the extension
     const id = browser.runtime.id;
-    const modelUrl = browser.runtime.getURL('src/model_frame.html');
     const entryScript = document.createElement('script');
     entryScript.appendChild(
         document.createTextNode(`
         window.CSFLOAT_EXTENSION_ID = '${id}';
-        window.CSFLOAT_MODEL_FRAME_URL = '${modelUrl}';
     `)
     );
     document.head.appendChild(entryScript);
