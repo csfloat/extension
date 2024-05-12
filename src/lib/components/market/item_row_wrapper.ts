@@ -1,4 +1,4 @@
-import {html, nothing} from 'lit';
+import {css, html, nothing} from 'lit';
 
 import {state} from 'lit/decorators.js';
 import {CustomElement, InjectAppend, InjectionMode} from '../injectors';
@@ -17,6 +17,15 @@ import {pickTextColour} from '../../utils/colours';
 @CustomElement()
 @InjectAppend('#searchResultsRows .market_listing_row .market_listing_item_name_block', InjectionMode.CONTINUOUS)
 export class ItemRowWrapper extends FloatElement {
+    static styles = [
+        ...FloatElement.styles,
+        css`
+            .float-row-wrapper {
+                margin-bottom: 5px;
+            }
+        `,
+    ];
+
     @cache
     get listingId(): string | undefined {
         const id = $J(this).parent().find('.market_listing_item_name').attr('id');
@@ -144,7 +153,7 @@ export class ItemRowWrapper extends FloatElement {
             const fadePercentage = this.asset && getFadePercentage(this.asset, this.itemInfo);
 
             return html`
-                <div>
+                <div class="float-row-wrapper">
                     Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}<br />
                     Paint Seed:
                     ${formatSeed(this.itemInfo)}${fadePercentage !== undefined

@@ -20,8 +20,8 @@ CSFloat has an extension for Firefox/Chrome that lets you fetch floats directly 
 
 ## Features
 
+* Assists in verifying trades for CSFloat Market
 * Allows you to retrieve the float, paint seed, and float rank of any market or inventory item
-* Allows you to fetch the 3D model and screenshot of the item directly on the page
 * Fetches all floats on the page quickly and automatically on page load
 * User-definable filters to highlight items with low floats or certain paint seeds
 * Shows market item stickers at a glance and their wear

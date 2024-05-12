@@ -6,7 +6,6 @@ import {StorageGet} from './storage_get';
 import {StorageSet} from './storage_set';
 import {RequestHandler} from '../types';
 import {FetchPendingTrades} from './fetch_pending_trades';
-import {FetchSkinModel} from './fetch_skin_model';
 import {StorageRemove} from './storage_remove';
 import {RequestType} from './types';
 import {FetchExtensionFile} from './fetch_extension_file';
@@ -27,7 +26,6 @@ export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.STORAGE_SET]: StorageSet,
     [RequestType.STORAGE_REMOVE]: StorageRemove,
     [RequestType.FETCH_PENDING_TRADES]: FetchPendingTrades,
-    [RequestType.FETCH_SKIN_MODEL]: FetchSkinModel,
     [RequestType.FETCH_EXTENSION_FILE]: FetchExtensionFile,
     [RequestType.ANNOTATE_OFFER]: AnnotateOffer,
     [RequestType.EXTENSION_VERSION]: ExtensionVersion,

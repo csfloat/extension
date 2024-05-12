@@ -15,10 +15,9 @@ export const ExecuteScriptOnPage = new PrivilegedHandler(
         await chrome.scripting.executeScript({
             target: {tabId: sender.tab?.id as number},
             world: 'MAIN',
-            args: [chrome.runtime.id, chrome.runtime.getURL('src/model_frame.html')],
-            func: function ExtensionId(extensionId, modelFrameUrl) {
+            args: [chrome.runtime.id],
+            func: function ExtensionId(extensionId) {
                 window.CSFLOAT_EXTENSION_ID = extensionId;
-                window.CSFLOAT_MODEL_FRAME_URL = modelFrameUrl;
             },
         });
 
