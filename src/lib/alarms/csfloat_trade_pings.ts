@@ -1,7 +1,7 @@
 import {Trade} from '../types/float_market';
 import {FetchPendingTrades} from '../bridge/handlers/fetch_pending_trades';
 import {pingTradeHistory} from './trade_history';
-import {pingCancelPingTradeOffers, pingSentTradeOffers} from './trade_offer';
+import {pingCancelTrades, pingSentTradeOffers} from './trade_offer';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
 import {PingExtensionStatus} from '../bridge/handlers/ping_extension_status';
 
@@ -55,7 +55,7 @@ export async function pingTradeStatus() {
     }
 
     try {
-        await pingCancelPingTradeOffers(pendingTrades);
+        await pingCancelTrades(pendingTrades);
     } catch (e) {
         console.error('failed to ping cancel ping trade offers', e);
     }

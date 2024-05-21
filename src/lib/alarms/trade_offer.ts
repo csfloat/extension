@@ -65,7 +65,7 @@ export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     }
 }
 
-export async function pingCancelPingTradeOffers(pendingTrades: Trade[]) {
+export async function pingCancelTrades(pendingTrades: Trade[]) {
     const hasWaitForCancelPing = pendingTrades.find((e) => e.state === TradeState.PENDING && e.wait_for_cancel_ping);
     if (!hasWaitForCancelPing) {
         // Nothing to process/ping, exit
@@ -89,9 +89,10 @@ export async function pingCancelPingTradeOffers(pendingTrades: Trade[]) {
         if (
             tradeOffer &&
             (tradeOffer.state === TradeOfferState.Active ||
+                tradeOffer.state === TradeOfferState.Accepted ||
                 tradeOffer.state === TradeOfferState.CreatedNeedsConfirmation)
         ) {
-            // The trade offer is still active or needs confirmation, we don't want to send a cancel ping
+            // We don't want to send a cancel ping if the offer is active or valid
             continue;
         }
 
