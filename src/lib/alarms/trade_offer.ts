@@ -1,8 +1,9 @@
 import {TradeOfferState} from '../types/steam_constants';
-import {Trade} from '../types/float_market';
+import {Trade, TradeState} from '../types/float_market';
 import {TradeOfferStatus, TradeOffersType} from '../bridge/handlers/trade_offer_status';
 import {clearAccessTokenFromStorage, getAccessToken} from './access_token';
 import {AnnotateOffer} from '../bridge/handlers/annotate_offer';
+import {PingCancelTrade} from '../bridge/handlers/ping_cancel_trade';
 
 interface OfferStatus {
     offer_id: string;
@@ -64,6 +65,44 @@ export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     }
 }
 
+export async function pingCancelTrades(pendingTrades: Trade[]) {
+    const hasWaitForCancelPing = pendingTrades.find((e) => e.state === TradeState.PENDING && e.wait_for_cancel_ping);
+    if (!hasWaitForCancelPing) {
+        // Nothing to process/ping, exit
+        return;
+    }
+
+    const tradeOffers = await getSentAndReceivedTradeOffersFromAPI();
+
+    const allTradeOffers = [...(tradeOffers.sent || []), ...(tradeOffers.received || [])];
+
+    for (const trade of pendingTrades) {
+        if (trade.state !== TradeState.PENDING) {
+            continue;
+        }
+
+        if (!trade.wait_for_cancel_ping) {
+            continue;
+        }
+
+        const tradeOffer = allTradeOffers.find((e) => e.offer_id === trade.steam_offer.id);
+        if (
+            tradeOffer &&
+            (tradeOffer.state === TradeOfferState.Active ||
+                tradeOffer.state === TradeOfferState.Accepted ||
+                tradeOffer.state === TradeOfferState.CreatedNeedsConfirmation)
+        ) {
+            // We don't want to send a cancel ping if the offer is active or valid
+            continue;
+        }
+
+        try {
+            await PingCancelTrade.handleRequest({trade_id: trade.id}, {});
+        } catch (e) {
+            console.error(`failed to send cancel ping for trade ${trade.id}`, e);
+        }
+    }
+}
 async function getEnglishSentTradeOffersHTML(): Promise<string> {
     const resp = await fetch(`https://steamcommunity.com/id/me/tradeoffers/sent`, {
         credentials: 'include',
@@ -90,7 +129,7 @@ async function getEnglishSentTradeOffersHTML(): Promise<string> {
 
 async function getSentTradeOffers(): Promise<{offers: OfferStatus[]; type: TradeOffersType}> {
     try {
-        const offers = await getTradeOffersFromAPI();
+        const offers = await getSentTradeOffersFromAPI();
         if (offers.length > 0) {
             // Hedge in case this endpoint gets killed, only return if there are results, fallback to HTML parser
             return {offers, type: TradeOffersType.API};
@@ -109,19 +148,31 @@ interface TradeOfferItem {
     assetid: string;
 }
 
+interface TradeOffersAPIOffer {
+    tradeofferid: string;
+    accountid_other: string;
+    trade_offer_state: TradeOfferState;
+    items_to_give?: TradeOfferItem[];
+    items_to_receive?: TradeOfferItem[];
+}
+
 interface TradeOffersAPIResponse {
     response: {
-        trade_offers_sent: {
-            tradeofferid: string;
-            accountid_other: string;
-            trade_offer_state: TradeOfferState;
-            items_to_give?: TradeOfferItem[];
-            items_to_receive?: TradeOfferItem[];
-        }[];
+        trade_offers_sent: TradeOffersAPIOffer[];
+        trade_offers_received: TradeOffersAPIOffer[];
     };
 }
 
-async function getTradeOffersFromAPI(): Promise<OfferStatus[]> {
+function offerStateMapper(e: TradeOffersAPIOffer): OfferStatus {
+    return {
+        offer_id: e.tradeofferid,
+        state: e.trade_offer_state,
+        given_asset_ids: (e.items_to_give || []).map((e) => e.assetid),
+        received_asset_ids: (e.items_to_receive || []).map((e) => e.assetid),
+    } as OfferStatus;
+}
+
+async function getSentTradeOffersFromAPI(): Promise<OfferStatus[]> {
     const accessToken = await getAccessToken();
 
     const resp = await fetch(
@@ -136,14 +187,28 @@ async function getTradeOffersFromAPI(): Promise<OfferStatus[]> {
     }
 
     const data = (await resp.json()) as TradeOffersAPIResponse;
-    return data.response.trade_offers_sent.map((e) => {
-        return {
-            offer_id: e.tradeofferid,
-            state: e.trade_offer_state,
-            given_asset_ids: (e.items_to_give || []).map((e) => e.assetid),
-            received_asset_ids: (e.items_to_receive || []).map((e) => e.assetid),
-        } as OfferStatus;
-    });
+    return data.response.trade_offers_sent.map(offerStateMapper);
+}
+
+async function getSentAndReceivedTradeOffersFromAPI(): Promise<{received: OfferStatus[]; sent: OfferStatus[]}> {
+    const accessToken = await getAccessToken();
+
+    const resp = await fetch(
+        `https://api.steampowered.com/IEconService/GetTradeOffers/v1/?access_token=${accessToken}&get_received_offers=true&get_sent_offers=true`,
+        {
+            credentials: 'include',
+        }
+    );
+
+    if (resp.status !== 200) {
+        throw new Error('invalid status');
+    }
+
+    const data = (await resp.json()) as TradeOffersAPIResponse;
+    return {
+        received: data.response.trade_offers_received.map(offerStateMapper),
+        sent: data.response.trade_offers_sent.map(offerStateMapper),
+    };
 }
 
 const BANNER_TO_STATE: {[banner: string]: TradeOfferState} = {
