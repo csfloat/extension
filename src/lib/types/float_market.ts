@@ -102,4 +102,5 @@ export interface Trade {
     state: TradeState;
     trade_url: string;
     steam_offer: SteamOffer;
+    wait_for_cancel_ping?: boolean;
 }

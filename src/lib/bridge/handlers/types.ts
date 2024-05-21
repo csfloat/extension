@@ -15,4 +15,5 @@ export enum RequestType {
     HAS_PERMISSIONS,
     PING_SETUP_EXTENSION,
     PING_EXTENSION_STATUS,
+    PING_CANCEL_TRADE,
 }
