@@ -8,7 +8,7 @@ import {state} from 'lit/decorators.js';
 import {Observe} from '../../utils/observers';
 
 import '../common/ui/steam-button';
-import {AppId, ContextId} from '../../types/steam_constants';
+import {AppId, ContextId, TradeOfferState} from '../../types/steam_constants';
 import {HasPermissions} from '../../bridge/handlers/has_permissions';
 import {hasQueryParameter} from '../../utils/browser';
 
@@ -115,6 +115,15 @@ export class AutoFill extends FloatElement {
             return html``;
         }
 
+        if (
+            [TradeOfferState.Active, TradeOfferState.Accepted, TradeOfferState.CreatedNeedsConfirmation].includes(
+                trade.steam_offer?.state
+            )
+        ) {
+            // Already had a trade offer created
+            return html``;
+        }
+
         const item = trade.contract.item;
 
         if (g_rgCurrentTradeStatus.me.assets.find((a) => a.assetid === item.asset_id)) {
@@ -148,7 +157,20 @@ export class AutoFill extends FloatElement {
             .filter(
                 (trade) => !g_rgCurrentTradeStatus.me.assets.find((a) => a.assetid === trade.contract.item.asset_id)
             )
-            .filter((trade) => trade.state === TradeState.PENDING);
+            .filter((trade) => trade.state === TradeState.PENDING)
+            .filter((trade) => {
+                if (!trade.steam_offer?.id) {
+                    // Trade offer hasn't been created yet
+                    return true;
+                }
+
+                // Only include trades with previous "non-active" trade offers
+                return ![
+                    TradeOfferState.Active,
+                    TradeOfferState.Accepted,
+                    TradeOfferState.CreatedNeedsConfirmation,
+                ].includes(trade.steam_offer?.state);
+            });
 
         // Bulk implies > 1
         if (fTrades.length <= 1) {
