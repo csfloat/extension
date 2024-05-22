@@ -4,6 +4,7 @@ import {pingTradeHistory} from './trade_history';
 import {pingCancelTrades, pingSentTradeOffers} from './trade_offer';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
 import {PingExtensionStatus} from '../bridge/handlers/ping_extension_status';
+import {AccessToken, getAccessToken} from './access_token';
 
 export const PING_CSFLOAT_TRADE_STATUS_ALARM_NAME = 'ping_csfloat_trade_status_alarm';
 
@@ -37,21 +38,55 @@ export async function pingTradeStatus() {
         return;
     }
 
-    if (pendingTrades.length === 0) {
-        // No active trades, return early
-        return;
+    let access: AccessToken | null = null;
+
+    try {
+        access = await getAccessToken();
+    } catch (e) {
+        console.error('failed to fetch access token', e);
     }
+
+    let errors;
+
+    if (pendingTrades.length > 0) {
+        errors = await pingUpdates(pendingTrades);
+    }
+
+    // Ping status of ext + permissions
+    try {
+        await PingExtensionStatus.handleRequest(
+            {
+                access_token_steam_id: access?.steam_id,
+                history_error: errors?.history_error,
+                trade_offer_error: errors?.trade_offer_error,
+            },
+            {}
+        );
+    } catch (e) {
+        console.error('failed to ping extension status to csfloat', e);
+    }
+}
+
+interface UpdateErrors {
+    history_error?: string;
+    trade_offer_error?: string;
+}
+
+async function pingUpdates(pendingTrades: Trade[]): Promise<UpdateErrors> {
+    const errors: UpdateErrors = {};
 
     try {
         await pingTradeHistory(pendingTrades);
     } catch (e) {
         console.error('failed to ping trade history', e);
+        errors.history_error = (e as any).toString();
     }
 
     try {
         await pingSentTradeOffers(pendingTrades);
     } catch (e) {
         console.error('failed to ping sent trade offer state', e);
+        errors.trade_offer_error = (e as any).toString();
     }
 
     try {
@@ -59,4 +94,6 @@ export async function pingTradeStatus() {
     } catch (e) {
         console.error('failed to ping cancel ping trade offers', e);
     }
+
+    return errors;
 }

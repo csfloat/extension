@@ -4,7 +4,11 @@ import {environment} from '../../../environment';
 import {HasPermissions} from './has_permissions';
 import {ExtensionVersion} from './extension_version';
 
-export interface PingExtensionStatusRequest {}
+export interface PingExtensionStatusRequest {
+    access_token_steam_id?: string | null;
+    history_error?: string | null;
+    trade_offer_error?: string | null;
+}
 
 export interface PingExtensionStatusResponse {}
 
@@ -39,6 +43,9 @@ export const PingExtensionStatus = new SimpleHandler<PingExtensionStatusRequest,
                 steam_community_permission: steamCommunityPermissions.granted,
                 steam_powered_permission: steamPoweredPermissions.granted,
                 version: versionResp.version,
+                access_token_steam_id: req.access_token_steam_id || '',
+                history_error: req.history_error || '',
+                trade_offer_error: req.trade_offer_error || '',
             }),
         });
 
