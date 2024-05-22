@@ -2,6 +2,9 @@ import {Handle} from './lib/bridge/server';
 import {InternalResponseBundle} from './lib/bridge/types';
 import MessageSender = chrome.runtime.MessageSender;
 import {alarmListener, registerTradeAlarmIfPossible} from './lib/alarms/setup';
+import {pingTradeStatus} from './lib/alarms/csfloat_trade_pings';
+import {gStore} from './lib/storage/store';
+import {StorageKey} from './lib/storage/keys';
 
 function unifiedHandler(request: any, sender: MessageSender, sendResponse: (response?: any) => void) {
     Handle(request, sender)
@@ -51,3 +54,15 @@ async function checkAlarmState() {
 }
 
 checkAlarmState();
+
+// Ping trade status upon service worker wake-up
+// Why do this even though there's an alarm? Well, some people turn on their device briefly to send a trade offer
+// then close it quickly, it's hard to rely on Chrome's scheduling in that case
+async function checkTradeStatus() {
+    const lastPing = await gStore.getWithStorage<number>(chrome.storage.local, StorageKey.LAST_TRADE_PING_ATTEMPT);
+    if (!lastPing || lastPing < Date.now() - 3 * 60 * 1000) {
+        // Last ping was over 3 minutes ago
+        pingTradeStatus();
+    }
+}
+checkTradeStatus();
