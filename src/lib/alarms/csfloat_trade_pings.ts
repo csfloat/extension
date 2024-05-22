@@ -5,10 +5,14 @@ import {pingCancelTrades, pingSentTradeOffers} from './trade_offer';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
 import {PingExtensionStatus} from '../bridge/handlers/ping_extension_status';
 import {AccessToken, getAccessToken} from './access_token';
+import {gStore} from '../storage/store';
+import {StorageKey} from '../storage/keys';
 
 export const PING_CSFLOAT_TRADE_STATUS_ALARM_NAME = 'ping_csfloat_trade_status_alarm';
 
 export async function pingTradeStatus() {
+    await gStore.setWithStorage(chrome.storage.local, StorageKey.LAST_TRADE_PING_ATTEMPT, Date.now());
+
     const hasPermissions = await HasPermissions.handleRequest(
         {
             permissions: [],
