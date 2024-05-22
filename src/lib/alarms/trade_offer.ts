@@ -173,10 +173,10 @@ function offerStateMapper(e: TradeOffersAPIOffer): OfferStatus {
 }
 
 async function getSentTradeOffersFromAPI(): Promise<OfferStatus[]> {
-    const accessToken = await getAccessToken();
+    const access = await getAccessToken();
 
     const resp = await fetch(
-        `https://api.steampowered.com/IEconService/GetTradeOffers/v1/?access_token=${accessToken}&get_sent_offers=true`,
+        `https://api.steampowered.com/IEconService/GetTradeOffers/v1/?access_token=${access.token}&get_sent_offers=true`,
         {
             credentials: 'include',
         }
@@ -191,10 +191,10 @@ async function getSentTradeOffersFromAPI(): Promise<OfferStatus[]> {
 }
 
 async function getSentAndReceivedTradeOffersFromAPI(): Promise<{received: OfferStatus[]; sent: OfferStatus[]}> {
-    const accessToken = await getAccessToken();
+    const access = await getAccessToken();
 
     const resp = await fetch(
-        `https://api.steampowered.com/IEconService/GetTradeOffers/v1/?access_token=${accessToken}&get_received_offers=true&get_sent_offers=true`,
+        `https://api.steampowered.com/IEconService/GetTradeOffers/v1/?access_token=${access.token}&get_received_offers=true&get_sent_offers=true`,
         {
             credentials: 'include',
         }
