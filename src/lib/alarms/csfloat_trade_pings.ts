@@ -25,13 +25,6 @@ export async function pingTradeStatus() {
         return;
     }
 
-    // Ping status of ext + permissions
-    try {
-        await PingExtensionStatus.handleRequest({}, {});
-    } catch (e) {
-        console.error('failed to ping extension status to csfloat', e);
-    }
-
     let pendingTrades: Trade[];
     try {
         const resp = await FetchPendingTrades.handleRequest({limit: 500}, {});
