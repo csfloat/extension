@@ -3,9 +3,13 @@ import {RequestType} from './types';
 import {TradeOfferState} from '../../types/steam_constants';
 import {environment} from '../../../environment';
 
-export interface TradeOfferStatus {
+export interface OfferStatus {
     offer_id: string;
     state: TradeOfferState;
+    given_asset_ids?: string[];
+    received_asset_ids?: string[];
+    time_created?: number;
+    time_updated?: number;
 }
 
 export enum TradeOffersType {
@@ -14,7 +18,7 @@ export enum TradeOffersType {
 }
 
 export interface TradeOfferStatusRequest {
-    sent_offers: TradeOfferStatus[];
+    sent_offers: OfferStatus[];
     type?: TradeOffersType;
 }
 

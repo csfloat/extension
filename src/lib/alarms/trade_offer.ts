@@ -1,16 +1,9 @@
 import {TradeOfferState} from '../types/steam_constants';
 import {Trade, TradeState} from '../types/float_market';
-import {TradeOfferStatus, TradeOffersType} from '../bridge/handlers/trade_offer_status';
+import {OfferStatus, TradeOfferStatus, TradeOffersType} from '../bridge/handlers/trade_offer_status';
 import {clearAccessTokenFromStorage, getAccessToken} from './access_token';
 import {AnnotateOffer} from '../bridge/handlers/annotate_offer';
 import {PingCancelTrade} from '../bridge/handlers/ping_cancel_trade';
-
-interface OfferStatus {
-    offer_id: string;
-    state: TradeOfferState;
-    given_asset_ids?: string[];
-    received_asset_ids?: string[];
-}
 
 export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     const {offers, type} = await getSentTradeOffers();
@@ -154,6 +147,8 @@ interface TradeOffersAPIOffer {
     trade_offer_state: TradeOfferState;
     items_to_give?: TradeOfferItem[];
     items_to_receive?: TradeOfferItem[];
+    time_created: number;
+    time_updated: number;
 }
 
 interface TradeOffersAPIResponse {
@@ -169,6 +164,8 @@ function offerStateMapper(e: TradeOffersAPIOffer): OfferStatus {
         state: e.trade_offer_state,
         given_asset_ids: (e.items_to_give || []).map((e) => e.assetid),
         received_asset_ids: (e.items_to_receive || []).map((e) => e.assetid),
+        time_created: e.time_created,
+        time_updated: e.time_updated,
     } as OfferStatus;
 }
 
