@@ -81,9 +81,7 @@ export async function pingCancelTrades(pendingTrades: Trade[]) {
         const tradeOffer = allTradeOffers.find((e) => e.offer_id === trade.steam_offer.id);
         if (
             tradeOffer &&
-            (tradeOffer.state === TradeOfferState.Active ||
-                tradeOffer.state === TradeOfferState.Accepted ||
-                tradeOffer.state === TradeOfferState.CreatedNeedsConfirmation)
+            (tradeOffer.state === TradeOfferState.Active || tradeOffer.state === TradeOfferState.Accepted)
         ) {
             // We don't want to send a cancel ping if the offer is active or valid
             continue;
