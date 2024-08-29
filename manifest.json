@@ -52,7 +52,7 @@
     ],
     "optional_host_permissions": ["*://*.steampowered.com/*"],
     "externally_connectable": {
-        "matches": ["*://*.steamcommunity.com/*"]
+        "matches": ["*://*.steamcommunity.com/*", "*://*.csfloat.com/*"]
     },
     "web_accessible_resources": [
         {
