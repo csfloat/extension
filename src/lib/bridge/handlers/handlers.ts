@@ -18,6 +18,7 @@ import {PingSetupExtension} from './ping_setup_extension';
 import {PingExtensionStatus} from './ping_extension_status';
 import {PingCancelTrade} from './ping_cancel_trade';
 import {CreateTradeOffer} from './create_trade_offer';
+import {FetchSteamUser} from './fetch_steam_user';
 
 export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.EXECUTE_SCRIPT_ON_PAGE]: ExecuteScriptOnPage,
@@ -38,4 +39,5 @@ export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.PING_EXTENSION_STATUS]: PingExtensionStatus,
     [RequestType.PING_CANCEL_TRADE]: PingCancelTrade,
     [RequestType.CREATE_TRADE_OFFER]: CreateTradeOffer,
+    [RequestType.FETCH_STEAM_USER]: FetchSteamUser,
 };
