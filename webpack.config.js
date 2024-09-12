@@ -94,6 +94,7 @@ module.exports = (env) => {
                     {from: 'icons', to: 'icons', context: '.'},
                     {from: 'src/global.css', to: 'src/', context: '.'},
                     {from: 'src/background_ff.html', to: 'src/', context: '.'},
+                    {from: 'src/steamcommunity_ruleset.json', to: 'src/', context: '.'},
                     {from: 'src', to: 'raw/', context: '.'},
                     {from: 'README.md', to: '', context: '.'},
                     {
@@ -114,7 +115,7 @@ module.exports = (env) => {
                                     e.resources[0].includes('version.txt')
                                 );
                                 versionResource.matches.push('http://localhost:4200/*');
-                                processed.externally_connectable.matches.push('http://localhost:4200/*');
+                                processed.externally_connectable.matches.push('http://localhost/*');
                             }
 
                             if (env.browser === 'firefox') {
