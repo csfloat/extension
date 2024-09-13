@@ -10,7 +10,19 @@ export interface CreateTradeOfferRequest {
     sessionID: string;
 }
 
-export interface CreateTradeOfferResponse {}
+interface CreateOfferSteamResponse {
+    email_domain?: string;
+    strError?: string;
+    needs_email_confirmation?: boolean;
+    needs_mobile_confirmation?: boolean;
+    tradeofferid?: string;
+}
+
+export interface CreateTradeOfferResponse {
+    status: number;
+    json?: CreateOfferSteamResponse;
+    text?: string;
+}
 
 export const CreateTradeOffer = new SimpleHandler<CreateTradeOfferRequest, CreateTradeOfferResponse>(
     RequestType.CREATE_TRADE_OFFER,
@@ -53,7 +65,7 @@ export const CreateTradeOffer = new SimpleHandler<CreateTradeOfferRequest, Creat
             trade_offer_create_params: JSON.stringify(params),
         };
 
-        await fetch('https://steamcommunity.com/tradeoffer/new/send', {
+        const resp = await fetch('https://steamcommunity.com/tradeoffer/new/send', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -64,6 +76,24 @@ export const CreateTradeOffer = new SimpleHandler<CreateTradeOfferRequest, Creat
             body: new URLSearchParams(formData as any).toString(),
         });
 
-        return {};
+        const res: CreateTradeOfferResponse = {
+            status: resp.status,
+        };
+
+        try {
+            const data = (await resp.json()) as CreateOfferSteamResponse;
+            res.json = data;
+        } catch (e: any) {
+            console.error(`failed to parse json from Steam create offer: ${e.toString()}`);
+        }
+
+        try {
+            const text = await resp.text();
+            res.text = text;
+        } catch (e: any) {
+            console.error(`failed to parse text from Steam create offer: ${e.toString()}`);
+        }
+
+        return res;
     }
 );
