@@ -80,18 +80,14 @@ export const CreateTradeOffer = new SimpleHandler<CreateTradeOfferRequest, Creat
             status: resp.status,
         };
 
+        const text = await resp.text();
+        res.text = text;
+
         try {
-            const data = (await resp.json()) as CreateOfferSteamResponse;
+            const data = JSON.parse(res.text);
             res.json = data;
         } catch (e: any) {
             console.error(`failed to parse json from Steam create offer: ${e.toString()}`);
-        }
-
-        try {
-            const text = await resp.text();
-            res.text = text;
-        } catch (e: any) {
-            console.error(`failed to parse text from Steam create offer: ${e.toString()}`);
         }
 
         return res;
