@@ -19,4 +19,5 @@ export enum RequestType {
     CREATE_TRADE_OFFER = 17,
     FETCH_STEAM_USER = 18,
     PING_TRADE_STATUS = 19,
+    PING_STATUS = 20,
 }
