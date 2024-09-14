@@ -8,6 +8,7 @@ export interface CreateTradeOfferRequest {
     assetIDsToGive: string[];
     assetIDsToReceive: string[];
     sessionID: string;
+    forceEnglish?: boolean;
 }
 
 interface CreateOfferSteamResponse {
@@ -65,7 +66,11 @@ export const CreateTradeOffer = new SimpleHandler<CreateTradeOfferRequest, Creat
             trade_offer_create_params: JSON.stringify(params),
         };
 
-        const resp = await fetch('https://steamcommunity.com/tradeoffer/new/send', {
+        const url = req.forceEnglish
+            ? 'https://steamcommunity.com/tradeoffer/new/send?l=english'
+            : 'https://steamcommunity.com/tradeoffer/new/send';
+
+        const resp = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
