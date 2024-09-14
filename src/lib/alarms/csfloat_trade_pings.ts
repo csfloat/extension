@@ -27,7 +27,7 @@ export async function pingTradeStatus() {
 
     let pendingTrades: Trade[];
     try {
-        const resp = await FetchPendingTrades.handleRequest({limit: 500}, {});
+        const resp = await FetchPendingTrades.handleRequest({limit: 1000}, {});
         pendingTrades = resp.trades;
     } catch (e) {
         console.error(e);
