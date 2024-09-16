@@ -1,3 +1,27 @@
+function overrideOnResponseRenderResults(proto: any) {
+    const originalMethod = proto.OnResponseRenderResults;
+
+    proto.OnResponseRenderResults = function(responseClass: any) {
+        const success = (responseClass && responseClass.responseJSON && responseClass.responseJSON.success) || false;
+        if (!success) {
+            paginationBox.showError();
+        } else {
+            paginationBox.hide();
+        }
+
+        originalMethod.call(this, responseClass);
+    };
+}
+
+function overrideGoToPage(proto: any) {
+    const originalMethodGoToPage = proto.GoToPage;
+
+    proto.GoToPage = function(page: number) {
+        paginationBox.showPending();
+        originalMethodGoToPage.call(this, page);
+    };
+}
+
 export function initResponseRenderResultsStatus() {
     const id = setInterval(() => {
         const searchResultsObject = g_oSearchResults;
@@ -5,83 +29,124 @@ export function initResponseRenderResultsStatus() {
 
         const proto = Object.getPrototypeOf(searchResultsObject);
 
-        const originalMethod = proto.OnResponseRenderResults;
-
-        proto.OnResponseRenderResults = function(responseClass: any) {
-            const success = (responseClass && responseClass.responseJSON && responseClass.responseJSON.success) || false
-            if (!success) {
-                paginationBox.show()
-            }
-
-            originalMethod.call(this, responseClass);
-        };
+        overrideOnResponseRenderResults(proto);
+        overrideGoToPage(proto);
 
         clearInterval(id);
-    }, 1000)
+    }, 1000);
 }
 
 class PaginationFailedBox extends HTMLElement {
     private container: HTMLDivElement;
     private progressBar: HTMLDivElement;
+    private messageDiv: HTMLDivElement;
     private hideTimeout: number | null = null;
-    private timeoutDuration = 1
+    private timeoutDuration: number = 1;
+    private state: string = 'none';
 
     constructor() {
         super();
-
-        const shadow = this.attachShadow({ mode: 'open' });
-
         this.container = document.createElement('div');
-        this.container.textContent = 'Pagination failed';
-        this.container.style.position = 'fixed';
-        this.container.style.top = '10px';
-        this.container.style.right = '10px';
-        this.container.style.padding = '10px';
-        this.container.style.backgroundColor = 'red';
-        this.container.style.color = 'white';
-        this.container.style.fontSize = '14px';
-        this.container.style.borderRadius = '5px';
-        this.container.style.zIndex = '1000';
-        this.container.style.display = 'none'
-
+        this.messageDiv = document.createElement('div');
         this.progressBar = document.createElement('div');
-        this.progressBar.style.position = 'absolute';
-        this.progressBar.style.bottom = '0';
-        this.progressBar.style.left = '0';
-        this.progressBar.style.height = '2px';
-        this.progressBar.style.width = '100%';
-        this.progressBar.style.backgroundColor = 'white';
-        this.progressBar.style.transition = `width ${this.timeoutDuration}s linear`;
+        this.attachShadow({ mode: 'open' });
+        this.createElements();
+        this.setupStyles();
+        this.addEventListeners();
+    }
 
+    private createElements() {
+        this.container.appendChild(this.messageDiv);
         this.container.appendChild(this.progressBar);
+        this.shadowRoot!.appendChild(this.container);
+    }
 
-        shadow.appendChild(this.container);
+    private setupStyles() {
+        Object.assign(this.container.style, {
+            position: 'fixed',
+            top: '10px',
+            right: '10px',
+            padding: '10px',
+            color: 'white',
+            fontSize: '14px',
+            borderRadius: '5px',
+            zIndex: '1000',
+            display: 'none',
+        });
 
+        Object.assign(this.messageDiv.style, {
+            position: 'relative',
+        });
+
+        Object.assign(this.progressBar.style, {
+            position: 'absolute',
+            bottom: '0',
+            left: '0',
+            height: '2px',
+            width: '100%',
+            backgroundColor: 'white',
+            transition: `width ${this.timeoutDuration}s linear`,
+        });
+    }
+
+    private addEventListeners() {
         this.container.addEventListener('click', () => {
             this.hide();
         });
     }
 
-    show() {
+    showError(duration: number = this.timeoutDuration) {
+        this.state = 'error';
+        this.timeoutDuration = duration;
+        this.messageDiv.textContent = 'Pagination failed';
+        this.container.style.backgroundColor = 'red';
         this.container.style.display = 'block';
-        this.progressBar.style.width = '100%';   // Reset the progress bar
+        this.progressBar.style.width = '100%';
+        this.progressBar.style.transitionDuration = `${this.timeoutDuration}s`;
 
         if (this.hideTimeout) {
             clearTimeout(this.hideTimeout);
         }
 
-        // Start the progress bar animation
         setTimeout(() => {
-            this.progressBar.style.width = '0%'; // Animate the progress bar over 2 seconds
-        }, 10);  // A slight delay to ensure the transition is applied
+            this.progressBar.style.width = '0%';
+        }, 10);
 
         this.hideTimeout = window.setTimeout(() => {
             this.hide();
         }, this.timeoutDuration * 1000);
     }
 
+    showPending() {
+        this.state = 'pending';
+        this.messageDiv.textContent = 'Pending';
+        this.container.style.backgroundColor = 'lightblue';
+        this.container.style.display = 'block';
+        this.progressBar.style.width = '100%';
+        this.progressBar.style.transitionDuration = `${this.timeoutDuration * 5}s`;
+
+        setTimeout(() => {
+            this.progressBar.style.width = '0%';
+        }, 10);
+
+        const id = setInterval(() => {
+            if (this.state !== 'pending') {
+                clearInterval(id);
+                return;
+            }
+            this.progressBar.style.transitionDuration = '0s';
+            this.progressBar.style.width = '100%';
+
+            setTimeout(() => {
+                this.progressBar.style.transitionDuration = `${this.timeoutDuration * 5}s`;
+                this.progressBar.style.width = '0%';
+            }, 10);
+        }, this.timeoutDuration * 1000 * 5);
+    }
+
     hide() {
         this.container.style.display = 'none';
+        this.state = 'none';
     }
 }
 
