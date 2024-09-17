@@ -60,7 +60,7 @@
             "matches": ["https://csfloat.com/*"]
         }
     ],
-    "declarative_net_request" : {
+    "declarative_net_request": {
         "rule_resources": [
             {
                 "id": "steamcommunity_ruleset",
