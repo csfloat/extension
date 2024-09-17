@@ -116,6 +116,7 @@ module.exports = (env) => {
                                 );
                                 versionResource.matches.push('http://localhost:4200/*');
                                 processed.externally_connectable.matches.push('http://localhost/*');
+                                processed.externally_connectable.matches.push('http://localhost:4200/*');
                             }
 
                             if (env.browser === 'firefox') {
