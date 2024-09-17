@@ -84,6 +84,7 @@ export enum TradeState {
 export interface SteamOffer {
     id: string;
     state: TradeOfferState;
+    sent_at: string;
 }
 
 export interface Trade {

@@ -4,6 +4,8 @@ import {OfferStatus, TradeOfferStatus, TradeOffersType} from '../bridge/handlers
 import {clearAccessTokenFromStorage, getAccessToken} from './access_token';
 import {AnnotateOffer} from '../bridge/handlers/annotate_offer';
 import {PingCancelTrade} from '../bridge/handlers/ping_cancel_trade';
+import {CancelTradeOffer} from '../bridge/handlers/cancel_trade_offer';
+import {FetchSteamUser} from '../bridge/handlers/fetch_steam_user';
 
 export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     const {offers, type} = await getSentTradeOffers();
@@ -94,6 +96,57 @@ export async function pingCancelTrades(pendingTrades: Trade[]) {
         }
     }
 }
+
+// cancelUnconfirmedTradeOffers related to sales on CSFloat that haven't been confirmed for a while
+// Helps prevent the user from sending a trade offer _way after_ the sale has already failed
+export async function cancelUnconfirmedTradeOffers(pendingTrades: Trade[]) {
+    const offerIDsToCancel = [
+        ...new Set(
+            pendingTrades
+                .filter(
+                    (e) =>
+                        e.steam_offer.state === TradeOfferState.CreatedNeedsConfirmation &&
+                        new Date(e.steam_offer.sent_at).getTime() < Date.now() - 60 * 60 * 1000
+                )
+                .map((e) => e.steam_offer.id)
+        ),
+    ];
+
+    if (offerIDsToCancel.length === 0) {
+        return;
+    }
+
+    const resp = await getSentTradeOffers();
+
+    const offersIDsStillNeedsConfirmation = offerIDsToCancel.filter((id) => {
+        const sentOffer = resp.offers.find((offer) => offer.offer_id === id);
+        if (!sentOffer) {
+            return false;
+        }
+
+        return sentOffer.state === TradeOfferState.CreatedNeedsConfirmation;
+    });
+
+    if (offersIDsStillNeedsConfirmation.length === 0) {
+        return;
+    }
+
+    const steamUser = await FetchSteamUser.handleRequest({}, {});
+    if (!steamUser.sessionID) {
+        // Can't cancel offers without a session
+        return;
+    }
+
+    for (const offerID of offersIDsStillNeedsConfirmation) {
+        try {
+            await CancelTradeOffer.handleRequest({trade_offer_id: offerID, session_id: steamUser.sessionID}, {});
+        } catch (e: any) {
+            console.error(`failed to cancel needs confirmation trade, returning early: ${e.toString()}`);
+            return;
+        }
+    }
+}
+
 async function getEnglishSentTradeOffersHTML(): Promise<string> {
     const resp = await fetch(`https://steamcommunity.com/id/me/tradeoffers/sent`, {
         credentials: 'include',
