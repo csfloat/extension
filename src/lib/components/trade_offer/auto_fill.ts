@@ -91,7 +91,7 @@ export class AutoFill extends FloatElement {
         }
 
         try {
-            this.pendingTradesResponse = await ClientSend(FetchPendingTrades, {limit: 500});
+            this.pendingTradesResponse = await ClientSend(FetchPendingTrades, {limit: 1000});
         } catch (e: any) {
             console.error(
                 'failed to fetch pending trades on CSFloat Market, they are likely not logged in.',
