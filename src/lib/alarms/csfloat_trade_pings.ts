@@ -1,7 +1,7 @@
 import {Trade} from '../types/float_market';
 import {FetchPendingTrades} from '../bridge/handlers/fetch_pending_trades';
 import {pingTradeHistory} from './trade_history';
-import {pingCancelTrades, pingSentTradeOffers} from './trade_offer';
+import {cancelUnconfirmedTradeOffers, pingCancelTrades, pingSentTradeOffers} from './trade_offer';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
 import {PingExtensionStatus} from '../bridge/handlers/ping_extension_status';
 import {AccessToken, getAccessToken} from './access_token';
@@ -71,6 +71,12 @@ interface UpdateErrors {
 
 async function pingUpdates(pendingTrades: Trade[]): Promise<UpdateErrors> {
     const errors: UpdateErrors = {};
+
+    try {
+        await cancelUnconfirmedTradeOffers(pendingTrades);
+    } catch (e) {
+        console.error(`failed to cancel unconfirmed trade offers`, e);
+    }
 
     try {
         await pingTradeHistory(pendingTrades);
