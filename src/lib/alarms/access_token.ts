@@ -7,12 +7,14 @@ export interface AccessToken {
     updated_at: number;
 }
 
-export async function getAccessToken(): Promise<AccessToken> {
+export async function getAccessToken(expectedSteamID?: string): Promise<AccessToken> {
     // Do we have a fresh local copy?
     const tokenData = await gStore.getWithStorage<AccessToken>(chrome.storage.local, StorageKey.ACCESS_TOKEN);
     if (tokenData?.token && tokenData.updated_at > Date.now() - 30 * 60 * 1000) {
         // Token refreshed within the last 30 min, we can re-use
-        return tokenData;
+        if (!expectedSteamID || expectedSteamID === tokenData?.steam_id) {
+            return tokenData;
+        }
     }
 
     // Need to fetch a new one
@@ -29,6 +31,10 @@ export async function getAccessToken(): Promise<AccessToken> {
 
     const token = webAPITokenMatch[1];
     const steamID = extractSteamID(body);
+
+    if (steamID && expectedSteamID && steamID !== expectedSteamID) {
+        throw new Error('user is not logged into the expected steam account');
+    }
 
     try {
         await saveAccessToken(token, steamID);

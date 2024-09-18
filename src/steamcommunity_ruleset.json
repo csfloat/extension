@@ -1,0 +1,21 @@
+[
+    {
+        "id": 1,
+        "priority": 1,
+        "action": {
+            "type": "modifyHeaders",
+            "requestHeaders": [
+                {
+                    "header": "referer",
+                    "operation": "set",
+                    "value": "https://steamcommunity.com/tradeoffer/new"
+                }
+            ]
+        },
+        "condition": {
+            "urlFilter": "https://steamcommunity.com/tradeoffer/new/send",
+            "resourceTypes": ["xmlhttprequest"],
+            "initiatorDomains": ["jjicbefpemnphinccgikpdaagjebbnhg"]
+        }
+    }
+]

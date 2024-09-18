@@ -10,7 +10,7 @@ import {StorageKey} from '../storage/keys';
 
 export const PING_CSFLOAT_TRADE_STATUS_ALARM_NAME = 'ping_csfloat_trade_status_alarm';
 
-export async function pingTradeStatus() {
+export async function pingTradeStatus(expectedSteamID?: string) {
     await gStore.setWithStorage(chrome.storage.local, StorageKey.LAST_TRADE_PING_ATTEMPT, Date.now());
 
     const hasPermissions = await HasPermissions.handleRequest(
@@ -38,7 +38,7 @@ export async function pingTradeStatus() {
     let access: AccessToken | null = null;
 
     try {
-        access = await getAccessToken();
+        access = await getAccessToken(expectedSteamID);
     } catch (e) {
         console.error('failed to fetch access token', e);
     }

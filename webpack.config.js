@@ -94,6 +94,7 @@ module.exports = (env) => {
                     {from: 'icons', to: 'icons', context: '.'},
                     {from: 'src/global.css', to: 'src/', context: '.'},
                     {from: 'src/background_ff.html', to: 'src/', context: '.'},
+                    {from: 'src/steamcommunity_ruleset.json', to: 'src/', context: '.'},
                     {from: 'src', to: 'raw/', context: '.'},
                     {from: 'README.md', to: '', context: '.'},
                     {
@@ -107,12 +108,15 @@ module.exports = (env) => {
                             }
 
                             if (mode === 'development') {
+                                // Add permissions only used for connecting to localhost dev env
                                 processed.host_permissions.push('http://localhost:8080/*');
 
                                 const versionResource = processed.web_accessible_resources.find((e) =>
                                     e.resources[0].includes('version.txt')
                                 );
                                 versionResource.matches.push('http://localhost:4200/*');
+                                processed.externally_connectable.matches.push('http://localhost/*');
+                                processed.externally_connectable.matches.push('http://localhost:4200/*');
                             }
 
                             if (env.browser === 'firefox') {
