@@ -20,6 +20,10 @@ export async function getAccessToken(expectedSteamID?: string): Promise<AccessTo
     // Need to fetch a new one
     const resp = await fetch(`https://steamcommunity.com`, {
         credentials: 'include',
+        headers: {
+            // Required for Steam to refresh the JWT when it expires
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        },
     });
 
     const body = await resp.text();
