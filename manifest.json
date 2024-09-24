@@ -37,6 +37,11 @@
             "matches": ["*://*.steamcommunity.com/*/tradeoffers/*"],
             "js": ["src/lib/page_scripts/trade_offers.js"],
             "css": ["src/global.css"]
+        },
+        {
+            "matches": ["*://*.steamcommunity.com/id/*", "*://*.steamcommunity.com/profiles/*"],
+            "js": ["src/lib/page_scripts/profile.js"],
+            "css": ["src/global.css"]
         }
     ],
     "background": {
