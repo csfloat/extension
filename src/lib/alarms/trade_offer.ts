@@ -90,7 +90,7 @@ export async function pingCancelTrades(pendingTrades: Trade[]) {
         }
 
         try {
-            await PingCancelTrade.handleRequest({trade_id: trade.id}, {});
+            await PingCancelTrade.handleRequest({trade_id: trade.id, steam_id: tradeOffers.steam_id}, {});
         } catch (e) {
             console.error(`failed to send cancel ping for trade ${trade.id}`, e);
         }
@@ -238,7 +238,11 @@ async function getSentTradeOffersFromAPI(): Promise<OfferStatus[]> {
     return data.response.trade_offers_sent.map(offerStateMapper);
 }
 
-async function getSentAndReceivedTradeOffersFromAPI(): Promise<{received: OfferStatus[]; sent: OfferStatus[]}> {
+async function getSentAndReceivedTradeOffersFromAPI(): Promise<{
+    received: OfferStatus[];
+    sent: OfferStatus[];
+    steam_id?: string | null;
+}> {
     const access = await getAccessToken();
 
     const resp = await fetch(
@@ -256,6 +260,7 @@ async function getSentAndReceivedTradeOffersFromAPI(): Promise<{received: OfferS
     return {
         received: data.response.trade_offers_received.map(offerStateMapper),
         sent: data.response.trade_offers_sent.map(offerStateMapper),
+        steam_id: access.steam_id,
     };
 }
 
