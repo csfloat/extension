@@ -175,6 +175,7 @@ function injectAnnotateOffer() {
             given_asset_ids,
             received_asset_ids,
             offer_id: offer_id,
+            other_steam_id64: UserThem?.strSteamId,
         });
     });
 }

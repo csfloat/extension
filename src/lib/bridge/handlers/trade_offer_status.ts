@@ -10,6 +10,7 @@ export interface OfferStatus {
     received_asset_ids?: string[];
     time_created?: number;
     time_updated?: number;
+    other_steam_id64?: string;
 }
 
 export enum TradeOffersType {

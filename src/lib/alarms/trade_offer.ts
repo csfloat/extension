@@ -51,6 +51,7 @@ export async function pingSentTradeOffers(pendingTrades: Trade[]) {
                     offer_id: offer.offer_id,
                     given_asset_ids: offer.given_asset_ids || [],
                     received_asset_ids: offer.received_asset_ids || [],
+                    other_steam_id64: offer.other_steam_id64,
                 },
                 {}
             );
@@ -217,6 +218,7 @@ function offerStateMapper(e: TradeOffersAPIOffer): OfferStatus {
         received_asset_ids: (e.items_to_receive || []).map((e) => e.assetid),
         time_created: e.time_created,
         time_updated: e.time_updated,
+        other_steam_id64: (BigInt('76561197960265728') + BigInt(e.accountid_other)).toString(),
     } as OfferStatus;
 }
 

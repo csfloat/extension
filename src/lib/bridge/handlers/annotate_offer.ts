@@ -6,6 +6,7 @@ export interface AnnotateOfferRequest {
     given_asset_ids: string[];
     received_asset_ids: string[];
     offer_id: string;
+    other_steam_id64?: string;
 }
 
 export interface AnnotateOfferResponse {}
