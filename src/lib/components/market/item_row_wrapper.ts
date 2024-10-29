@@ -145,6 +145,10 @@ export class ItemRowWrapper extends FloatElement {
             return html``;
         }
 
+        if (this.itemInfo?.weapon_type == "Charm" && this.itemInfo?.keychains) {
+            return html`<div class="float-row-wrapper">Pattern: ${this.itemInfo?.keychains[0].pattern}</div>`;
+        }
+
         if (this.asset && !isSkin(this.asset)) {
             return nothing;
         }

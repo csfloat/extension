@@ -10,6 +10,15 @@ interface Sticker {
     wear?: number;
 }
 
+interface Keychain {
+    codename: string;
+    name: string;
+    pattern: number;
+    slot: number;
+    stickerId: number;
+    wear: number;
+}
+
 export interface ItemInfo {
     stickers: Sticker[];
     itemid: string;
@@ -37,6 +46,7 @@ export interface ItemInfo {
     full_item_name?: string;
     low_rank?: number;
     high_rank?: number;
+    keychains?: Keychain[]
 }
 
 export interface FetchInspectInfoRequest {
