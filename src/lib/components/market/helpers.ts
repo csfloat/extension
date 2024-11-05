@@ -1,4 +1,4 @@
-import {rgAsset} from '../../types/steam';
+import {rgAsset, rgInternalDescription} from '../../types/steam';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {AppId, ContextId} from '../../types/steam_constants';
 
@@ -17,6 +17,86 @@ export function getMarketInspectLink(listingId: string): string | undefined {
     return asset.market_actions[0].link.replace('%listingid%', listingId).replace('%assetid%', asset.id);
 }
 
+function getStickerDescription(itemInfo: ItemInfo, asset: rgAsset): rgInternalDescription | undefined {
+    if (!itemInfo.stickers?.length) {
+        return;
+    }
+
+    if (itemInfo.keychains?.length > 0) {
+        // if they have a keychain, it is the second last description
+        return asset.descriptions[asset.descriptions.length - 2];
+    } else {
+        return asset.descriptions[asset.descriptions.length - 1];
+    }
+}
+
+function getKeychainDescription(itemInfo: ItemInfo, asset: rgAsset): rgInternalDescription | undefined {
+    if (!itemInfo.keychains?.length) {
+        return;
+    }
+
+    return asset.descriptions[asset.descriptions.length - 1];
+}
+
+enum AppliedType {
+    Charm = 'Charm',
+    Sticker = 'Sticker',
+}
+
+function generateAppliedInlineHTML(
+    description: rgInternalDescription,
+    type: AppliedType,
+    textFormatFn: (index: number) => string
+) {
+    const nameMatch = description.value.match(/<br>([^<].*?): (.*)<\/center>/);
+    const imagesHtml = description.value.match(/(<img .*?>)/g);
+
+    if (!nameMatch || !imagesHtml) {
+        return [];
+    }
+
+    const parsedType = nameMatch[1];
+    const names = nameMatch[2].split(', ');
+
+    return imagesHtml.map((imageHtml, i) => {
+        const url =
+            parsedType === type
+                ? `https://steamcommunity.com/market/listings/730/${parsedType} | ${names[i]}`
+                : `https://steamcommunity.com/market/search?q=${parsedType} | ${names[i]}`;
+
+        return `<span style="display: inline-block; text-align: center;">
+                    <a target="_blank" href="${url}">${imagesHtml[i]}</a>
+                    <span style="display: block;">
+                        ${textFormatFn(i)}
+                    </span>
+                </span>`;
+    });
+}
+
+function generateStickerInlineHTML(itemInfo: ItemInfo, asset: rgAsset): string[] {
+    const description = getStickerDescription(itemInfo, asset);
+
+    if (!description || description.type !== 'html' || !description.value.includes('sticker')) {
+        return [];
+    }
+
+    return generateAppliedInlineHTML(description, AppliedType.Sticker, (index) => {
+        return `${Math.round(100 * (itemInfo.stickers[index]?.wear || 0)) + '%'}`;
+    });
+}
+
+function generateKeychainInlineHTML(itemInfo: ItemInfo, asset: rgAsset): string[] {
+    const description = getKeychainDescription(itemInfo, asset);
+
+    if (!description || description.type !== 'html' || !description.value.includes('sticker')) {
+        return [];
+    }
+
+    return generateAppliedInlineHTML(description, AppliedType.Charm, (index) => {
+        return `#${itemInfo.keychains[index]?.pattern}`;
+    });
+}
+
 /**
  * Inlines stickers into a market item row HTML showing the image and wear
  *
@@ -24,7 +104,7 @@ export function getMarketInspectLink(listingId: string): string | undefined {
  * @param itemInfo Item Info for the item from csfloat API
  * @param asset Steam Asset for the item
  */
-export function inlineStickers(itemNameBlock: JQuery<Element>, itemInfo: ItemInfo, asset: rgAsset) {
+export function inlineStickersAndKeychains(itemNameBlock: JQuery<Element>, itemInfo: ItemInfo, asset: rgAsset) {
     if (!itemNameBlock) return;
 
     if (itemNameBlock.find('.csfloat-stickers-container').length) {
@@ -32,43 +112,14 @@ export function inlineStickers(itemNameBlock: JQuery<Element>, itemInfo: ItemInf
         return;
     }
 
-    const lastDescription = asset.descriptions[asset.descriptions.length - 1];
-
-    if (lastDescription.type !== 'html' || !lastDescription.value.includes('sticker')) {
+    const blobs = [...generateStickerInlineHTML(itemInfo, asset), ...generateKeychainInlineHTML(itemInfo, asset)];
+    if (blobs.length === 0) {
         return;
     }
-
-    const nameMatch = lastDescription.value.match(/<br>([^<].*?): (.*)<\/center>/);
-    const imagesHtml = lastDescription.value.match(/(<img .*?>)/g);
-
-    if (!nameMatch || !imagesHtml) {
-        return;
-    }
-
-    const stickerLang = nameMatch[1];
-    const stickerNames = nameMatch[2].split(', ');
-
-    const result = imagesHtml
-        .map((imageHtml, i) => {
-            const url =
-                stickerLang === 'Sticker'
-                    ? `https://steamcommunity.com/market/listings/730/${stickerLang} | ${stickerNames[i]}`
-                    : `https://steamcommunity.com/market/search?q=${stickerLang} | ${stickerNames[i]}`;
-
-            const sticker = itemInfo.stickers[i];
-
-            return `<span style="display: inline-block; text-align: center;">
-                    <a target="_blank" href="${url}">${imagesHtml[i]}</a>
-                    <span style="display: block;">
-                        ${Math.round(100 * (sticker?.wear || 0)) + '%'}
-                    </span>
-                </span>`;
-        })
-        .reduce((acc, v) => acc + v, '');
 
     itemNameBlock.prepend(`
         <div class="csfloat-stickers-container">
-            ${result}
+            ${blobs.reduce((acc, v) => acc + v, '')}
         </div>
     `);
 }
