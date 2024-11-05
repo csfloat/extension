@@ -9,6 +9,7 @@ export interface InternalInputVars {
     low_rank: number;
     high_rank: number;
     price?: number;
+    pattern?: number;
 }
 
 export interface SerializedFilter {

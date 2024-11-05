@@ -11,7 +11,7 @@ export class FilterHelp extends FloatElement {
 
             <b>Note: </b> If multiple filters match an item, it will be highlighted with the average colour<br><br>
 
-            <b>New: </b> You can now filter based on <a href="https://db.csfloat.com">FloatDB</a> ranks and item price!<br><br>
+            <b>New: </b> You can now filter based on charm patterns!<br><br>
 
             <b>Examples: </b>
             <ul>
@@ -40,6 +40,10 @@ export class FilterHelp extends FloatElement {
                 <li>low_rank <= 500 </li>
                 <ul>
                     <li>Matches items with floats ranked in the top 500 lowest for this skin on FloatDB</li>
+                </ul>
+                <li>pattern > 22000 and pattern < 25000 </li>
+                <ul>
+                    <li>Matches items with charms that have patterns between 22,000 and 25,000</li>
                 </ul>
                 <li>match(float, "7355608") >= 1</li>
                 <ul>
@@ -84,6 +88,11 @@ export class FilterHelp extends FloatElement {
                 <ul>
                     <li>Phase of the item if it's a doppler, empty otherwise</li>
                     <li>Possible values are "1", "2", "3", "4", "Ruby", "Sapphire", "Black Pearl", "Emerald"</li>
+                </ul>
+                <li>pattern</li>
+                <ul>
+                    <li>Pattern of an un-applied charm, or the first applied keychain on a charm.</li>
+                    <li>Possible values range from 0 to 100,000</li>
                 </ul>
                 <li>minfloat</li>
                 <ul>
