@@ -5,7 +5,7 @@ import {state} from 'lit/decorators.js';
 import {InventoryAsset} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
-import {formatSeed, getFadePercentage, isSkin, renderClickableRank, floor} from '../../utils/skin';
+import {formatSeed, getFadePercentage, isSkin, renderClickableRank, floor, isCharm} from '../../utils/skin';
 import {Observe} from '../../utils/observers';
 import {FetchStallResponse} from '../../bridge/handlers/fetch_stall';
 import {gStallFetcher} from '../../services/stall_fetcher';
@@ -86,20 +86,33 @@ export class SelectedItemInfo extends FloatElement {
             return html`<div>Loading...</div>`;
         }
 
-        if (!this.itemInfo) {
+        if (!this.itemInfo || !this.asset?.description) {
             return html``;
         }
 
-        const fadePercentage = this.asset && getFadePercentage(this.asset.description, this.itemInfo);
+        if (isSkin(this.asset.description)) {
+            const fadePercentage = this.asset && getFadePercentage(this.asset.description, this.itemInfo);
 
-        return html`
-            <div class="container">
-                <div>Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}</div>
-                <div>Paint Seed: ${formatSeed(this.itemInfo)}</div>
-                ${fadePercentage !== undefined ? html`<div>Fade: ${floor(fadePercentage, 5)}%</div>` : nothing}
-                ${this.renderListOnCSFloat()} ${this.renderFloatMarketListing()}
-            </div>
-        `;
+            return html`
+                <div class="container">
+                    <div>Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}</div>
+                    <div>Paint Seed: ${formatSeed(this.itemInfo)}</div>
+                    ${fadePercentage !== undefined ? html`<div>Fade: ${floor(fadePercentage, 5)}%</div>` : nothing}
+                    ${this.renderListOnCSFloat()} ${this.renderFloatMarketListing()}
+                </div>
+            `;
+        } else if (isCharm(this.asset.description)) {
+            return html`
+                <div class="container">
+                    <div>
+                        Pattern:
+                        #${this.itemInfo.keychains?.length > 0 ? this.itemInfo.keychains[0].pattern : 'Unknown'}
+                    </div>
+                </div>
+            `;
+        } else {
+            return html``;
+        }
     }
 
     renderFloatMarketListing(): TemplateResult<1> {
@@ -147,7 +160,7 @@ export class SelectedItemInfo extends FloatElement {
 
         if (!this.asset) return;
 
-        if (!isSkin(this.asset.description)) return;
+        if (!isSkin(this.asset.description) && !isCharm(this.asset.description)) return;
 
         // Commodities won't have inspect links
         if (!this.inspectLink) return;

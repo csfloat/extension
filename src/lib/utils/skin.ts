@@ -112,6 +112,19 @@ export function isSkin(asset: rgAsset): boolean {
           );
 }
 
+export function isCharm(asset: rgAsset): boolean {
+    if (asset.market_hash_name.startsWith('Charm')) {
+        // Tags aren't available on SCM items, so use a MHN heuristic instead
+        return true;
+    }
+
+    if (!asset.tags) {
+        return false;
+    }
+
+    return asset.tags.some((e) => e.category === 'Type' && e.internal_name === 'CSGO_Tool_Keychain');
+}
+
 export function getFadeCalculatorAndSupportedWeapon(
     asset: rgAsset
 ): [typeof FadeCalculator | typeof AcidFadeCalculator | typeof AmberFadeCalculator, string] | undefined {

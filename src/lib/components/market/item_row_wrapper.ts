@@ -8,7 +8,7 @@ import {rgAsset, ListingData} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {getMarketInspectLink, inlineEasyInspect, inlineStickers} from './helpers';
-import {formatSeed, getFadePercentage, isSkin, renderClickableRank, floor} from '../../utils/skin';
+import {formatSeed, getFadePercentage, isSkin, renderClickableRank, floor, isCharm} from '../../utils/skin';
 import {gFilterService} from '../../services/filter';
 import {AppId, ContextId, Currency} from '../../types/steam_constants';
 import {defined} from '../../utils/checkers';
@@ -145,11 +145,15 @@ export class ItemRowWrapper extends FloatElement {
             return html``;
         }
 
-        if (this.asset && !isSkin(this.asset)) {
+        if (!this.asset) {
             return nothing;
         }
 
-        if (this.itemInfo) {
+        if (this.asset && !isSkin(this.asset) && !isCharm(this.asset)) {
+            return nothing;
+        }
+
+        if (this.itemInfo && isSkin(this.asset)) {
             const fadePercentage = this.asset && getFadePercentage(this.asset, this.itemInfo);
 
             return html`
@@ -160,6 +164,12 @@ export class ItemRowWrapper extends FloatElement {
                         ? html`<br />
                               Fade: ${floor(fadePercentage, 5)}%`
                         : nothing}
+                </div>
+            `;
+        } else if (this.itemInfo && isCharm(this.asset)) {
+            return html`
+                <div class="float-row-wrapper">
+                    Pattern: #${this.itemInfo.keychains?.length > 0 ? this.itemInfo.keychains[0].pattern : 'Unknown'}
                 </div>
             `;
         } else if (this.error) {

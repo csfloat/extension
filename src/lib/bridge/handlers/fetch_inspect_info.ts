@@ -10,8 +10,13 @@ interface Sticker {
     wear?: number;
 }
 
+interface Keychain extends Sticker {
+    pattern: number;
+}
+
 export interface ItemInfo {
     stickers: Sticker[];
+    keychains: Keychain[];
     itemid: string;
     defindex: number;
     paintindex: number;
