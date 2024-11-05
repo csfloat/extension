@@ -59,6 +59,10 @@ class FilterService {
             vars.price = price;
         }
 
+        if (info.keychains?.length > 0) {
+            vars.pattern = info.keychains[0].pattern;
+        }
+
         const colours = this.filters
             .filter((e) => {
                 const result = e.run(vars);

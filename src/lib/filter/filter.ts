@@ -110,6 +110,7 @@ export class Filter {
             low_rank: 2,
             high_rank: 2,
             price: 10,
+            pattern: 11111,
         });
 
         if (!Filter.isValidReturnValue(result)) {
