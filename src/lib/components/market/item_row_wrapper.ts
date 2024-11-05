@@ -7,7 +7,7 @@ import {cache} from 'decorator-cache-getter';
 import {rgAsset, ListingData} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
-import {getMarketInspectLink, inlineEasyInspect, inlineStickers} from './helpers';
+import {getMarketInspectLink, inlineEasyInspect, inlineStickersAndKeychains} from './helpers';
 import {formatSeed, getFadePercentage, isSkin, renderClickableRank, floor, isCharm} from '../../utils/skin';
 import {gFilterService} from '../../services/filter';
 import {AppId, ContextId, Currency} from '../../types/steam_constants';
@@ -112,7 +112,7 @@ export class ItemRowWrapper extends FloatElement {
         }
 
         if (this.itemInfo && this.asset) {
-            inlineStickers(
+            inlineStickersAndKeychains(
                 $J(this).parent().parent().find('.market_listing_item_name_block'),
                 this.itemInfo,
                 this.asset

@@ -35,6 +35,11 @@ export interface WalletInfo {
     wallet_currency: number;
 }
 
+export interface rgInternalDescription {
+    type: string;
+    value: string;
+}
+
 // rgDescriptions
 export interface rgDescription {
     appid: AppId;
@@ -42,10 +47,7 @@ export interface rgDescription {
     background_color: string;
     classid: string;
     commodity: number;
-    descriptions: {
-        type: string;
-        value: string;
-    }[];
+    descriptions: rgInternalDescription[];
     fraudwarnings?: string[];
     icon_url: string;
     icon_url_large: string;
