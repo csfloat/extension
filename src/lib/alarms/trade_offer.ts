@@ -237,7 +237,7 @@ async function getSentTradeOffersFromAPI(): Promise<OfferStatus[]> {
     }
 
     const data = (await resp.json()) as TradeOffersAPIResponse;
-    return data.response.trade_offers_sent.map(offerStateMapper);
+    return (data.response?.trade_offers_sent || []).map(offerStateMapper);
 }
 
 async function getSentAndReceivedTradeOffersFromAPI(): Promise<{
@@ -260,8 +260,8 @@ async function getSentAndReceivedTradeOffersFromAPI(): Promise<{
 
     const data = (await resp.json()) as TradeOffersAPIResponse;
     return {
-        received: data.response.trade_offers_received.map(offerStateMapper),
-        sent: data.response.trade_offers_sent.map(offerStateMapper),
+        received: (data.response?.trade_offers_received || []).map(offerStateMapper),
+        sent: (data.response?.trade_offers_sent || []).map(offerStateMapper),
         steam_id: access.steam_id,
     };
 }

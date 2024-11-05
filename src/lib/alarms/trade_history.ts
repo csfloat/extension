@@ -80,7 +80,7 @@ async function getTradeHistoryFromAPI(): Promise<TradeHistoryStatus[]> {
     }
 
     const data = (await resp.json()) as TradeHistoryAPIResponse;
-    return data.response.trades
+    return (data.response?.trades || [])
         .filter((e) => e.status === 3) // Ensure we only count _complete_ trades (k_ETradeStatus_Complete)
         .filter((e) => !e.time_escrow_end || new Date(parseInt(e.time_escrow_end) * 1000).getTime() < Date.now())
         .map((e) => {
