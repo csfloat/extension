@@ -98,7 +98,7 @@ export class SelectedItemInfo extends FloatElement {
             return html``;
         }
 
-        let containerChildren: TemplateResult[] = [];
+        const containerChildren: TemplateResult[] = [];
 
         if (isSkin(this.asset.description)) {
             if (this.itemInfo) {
