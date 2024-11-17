@@ -105,7 +105,15 @@ export function renderClickableRank(info: ItemInfo): TemplateResult<1> {
 }
 
 export function isSellableOnCSFloat(asset: rgAsset): boolean {
-    return isSkin(asset) || isCharm(asset) || isAgent(asset) || isSticker(asset) || isPin(asset) || isPatch(asset) || isCase(asset);
+    return (
+        isSkin(asset) ||
+        isCharm(asset) ||
+        isAgent(asset) ||
+        isSticker(asset) ||
+        isPin(asset) ||
+        isPatch(asset) ||
+        isCase(asset)
+    );
 }
 
 export function isSkin(asset: rgAsset): boolean {
@@ -144,14 +152,13 @@ function isAbstractType(asset: rgAsset, type: string, internalName: string): boo
     if (asset.type.endsWith(type)) {
         return true;
     }
-    
+
     if (!asset.tags) {
         return false;
     }
 
     return asset.tags.some((e) => e.category === 'Type' && e.internal_name === internalName);
 }
-
 
 export function getFadeCalculatorAndSupportedWeapon(
     asset: rgAsset
