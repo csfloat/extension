@@ -104,6 +104,10 @@ export function renderClickableRank(info: ItemInfo): TemplateResult<1> {
     </a>`;
 }
 
+export function isSellableOnCSFloat(asset: rgAsset): boolean {
+    return isSkin(asset) || isCharm(asset) || isAgent(asset) || isSticker(asset) || isPin(asset) || isPatch(asset) || isCase(asset);
+}
+
 export function isSkin(asset: rgAsset): boolean {
     return asset.tags
         ? asset.tags.some((a) => a.category === 'Weapon' || (a.category === 'Type' && a.internal_name === 'Type_Hands'))
@@ -113,17 +117,41 @@ export function isSkin(asset: rgAsset): boolean {
 }
 
 export function isCharm(asset: rgAsset): boolean {
-    if (asset.market_hash_name.startsWith('Charm')) {
-        // Tags aren't available on SCM items, so use a MHN heuristic instead
+    return isAbstractType(asset, 'Charm', 'CSGO_Type_Charm');
+}
+
+export function isAgent(asset: rgAsset): boolean {
+    return isAbstractType(asset, 'Agent', 'Type_CustomPlayer');
+}
+
+export function isSticker(asset: rgAsset): boolean {
+    return isAbstractType(asset, 'Sticker', 'CSGO_Tool_Sticker');
+}
+
+export function isPin(asset: rgAsset): boolean {
+    return isAbstractType(asset, 'Pin', 'CSGO_Type_Collectible');
+}
+
+export function isPatch(asset: rgAsset): boolean {
+    return isAbstractType(asset, 'Patch', 'CSGO_Type_Patch');
+}
+
+export function isCase(asset: rgAsset): boolean {
+    return isAbstractType(asset, 'Container', 'CSGO_Type_WeaponCase');
+}
+
+function isAbstractType(asset: rgAsset, type: string, internalName: string): boolean {
+    if (asset.type.endsWith(type)) {
         return true;
     }
-
+    
     if (!asset.tags) {
         return false;
     }
 
-    return asset.tags.some((e) => e.category === 'Type' && e.internal_name === 'CSGO_Tool_Keychain');
+    return asset.tags.some((e) => e.category === 'Type' && e.internal_name === internalName);
 }
+
 
 export function getFadeCalculatorAndSupportedWeapon(
     asset: rgAsset
