@@ -105,15 +105,7 @@ export function renderClickableRank(info: ItemInfo): TemplateResult<1> {
 }
 
 export function isSellableOnCSFloat(asset: rgAsset): boolean {
-    return (
-        isSkin(asset) ||
-        isCharm(asset) ||
-        isAgent(asset) ||
-        isSticker(asset) ||
-        isPin(asset) ||
-        isPatch(asset) ||
-        isCase(asset)
-    );
+    return isSkin(asset) || isCharm(asset) || isAgent(asset) || isSticker(asset) || isPatch(asset) || isCase(asset);
 }
 
 export function isSkin(asset: rgAsset): boolean {
@@ -134,10 +126,6 @@ export function isAgent(asset: rgAsset): boolean {
 
 export function isSticker(asset: rgAsset): boolean {
     return isAbstractType(asset, 'Sticker', 'CSGO_Tool_Sticker');
-}
-
-export function isPin(asset: rgAsset): boolean {
-    return isAbstractType(asset, 'Pin', 'CSGO_Type_Collectible');
 }
 
 export function isPatch(asset: rgAsset): boolean {

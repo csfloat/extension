@@ -100,29 +100,23 @@ export class SelectedItemInfo extends FloatElement {
 
         const containerChildren: TemplateResult[] = [];
 
-        if (isSkin(this.asset.description)) {
-            if (this.itemInfo) {
-                const fadePercentage = getFadePercentage(this.asset.description, this.itemInfo);
+        if (isSkin(this.asset.description) && this.itemInfo) {
+            containerChildren.push(
+                html`<div>Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}</div>`
+            );
 
-                containerChildren.push(
-                    html`<div>
-                        Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}
-                    </div>`
-                );
-                containerChildren.push(html`<div>Paint Seed: ${formatSeed(this.itemInfo)}</div>`);
-                if (fadePercentage !== undefined) {
-                    containerChildren.push(html`<div>Fade: ${floor(fadePercentage, 5)}%</div>`);
-                }
+            containerChildren.push(html`<div>Paint Seed: ${formatSeed(this.itemInfo)}</div>`);
+
+            const fadePercentage = getFadePercentage(this.asset.description, this.itemInfo);
+            if (fadePercentage !== undefined) {
+                containerChildren.push(html`<div>Fade: ${floor(fadePercentage, 5)}%</div>`);
             }
-        } else if (isCharm(this.asset.description)) {
-            if (this.itemInfo) {
-                containerChildren.push(
-                    html`<div>
-                        Pattern:
-                        #${this.itemInfo.keychains?.length > 0 ? this.itemInfo.keychains[0].pattern : 'Unknown'}
-                    </div>`
-                );
-            }
+        } else if (isCharm(this.asset.description) && this.itemInfo) {
+            containerChildren.push(
+                html`<div>
+                    Pattern: #${this.itemInfo.keychains?.length > 0 ? this.itemInfo.keychains[0].pattern : 'Unknown'}
+                </div>`
+            );
         }
 
         if (isSellableOnCSFloat(this.asset.description)) {
