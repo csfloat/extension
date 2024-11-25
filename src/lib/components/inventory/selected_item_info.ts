@@ -136,12 +136,9 @@ export class SelectedItemInfo extends FloatElement {
         if (!this.itemInfo) {
             return html``;
         }
-        
+
         return html`
-            <float-bar
-                float=${this.itemInfo.floatvalue}
-                minFloat=${this.itemInfo.min}
-                maxFloat=${this.itemInfo.max}>
+            <float-bar float=${this.itemInfo.floatvalue} minFloat=${this.itemInfo.min} maxFloat=${this.itemInfo.max}>
             </float-bar>
         `;
     }

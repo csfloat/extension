@@ -160,8 +160,8 @@ export class ItemRowWrapper extends FloatElement {
 
             return html`
                 <div class="float-row-wrapper">
-                    ${this.renderFloatBar()}
-                    Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}<br />
+                    ${this.renderFloatBar()} Float: ${this.itemInfo.floatvalue.toFixed(14)}
+                    ${renderClickableRank(this.itemInfo)}<br />
                     Paint Seed:
                     ${formatSeed(this.itemInfo)}${fadePercentage !== undefined
                         ? html`<br />
@@ -182,17 +182,13 @@ export class ItemRowWrapper extends FloatElement {
         }
     }
 
-    
     renderFloatBar(): TemplateResult<1> {
         if (!this.itemInfo) {
             return html``;
         }
-        
+
         return html`
-            <float-bar
-                float=${this.itemInfo.floatvalue}
-                minFloat=${this.itemInfo.min}
-                maxFloat=${this.itemInfo.max}>
+            <float-bar float=${this.itemInfo.floatvalue} minFloat=${this.itemInfo.min} maxFloat=${this.itemInfo.max}>
             </float-bar>
         `;
     }
