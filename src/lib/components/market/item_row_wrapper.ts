@@ -1,4 +1,4 @@
-import {css, html, nothing} from 'lit';
+import {css, html, nothing, TemplateResult} from 'lit';
 
 import {state} from 'lit/decorators.js';
 import {CustomElement, InjectAppend, InjectionMode} from '../injectors';
@@ -13,6 +13,7 @@ import {gFilterService} from '../../services/filter';
 import {AppId, ContextId, Currency} from '../../types/steam_constants';
 import {defined} from '../../utils/checkers';
 import {pickTextColour} from '../../utils/colours';
+import '../../ui/floatbar';
 
 @CustomElement()
 @InjectAppend('#searchResultsRows .market_listing_row .market_listing_item_name_block', InjectionMode.CONTINUOUS)
@@ -22,6 +23,7 @@ export class ItemRowWrapper extends FloatElement {
         css`
             .float-row-wrapper {
                 margin-bottom: 5px;
+                max-width: max(50%, 400px);
             }
         `,
     ];
@@ -158,6 +160,7 @@ export class ItemRowWrapper extends FloatElement {
 
             return html`
                 <div class="float-row-wrapper">
+                    ${this.renderFloatBar()}
                     Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}<br />
                     Paint Seed:
                     ${formatSeed(this.itemInfo)}${fadePercentage !== undefined
@@ -177,5 +180,20 @@ export class ItemRowWrapper extends FloatElement {
         } else {
             return html`<div>Loading...</div>`;
         }
+    }
+
+    
+    renderFloatBar(): TemplateResult<1> {
+        if (!this.itemInfo) {
+            return html``;
+        }
+        
+        return html`
+            <float-bar
+                float=${this.itemInfo.floatvalue}
+                minFloat=${this.itemInfo.min}
+                maxFloat=${this.itemInfo.max}>
+            </float-bar>
+        `;
     }
 }
