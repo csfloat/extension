@@ -1,4 +1,4 @@
-import {LitElement, html, css, TemplateResult} from 'lit';
+import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
 @customElement('float-bar')
@@ -31,10 +31,10 @@ export class FloatBar extends LitElement {
             opacity: 0.8;
         }
 
-        .market-float-bar:not([style*='background-color: transparent']):first-of-type {
+        .market-float-bar:first-of-type {
             border-radius: 4px 0 0 4px;
         }
-        .market-float-bar:not([style*='background-color: transparent']):last-of-type {
+        .market-float-bar:last-of-type {
             border-radius: 0 4px 4px 0;
         }
     `;
@@ -47,10 +47,27 @@ export class FloatBar extends LitElement {
         {min: 45, max: 100, color: '#f92424'},
     ];
 
-    render(): TemplateResult {
+    get minFloatPercentage(): number {
+        return this.minFloat * 100;
+    }
+
+    get maxFloatPercentage(): number {
+        return this.maxFloat * 100;
+    }
+
+    render() {
         const left = (this.minFloat * 100).toFixed(0);
         const markerLeft = (((this.float - this.minFloat) * 100) / (this.maxFloat - this.minFloat)).toFixed(3);
         const dynamicWidth = (this.maxFloat - this.minFloat) * 100;
+
+        const getConditionWidth = (condMin: number, condMax: number) => {
+            return (
+                Math.max(
+                    0,
+                    (Math.min(condMax, this.maxFloatPercentage) - Math.max(condMin, this.minFloatPercentage)) * 100
+                ) / dynamicWidth
+            );
+        };
 
         return html`
             <div class="market-float-bar-container" style="left: ${left}%; width: ${dynamicWidth.toFixed(2)}%;">
@@ -59,10 +76,10 @@ export class FloatBar extends LitElement {
                         (cond) => html`
                             <div
                                 class="market-float-bar"
-                                style="width: ${((Math.min(cond.max, this.maxFloat * 100) -
-                                    Math.max(cond.min, this.minFloat * 100)) *
-                                    100) /
-                                dynamicWidth}%; background-color: ${cond.color};"
+                                style="width: ${getConditionWidth(
+                                    cond.min,
+                                    cond.max
+                                )}%; background-color: ${cond.color};"
                             ></div>
                         `
                     )}
