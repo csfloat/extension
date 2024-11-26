@@ -133,7 +133,7 @@ export class SelectedItemInfo extends FloatElement {
     }
 
     renderFloatBar(): TemplateResult<1> {
-        if (!this.itemInfo || !(this.itemInfo.floatvalue > 0)) {
+        if (!this.itemInfo || !this.itemInfo.floatvalue) {
             return html``;
         }
 
