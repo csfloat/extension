@@ -56,9 +56,9 @@ export class FloatBar extends LitElement {
     }
 
     render() {
-        const left = (this.minFloat * 100).toFixed(0);
+        const left = this.minFloatPercentage.toFixed(0);
         const markerLeft = (((this.float - this.minFloat) * 100) / (this.maxFloat - this.minFloat)).toFixed(3);
-        const dynamicWidth = (this.maxFloat - this.minFloat) * 100;
+        const dynamicWidth = this.maxFloatPercentage - this.minFloatPercentage;
 
         const getConditionWidth = (condMin: number, condMax: number) => {
             return (
