@@ -18,6 +18,7 @@ import {Observe} from '../../utils/observers';
 import {FetchStallResponse} from '../../bridge/handlers/fetch_stall';
 import {gStallFetcher} from '../../services/stall_fetcher';
 import {Contract} from '../../types/float_market';
+import '../../ui/floatbar';
 
 /**
  * Why do we bind to iteminfo0 AND iteminfo1?
@@ -101,6 +102,7 @@ export class SelectedItemInfo extends FloatElement {
         const containerChildren: TemplateResult[] = [];
 
         if (isSkin(this.asset.description) && this.itemInfo) {
+            containerChildren.push(this.renderFloatBar());
             containerChildren.push(
                 html`<div>Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}</div>`
             );
@@ -128,6 +130,17 @@ export class SelectedItemInfo extends FloatElement {
         }
 
         return html` <div class="container">${containerChildren}</div> `;
+    }
+
+    renderFloatBar(): TemplateResult<1> {
+        if (!this.itemInfo || !this.itemInfo.floatvalue) {
+            return html``;
+        }
+
+        return html`
+            <float-bar float=${this.itemInfo.floatvalue} minFloat=${this.itemInfo.min} maxFloat=${this.itemInfo.max}>
+            </float-bar>
+        `;
     }
 
     renderFloatMarketListing(): TemplateResult<1> {
