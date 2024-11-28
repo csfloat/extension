@@ -18,7 +18,7 @@ import {Observe} from '../../utils/observers';
 import {FetchStallResponse} from '../../bridge/handlers/fetch_stall';
 import {gStallFetcher} from '../../services/stall_fetcher';
 import {Contract} from '../../types/float_market';
-import '../../ui/floatbar';
+import '../common/ui/floatbar';
 
 /**
  * Why do we bind to iteminfo0 AND iteminfo1?
@@ -138,8 +138,8 @@ export class SelectedItemInfo extends FloatElement {
         }
 
         return html`
-            <float-bar float=${this.itemInfo.floatvalue} minFloat=${this.itemInfo.min} maxFloat=${this.itemInfo.max}>
-            </float-bar>
+            <csfloat-float-bar float=${this.itemInfo.floatvalue} minFloat=${this.itemInfo.min} maxFloat=${this.itemInfo.max}>
+            </csfloat-float-bar>
         `;
     }
 

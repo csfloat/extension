@@ -13,7 +13,7 @@ import {gFilterService} from '../../services/filter';
 import {AppId, ContextId, Currency} from '../../types/steam_constants';
 import {defined} from '../../utils/checkers';
 import {pickTextColour} from '../../utils/colours';
-import '../../ui/floatbar';
+import '../common/ui/floatbar';
 
 @CustomElement()
 @InjectAppend('#searchResultsRows .market_listing_row .market_listing_item_name_block', InjectionMode.CONTINUOUS)
@@ -189,8 +189,8 @@ export class ItemRowWrapper extends FloatElement {
         }
 
         return html`
-            <float-bar float=${this.itemInfo.floatvalue} minFloat=${this.itemInfo.min} maxFloat=${this.itemInfo.max}>
-            </float-bar>
+            <csfloat-float-bar float=${this.itemInfo.floatvalue} minFloat=${this.itemInfo.min} maxFloat=${this.itemInfo.max}>
+            </csfloat-float-bar>
         `;
     }
 }
