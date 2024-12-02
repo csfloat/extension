@@ -22,17 +22,18 @@ jobs:
 
       - name: Build and compress
         run: |
+          TAG=${{ github.ref_name }}
           npm install
           npm run build
-          (cd dist && zip -r ../extension-chrome.zip .)
+          (cd dist && zip -r ../extension-${TAG}-chrome.zip .)
           rm -rf dist
           npm run build_ff
-          (cd dist && zip -r ../extension-firefox.zip .)
+          (cd dist && zip -r ../extension-${TAG}-firefox.zip .)
 
       - uses: "marvinpinto/action-automatic-releases@v1.2.1"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
-            extension-chrome.zip
-            extension-firefox.zip
+            extension-*-chrome.zip
+            extension-*-firefox.zip
