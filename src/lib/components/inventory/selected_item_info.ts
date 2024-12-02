@@ -226,5 +226,11 @@ export class SelectedItemInfo extends FloatElement {
                 .fetch({steam_id64: g_ActiveInventory?.m_owner.strSteamId})
                 .then((stall) => (this.stall = stall));
         }
+
+        // Make sure the parent container can overflow
+        const parentContainer = document.querySelector<HTMLElement>('.item_desc_content');
+        if (parentContainer) {
+            parentContainer.style.overflow = 'visible';
+        }
     }
 }
