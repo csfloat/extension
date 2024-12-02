@@ -2,6 +2,7 @@ import {html, css} from 'lit';
 import {property} from 'lit/decorators.js';
 import {FloatElement} from '../../custom';
 import {CustomElement} from '../../injectors';
+import './tooltip';
 
 @CustomElement()
 export class FloatBar extends FloatElement {
@@ -73,24 +74,28 @@ export class FloatBar extends FloatElement {
                 ) / dynamicWidth
             );
         };
+        const formatFloat = (value: number) => Number(value.toFixed(4));
+        const tooltipText = `Represents the float range of this skin (${formatFloat(this.minFloat)}-${formatFloat(this.maxFloat)})`;
 
         return html`
-            <div class="market-float-bar-container" style="left: ${left}%; width: ${dynamicWidth.toFixed(2)}%;">
-                <div style="height: 100%; border-radius: 4px; overflow: hidden; font-size: 0;">
-                    ${this.floatConditions.map(
-                        (cond) => html`
-                            <div
-                                class="market-float-bar"
-                                style="width: ${getConditionWidth(
-                                    cond.min,
-                                    cond.max
-                                )}%; background-color: ${cond.color};"
-                            ></div>
-                        `
-                    )}
+            <csfloat-tooltip text="${tooltipText}">
+                <div class="market-float-bar-container" style="left: ${left}%; width: ${dynamicWidth.toFixed(2)}%;">
+                    <div style="height: 100%; border-radius: 4px; overflow: hidden; font-size: 0;">
+                        ${this.floatConditions.map(
+                            (cond) => html`
+                                <div
+                                    class="market-float-bar"
+                                    style="width: ${getConditionWidth(
+                                        cond.min,
+                                        cond.max
+                                    )}%; background-color: ${cond.color};"
+                                ></div>
+                            `
+                        )}
+                    </div>
+                    <div class="market-float-bar-marker" style="left: calc(${markerLeft}% - 2px);"></div>
                 </div>
-                <div class="market-float-bar-marker" style="left: calc(${markerLeft}% - 2px);"></div>
-            </div>
+            </csfloat-tooltip>
         `;
     }
 }
