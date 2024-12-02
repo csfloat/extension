@@ -3,7 +3,7 @@ import {FloatElement} from '../../custom';
 import {CustomElement} from '../../injectors';
 import {property} from 'lit/decorators.js';
 
-import {hintcss} from './hintcss';
+import {hintcss} from '../../../../thirdparty/hintcss/hintcss';
 
 @CustomElement()
 export class Tooltip extends FloatElement {
