@@ -75,12 +75,14 @@ export class FloatBar extends FloatElement {
             );
         };
         const formatFloat = (value: number) => Number(value.toFixed(4));
-        const tooltipText = `Represents the float range of this skin (${formatFloat(this.minFloat)}-${formatFloat(this.maxFloat)})`;
+        const tooltipText = `Represents the float range of this skin (${formatFloat(this.minFloat)}-${formatFloat(
+            this.maxFloat
+        )})`;
 
         return html`
-            <csfloat-tooltip text="${tooltipText}">
-                <div class="market-float-bar-container" style="left: ${left}%; width: ${dynamicWidth.toFixed(2)}%;">
-                    <div style="height: 100%; border-radius: 4px; overflow: hidden; font-size: 0;">
+            <div class="market-float-bar-container" style="left: ${left}%; width: ${dynamicWidth.toFixed(2)}%;">
+                <csfloat-tooltip text="${tooltipText}">
+                    <div style="height: 8px; border-radius: 4px; overflow: hidden; font-size: 0;">
                         ${this.floatConditions.map(
                             (cond) => html`
                                 <div
@@ -94,8 +96,8 @@ export class FloatBar extends FloatElement {
                         )}
                     </div>
                     <div class="market-float-bar-marker" style="left: calc(${markerLeft}% - 2px);"></div>
-                </div>
-            </csfloat-tooltip>
+                </csfloat-tooltip>
+            </div>
         `;
     }
 }

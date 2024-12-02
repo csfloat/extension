@@ -7,7 +7,7 @@ import {hintcss} from './hintcss';
 
 @CustomElement()
 export class Tooltip extends FloatElement {
-    @property({type: String}) class = 'hint--top hint--rounded hint--no-arrow';
+    @property({type: String}) class = '';
     @property({type: String}) text!: string;
 
     static get styles() {
@@ -16,9 +16,8 @@ export class Tooltip extends FloatElement {
             hintcss,
             css`
                 [class*='hint--'][aria-label]:after {
-                    white-space: pre-wrap;
                     text-shadow: none;
-                    font-family: "Motiva Sans", Arial, Helvetica, sans-serif;
+                    font-family: 'Motiva Sans', Arial, Helvetica, sans-serif;
                     font-weight: normal;
                     line-height: normal;
                     text-align: center;
@@ -28,13 +27,19 @@ export class Tooltip extends FloatElement {
                     border-radius: 3px;
                     padding: 5px;
                 }
+                .hint--whitespace-pre-wrap:after,
+                .hint--whitespace-pre-wrap:before {
+                    white-space: pre-wrap;
+                }
             `,
         ];
     }
 
     render() {
+        const tooltipClass = `hint--top hint--rounded hint--no-arrow ${this.class}`;
+
         return html`
-            <div class="${this.class}" aria-label="${this.text}" style="display: block;">
+            <div class="${tooltipClass}" aria-label="${this.text}" style="display: block;">
                 <slot></slot>
             </div>
         `;

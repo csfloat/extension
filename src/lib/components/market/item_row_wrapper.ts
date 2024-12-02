@@ -189,7 +189,11 @@ export class ItemRowWrapper extends FloatElement {
         }
 
         return html`
-            <csfloat-float-bar float=${this.itemInfo.floatvalue} minFloat=${this.itemInfo.min} maxFloat=${this.itemInfo.max}>
+            <csfloat-float-bar
+                float=${this.itemInfo.floatvalue}
+                minFloat=${this.itemInfo.min}
+                maxFloat=${this.itemInfo.max}
+            >
             </csfloat-float-bar>
         `;
     }
