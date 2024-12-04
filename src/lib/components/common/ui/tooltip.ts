@@ -5,6 +5,7 @@ import {hintcss} from '../../../../thirdparty/hintcss/hintcss';
 class TooltipDirective extends Directive {
     parentNode: Element | null = null;
     label = '';
+    // Extra classes to customize the tooltip. See https://kushagra.dev/lab/hint/ for all available classes
     extraClasses = '';
 
     update(part: ChildPart, [label, extraClasses]: DirectiveParameters<this>) {
