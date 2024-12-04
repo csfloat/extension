@@ -1,47 +1,49 @@
-import {css, html} from 'lit';
-import {FloatElement} from '../../custom';
-import {CustomElement} from '../../injectors';
-import {property} from 'lit/decorators.js';
+import { css, CSSResult } from 'lit';
+import {ChildPart, directive, Directive, DirectiveParameters, PartInfo} from 'lit-html/directive.js';
+import { hintcss } from '../../../../thirdparty/hintcss/hintcss';
 
-import {hintcss} from '../../../../thirdparty/hintcss/hintcss';
+class TooltipDirective extends Directive {
+    parentNode: Element | null = null;
+    label = '';
+    extraClasses = '';
 
-@CustomElement()
-export class Tooltip extends FloatElement {
-    @property({type: String}) class = '';
-    @property({type: String}) text!: string;
+    update(part: ChildPart, [label, extraClasses]: DirectiveParameters<this>) {
+        this.parentNode = part.parentNode as Element;
+        this.label = label;
+        if (extraClasses) {
+            this.extraClasses = extraClasses;
+        }
 
-    static get styles() {
-        return [
-            ...FloatElement.styles,
-            hintcss,
-            css`
-                [class*='hint--'][aria-label]:after {
-                    text-shadow: none;
-                    font-family: 'Motiva Sans', Arial, Helvetica, sans-serif;
-                    font-weight: normal;
-                    line-height: normal;
-                    text-align: center;
-                    background: #c2c2c2;
-                    color: #3d3d3f;
-                    font-size: 11px;
-                    border-radius: 3px;
-                    padding: 5px;
-                }
-                .hint--whitespace-pre-wrap:after,
-                .hint--whitespace-pre-wrap:before {
-                    white-space: pre-wrap;
-                }
-            `,
-        ];
+        if (!this.parentNode) {
+            return;
+        }
+
+        this.parentNode.setAttribute('class', `hint--top hint--rounded hint--no-arrow ${this.extraClasses}`);
+        this.parentNode.setAttribute('aria-label', this.label);
     }
-
-    render() {
-        const tooltipClass = `hint--top hint--rounded hint--no-arrow ${this.class}`;
-
-        return html`
-            <div class="${tooltipClass}" aria-label="${this.text}" style="display: block;">
-                <slot></slot>
-            </div>
-        `;
-    }
+    render(label: string, extraClasses?: string) {}
 }
+
+export const tooltipDirective = directive(TooltipDirective);
+
+export const tooltipStyles: CSSResult[] = [
+    hintcss,
+    css`
+        [class*='hint--'][aria-label]:after {
+            text-shadow: none;
+            font-family: 'Motiva Sans', Arial, Helvetica, sans-serif;
+            font-weight: normal;
+            line-height: normal;
+            text-align: center;
+            background: #c2c2c2;
+            color: #3d3d3f;
+            font-size: 11px;
+            border-radius: 3px;
+            padding: 5px;
+        }
+        .hint--whitespace-pre-wrap:after,
+        .hint--whitespace-pre-wrap:before {
+            white-space: pre-wrap;
+        }
+    `,
+]
