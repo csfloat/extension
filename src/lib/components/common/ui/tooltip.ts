@@ -1,6 +1,6 @@
-import { css, CSSResult } from 'lit';
+import {css, CSSResult} from 'lit';
 import {ChildPart, directive, Directive, DirectiveParameters, PartInfo} from 'lit-html/directive.js';
-import { hintcss } from '../../../../thirdparty/hintcss/hintcss';
+import {hintcss} from '../../../../thirdparty/hintcss/hintcss';
 
 class TooltipDirective extends Directive {
     parentNode: Element | null = null;
@@ -46,4 +46,4 @@ export const tooltipStyles: CSSResult[] = [
             white-space: pre-wrap;
         }
     `,
-]
+];
