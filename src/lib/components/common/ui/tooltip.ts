@@ -28,7 +28,7 @@ class TooltipDirective extends Directive {
     render(label: string, extraClasses?: string) {}
 }
 
-export const tooltipDirective = directive(TooltipDirective);
+export const tooltip = directive(TooltipDirective);
 
 export const tooltipStyles: CSSResult[] = [
     hintcss,
