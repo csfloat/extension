@@ -1,5 +1,5 @@
 import {css, CSSResult} from 'lit';
-import {ChildPart, directive, Directive, DirectiveParameters, PartInfo} from 'lit-html/directive.js';
+import {ChildPart, directive, Directive, DirectiveParameters} from 'lit-html/directive.js';
 import {hintcss} from '../../../../thirdparty/hintcss/hintcss';
 
 class TooltipDirective extends Directive {
@@ -18,7 +18,11 @@ class TooltipDirective extends Directive {
             return;
         }
 
-        this.parentNode.setAttribute('class', `hint--top hint--rounded hint--no-arrow ${this.extraClasses}`);
+        const newParentClass = `${this.parentNode.getAttribute('class') || ''} hint--top hint--rounded hint--no-arrow ${
+            this.extraClasses
+        }`;
+
+        this.parentNode.setAttribute('class', newParentClass);
         this.parentNode.setAttribute('aria-label', this.label);
     }
     render(label: string, extraClasses?: string) {}
