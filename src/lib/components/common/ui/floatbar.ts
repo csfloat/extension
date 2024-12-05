@@ -1,43 +1,48 @@
-import {LitElement, html, css} from 'lit';
-import {customElement, property} from 'lit/decorators.js';
+import {html, css} from 'lit';
+import {property} from 'lit/decorators.js';
+import {FloatElement} from '../../custom';
+import {CustomElement} from '../../injectors';
 
-@customElement('float-bar')
-export class FloatBar extends LitElement {
+@CustomElement()
+export class FloatBar extends FloatElement {
     @property({type: Number}) float!: number;
     @property({type: Number}) minFloat = 0;
     @property({type: Number}) maxFloat = 1;
 
-    static styles = css`
-        .market-float-bar-container {
-            position: relative;
-            width: 100%;
-            height: 8px;
-            margin: 5px 0;
-        }
+    static styles = [
+        ...FloatElement.styles,
+        css`
+            .market-float-bar-container {
+                position: relative;
+                width: 100%;
+                height: 8px;
+                margin: 5px 0;
+            }
 
-        .market-float-bar-marker {
-            position: absolute;
-            background-color: #d9d9d9;
-            width: 3px;
-            top: -3px;
-            height: 14px;
-            border-radius: 4px;
-        }
+            .market-float-bar-marker {
+                position: absolute;
+                background-color: #d9d9d9;
+                width: 3px;
+                top: -3px;
+                height: 14px;
+                border-radius: 4px;
+            }
 
-        .market-float-bar {
-            display: inline-block;
-            vertical-align: top;
-            height: 100%;
-            opacity: 0.8;
-        }
+            .market-float-bar {
+                display: inline-block;
+                vertical-align: top;
+                height: 100%;
+                opacity: 0.8;
+            }
 
-        .market-float-bar:first-of-type {
-            border-radius: 4px 0 0 4px;
-        }
-        .market-float-bar:last-of-type {
-            border-radius: 0 4px 4px 0;
-        }
-    `;
+            .market-float-bar:first-of-type {
+                border-radius: 4px 0 0 4px;
+            }
+            .market-float-bar:last-of-type {
+                border-radius: 0 4px 4px 0;
+            }
+        `,
+    ];
 
     private readonly floatConditions = [
         {min: 0, max: 7, color: 'green'},
@@ -68,10 +73,15 @@ export class FloatBar extends LitElement {
                 ) / dynamicWidth
             );
         };
+        const formatFloat = (value: number) => Number(value.toFixed(4));
+        const tooltipText = `Represents the float range of this skin (${formatFloat(this.minFloat)}-${formatFloat(
+            this.maxFloat
+        )})`;
 
         return html`
             <div class="market-float-bar-container" style="left: ${left}%; width: ${dynamicWidth.toFixed(2)}%;">
-                <div style="height: 100%; border-radius: 4px; overflow: hidden; font-size: 0;">
+                ${this.tooltip(tooltipText)}
+                <div style="height: 8px; border-radius: 4px; overflow: hidden; font-size: 0;">
                     ${this.floatConditions.map(
                         (cond) => html`
                             <div

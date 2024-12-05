@@ -18,7 +18,7 @@ import {Observe} from '../../utils/observers';
 import {FetchStallResponse} from '../../bridge/handlers/fetch_stall';
 import {gStallFetcher} from '../../services/stall_fetcher';
 import {Contract} from '../../types/float_market';
-import '../../ui/floatbar';
+import '../common/ui/floatbar';
 
 /**
  * Why do we bind to iteminfo0 AND iteminfo1?
@@ -138,8 +138,12 @@ export class SelectedItemInfo extends FloatElement {
         }
 
         return html`
-            <float-bar float=${this.itemInfo.floatvalue} minFloat=${this.itemInfo.min} maxFloat=${this.itemInfo.max}>
-            </float-bar>
+            <csfloat-float-bar
+                float=${this.itemInfo.floatvalue}
+                minFloat=${this.itemInfo.min}
+                maxFloat=${this.itemInfo.max}
+            >
+            </csfloat-float-bar>
         `;
     }
 
@@ -221,6 +225,12 @@ export class SelectedItemInfo extends FloatElement {
             gStallFetcher
                 .fetch({steam_id64: g_ActiveInventory?.m_owner.strSteamId})
                 .then((stall) => (this.stall = stall));
+        }
+
+        // Make sure the parent container can overflow
+        const parentContainer = this.closest<HTMLElement>('.item_desc_content');
+        if (parentContainer) {
+            parentContainer.style.overflow = 'visible';
         }
     }
 }
