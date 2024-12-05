@@ -88,7 +88,7 @@ function generateStickerInlineHTML(itemInfo: ItemInfo, asset: rgAsset): string[]
 function generateKeychainInlineHTML(itemInfo: ItemInfo, asset: rgAsset): string[] {
     const description = getKeychainDescription(itemInfo, asset);
 
-    if (!description || description.type !== 'html' || !description.value.includes('sticker')) {
+    if (!description || description.type !== 'html' || description.value.includes('sticker')) {
         return [];
     }
 
