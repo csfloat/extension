@@ -2,7 +2,6 @@ import {html, css} from 'lit';
 import {property} from 'lit/decorators.js';
 import {FloatElement} from '../../custom';
 import {CustomElement} from '../../injectors';
-import {tooltip, tooltipStyles} from './tooltip';
 
 @CustomElement()
 export class FloatBar extends FloatElement {
@@ -12,7 +11,6 @@ export class FloatBar extends FloatElement {
 
     static styles = [
         ...FloatElement.styles,
-        ...tooltipStyles,
         css`
             .market-float-bar-container {
                 position: relative;
@@ -82,7 +80,7 @@ export class FloatBar extends FloatElement {
 
         return html`
             <div class="market-float-bar-container" style="left: ${left}%; width: ${dynamicWidth.toFixed(2)}%;">
-                ${tooltip(tooltipText)}
+                ${this.tooltip(tooltipText)}
                 <div style="height: 8px; border-radius: 4px; overflow: hidden; font-size: 0;">
                     ${this.floatConditions.map(
                         (cond) => html`

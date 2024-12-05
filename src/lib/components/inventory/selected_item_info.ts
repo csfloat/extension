@@ -228,7 +228,7 @@ export class SelectedItemInfo extends FloatElement {
         }
 
         // Make sure the parent container can overflow
-        const parentContainer = document.querySelector<HTMLElement>('.item_desc_content');
+        const parentContainer = this.closest<HTMLElement>('.item_desc_content');
         if (parentContainer) {
             parentContainer.style.overflow = 'visible';
         }

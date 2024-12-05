@@ -1,4 +1,5 @@
 import {css, LitElement} from 'lit';
+import { tooltip, tooltipStyles } from './common/ui/tooltip';
 
 function camelToDashCase(str: string) {
     return str
@@ -10,6 +11,7 @@ function camelToDashCase(str: string) {
 // LitElement wrapper with a pre-determined tag
 export class FloatElement extends LitElement {
     static styles = [
+        ...tooltipStyles,
         css`
             hr {
                 background-color: #1b2939;
@@ -60,5 +62,9 @@ export class FloatElement extends LitElement {
 
     static elem(): any {
         return document.createElement(this.tag());
+    }
+
+    tooltip(label: string, extraClasses?: string) {
+        return tooltip(label, extraClasses);
     }
 }
