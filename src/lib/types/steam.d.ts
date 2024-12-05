@@ -219,16 +219,18 @@ export interface TradeInventory {
     success: boolean;
 }
 
+export type SteamAssets = {
+    [appId in AppId]: {
+        [contextId in ContextId]: {[assetId: string]: rgAsset};
+    };
+};
+
 // Declares globals available in the Steam Page Context
 declare global {
     const $J: typeof $;
     const g_rgListingInfo: {[listingId: string]: ListingData};
     const g_rgWalletInfo: WalletInfo | undefined; // Not populated when user is signed-out
-    const g_rgAssets: {
-        [appId in AppId]: {
-            [contextId in ContextId]: {[assetId: string]: rgAsset};
-        };
-    };
+    const g_rgAssets: SteamAssets;
     const g_ActiveInventory: CInventory | undefined; // Only populated on Steam inventory pages
     const g_steamID: string;
     const g_oSearchResults: CAjaxPagingControls;
@@ -250,6 +252,14 @@ declare global {
     const MoveItemToTrade: (el: HTMLElement) => void; // Only populated on create offer pages
     const g_rgCurrentTradeStatus: CurrentTradeStatus;
     const ShowItemInventory: (appID: AppId, contextID: ContextId, AssetID?: number) => void;
+    const CreateItemHoverFromContainer: (
+        g_rgAssets: SteamAssets,
+        elementId: string,
+        appid: AppId,
+        contextid: string,
+        id: string,
+        amount: number
+    ) => void;
 }
 
 export {};

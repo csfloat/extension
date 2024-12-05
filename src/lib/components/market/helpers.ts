@@ -88,7 +88,7 @@ function generateStickerInlineHTML(itemInfo: ItemInfo, asset: rgAsset): string[]
 function generateKeychainInlineHTML(itemInfo: ItemInfo, asset: rgAsset): string[] {
     const description = getKeychainDescription(itemInfo, asset);
 
-    if (!description || description.type !== 'html' || !description.value.includes('sticker')) {
+    if (!description || description.type !== 'html' || description.value.includes('sticker')) {
         return [];
     }
 
@@ -107,6 +107,11 @@ function generateKeychainInlineHTML(itemInfo: ItemInfo, asset: rgAsset): string[
 export function inlineStickersAndKeychains(itemNameBlock: JQuery<Element>, itemInfo: ItemInfo, asset: rgAsset) {
     if (!itemNameBlock) return;
 
+    // Remove Steam's inspect button
+    itemNameBlock.parent().find('.market_listing_row_action')?.parent().remove();
+    // Remove Steam's stickers and keychains
+    itemNameBlock.parent().find('.market_listing_row_details')?.remove();
+
     if (itemNameBlock.find('.csfloat-stickers-container').length) {
         // Don't inline stickers if they're already inlined
         return;
@@ -117,11 +122,16 @@ export function inlineStickersAndKeychains(itemNameBlock: JQuery<Element>, itemI
         return;
     }
 
+    const elementId = `listing_${itemInfo.m}_csfloat`;
+
     itemNameBlock.prepend(`
-        <div class="csfloat-stickers-container">
+        <div class="csfloat-stickers-container" id="${elementId}">
             ${blobs.reduce((acc, v) => acc + v, '')}
         </div>
     `);
+
+    // Add Steam's item popover on-hover
+    CreateItemHoverFromContainer(g_rgAssets, elementId, asset.appid, asset.contextid, asset.id, asset.amount);
 }
 
 /**

@@ -140,6 +140,13 @@ export class ItemRowWrapper extends FloatElement {
             // dialogs opening.
             MarketCheckHash();
         }
+
+        // Make sure the parent containers can overflow
+        const parentContainer = $J(this).parent();
+        if (parentContainer) {
+            parentContainer.css('overflow', 'visible');
+            parentContainer.parent().css('overflow', 'visible');
+        }
     }
 
     render() {
@@ -161,8 +168,9 @@ export class ItemRowWrapper extends FloatElement {
             return html`
                 <div class="float-row-wrapper">
                     ${this.renderFloatBar()}
-                    <span> Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)} </span>
-                    <br />
+                    <span style="display: block;">
+                        Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}
+                    </span>
                     Paint Seed:
                     ${formatSeed(this.itemInfo)}${fadePercentage !== undefined
                         ? html`<br />
