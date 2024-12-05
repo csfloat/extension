@@ -111,7 +111,6 @@ export function inlineStickersAndKeychains(itemNameBlock: JQuery<Element>, itemI
     itemNameBlock.parent().find('.market_listing_row_action')?.parent().remove();
     // Remove Steam's stickers and keychains
     itemNameBlock.parent().find('.market_listing_row_details')?.remove();
-    
 
     if (itemNameBlock.find('.csfloat-stickers-container').length) {
         // Don't inline stickers if they're already inlined
@@ -147,4 +146,3 @@ export function inlineEasyInspect(itemImgContainer: JQuery<Element>, inspectLink
         <a class="csfloat-easy-inspect" href="${inspectLink}">🔍</a>
     `);
 }
-
