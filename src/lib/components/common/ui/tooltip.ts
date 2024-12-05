@@ -26,7 +26,7 @@ class TooltipDirective extends Directive {
         this.parentNode.setAttribute('class', newParentClass);
         this.parentNode.setAttribute('aria-label', this.label);
     }
-    
+
     render(label: string, extraClasses?: string) {}
 }
 

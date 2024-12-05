@@ -1,5 +1,5 @@
 import {css, LitElement} from 'lit';
-import { tooltip, tooltipStyles } from './common/ui/tooltip';
+import {tooltip, tooltipStyles} from './common/ui/tooltip';
 
 function camelToDashCase(str: string) {
     return str
