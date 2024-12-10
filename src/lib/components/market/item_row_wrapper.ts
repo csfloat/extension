@@ -22,8 +22,8 @@ export class ItemRowWrapper extends FloatElement {
         ...FloatElement.styles,
         css`
             .float-row-wrapper {
+                display: inline-block;
                 margin-bottom: 5px;
-                max-width: max(50%, 400px);
             }
         `,
     ];
