@@ -6,9 +6,9 @@ import {AnnotateOffer} from '../bridge/handlers/annotate_offer';
 import {PingCancelTrade} from '../bridge/handlers/ping_cancel_trade';
 import {CancelTradeOffer} from '../bridge/handlers/cancel_trade_offer';
 import {FetchSteamUser} from '../bridge/handlers/fetch_steam_user';
-import { rgDescription } from '../types/steam';
-import { HasPermissions } from '../bridge/handlers/has_permissions';
-import { ExtendedOfferStatus, ExtendedSingleOffer } from '../bridge/handlers/fetch_steam_trades';
+import {rgDescription} from '../types/steam';
+import {HasPermissions} from '../bridge/handlers/has_permissions';
+import {ExtendedOfferStatus, ExtendedSingleOffer} from '../bridge/handlers/fetch_steam_trades';
 
 export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     const {offers, type} = await getSentTradeOffers();
@@ -301,7 +301,6 @@ async function getSentAndReceivedTradeOffersFromAPI(): Promise<{
     };
 }
 
-
 export async function getTradeOffersWithDescriptionFromAPI(): Promise<{
     received: ExtendedOfferStatus[];
     sent: ExtendedOfferStatus[];
@@ -324,7 +323,7 @@ export async function getTradeOffersWithDescriptionFromAPI(): Promise<{
             sent: [],
             descriptions: [],
             steam_id: access.steam_id,
-        }
+        };
     }
 
     const resp = await fetch(

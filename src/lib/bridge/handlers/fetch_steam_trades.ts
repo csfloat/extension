@@ -1,6 +1,6 @@
-import { getTradeOffersWithDescriptionFromAPI } from '../../alarms/trade_offer';
-import { rgDescription } from '../../types/steam';
-import { TradeOfferState } from '../../types/steam_constants';
+import {getTradeOffersWithDescriptionFromAPI} from '../../alarms/trade_offer';
+import {rgDescription} from '../../types/steam';
+import {TradeOfferState} from '../../types/steam_constants';
 import {SimpleHandler} from './main';
 import {RequestType} from './types';
 
