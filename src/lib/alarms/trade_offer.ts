@@ -8,7 +8,22 @@ import {CancelTradeOffer} from '../bridge/handlers/cancel_trade_offer';
 import {FetchSteamUser} from '../bridge/handlers/fetch_steam_user';
 import {rgDescription} from '../types/steam';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
-import {ExtendedOfferStatus, ExtendedSingleOffer} from '../bridge/handlers/fetch_steam_trades';
+
+export interface ExtendedOfferStatus {
+    offer_id: string;
+    state: TradeOfferState;
+    given_asset_ids?: ExtendedSingleOffer[];
+    received_asset_ids?: ExtendedSingleOffer[];
+    time_created?: number;
+    time_updated?: number;
+    other_steam_id64?: string;
+}
+
+export interface ExtendedSingleOffer {
+    assetid: string;
+    classid: string;
+    instanceid: string;
+}
 
 export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     const {offers, type} = await getSentTradeOffers();
