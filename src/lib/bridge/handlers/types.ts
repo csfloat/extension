@@ -22,4 +22,5 @@ export enum RequestType {
     PING_STATUS = 20,
     FETCH_OWN_INVENTORY = 21,
     CANCEL_TRADE_OFFER = 22,
+    FETCH_STEAM_TRADES = 23,
 }

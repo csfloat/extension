@@ -6,6 +6,9 @@ import {AnnotateOffer} from '../bridge/handlers/annotate_offer';
 import {PingCancelTrade} from '../bridge/handlers/ping_cancel_trade';
 import {CancelTradeOffer} from '../bridge/handlers/cancel_trade_offer';
 import {FetchSteamUser} from '../bridge/handlers/fetch_steam_user';
+import { rgDescription } from '../types/steam';
+import { HasPermissions } from '../bridge/handlers/has_permissions';
+import { ExtendedOfferStatus, ExtendedSingleOffer } from '../bridge/handlers/fetch_steam_trades';
 
 export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     const {offers, type} = await getSentTradeOffers();
@@ -191,6 +194,13 @@ async function getSentTradeOffers(): Promise<{offers: OfferStatus[]; type: Trade
 
 interface TradeOfferItem {
     assetid: string;
+    appid: number;
+    contextid: string;
+    classid: string;
+    instanceid: string;
+    amount: string;
+    missing: boolean;
+    est_usd: string;
 }
 
 interface TradeOffersAPIOffer {
@@ -207,6 +217,7 @@ interface TradeOffersAPIResponse {
     response: {
         trade_offers_sent: TradeOffersAPIOffer[];
         trade_offers_received: TradeOffersAPIOffer[];
+        descriptions?: rgDescription[];
     };
 }
 
@@ -220,6 +231,30 @@ function offerStateMapper(e: TradeOffersAPIOffer): OfferStatus {
         time_updated: e.time_updated,
         other_steam_id64: (BigInt('76561197960265728') + BigInt(e.accountid_other)).toString(),
     } as OfferStatus;
+}
+
+function extendedOfferStateMapper(e: TradeOffersAPIOffer) {
+    return {
+        offer_id: e.tradeofferid,
+        state: e.trade_offer_state,
+        given_asset_ids: (e.items_to_give || []).map((e) => {
+            return {
+                assetid: e.assetid,
+                classid: e.classid,
+                instanceid: e.instanceid,
+            } as ExtendedSingleOffer;
+        }),
+        received_asset_ids: (e.items_to_receive || []).map((e) => {
+            return {
+                assetid: e.assetid,
+                classid: e.classid,
+                instanceid: e.instanceid,
+            } as ExtendedSingleOffer;
+        }),
+        time_created: e.time_created,
+        time_updated: e.time_updated,
+        other_steam_id64: (BigInt('76561197960265728') + BigInt(e.accountid_other)).toString(),
+    };
 }
 
 async function getSentTradeOffersFromAPI(): Promise<OfferStatus[]> {
@@ -263,6 +298,52 @@ async function getSentAndReceivedTradeOffersFromAPI(): Promise<{
         received: (data.response?.trade_offers_received || []).map(offerStateMapper),
         sent: (data.response?.trade_offers_sent || []).map(offerStateMapper),
         steam_id: access.steam_id,
+    };
+}
+
+
+export async function getTradeOffersWithDescriptionFromAPI(): Promise<{
+    received: ExtendedOfferStatus[];
+    sent: ExtendedOfferStatus[];
+    descriptions: rgDescription[];
+    steam_id?: string | null;
+}> {
+    const access = await getAccessToken();
+
+    // check if permissions are granted
+    const steamPoweredPermissions = await HasPermissions.handleRequest(
+        {
+            permissions: [],
+            origins: ['https://api.steampowered.com/*'],
+        },
+        {}
+    );
+    if (!steamPoweredPermissions.granted) {
+        return {
+            received: [],
+            sent: [],
+            descriptions: [],
+            steam_id: access.steam_id,
+        }
+    }
+
+    const resp = await fetch(
+        `https://api.steampowered.com/IEconService/GetTradeOffers/v1/?access_token=${access.token}&get_received_offers=true&get_sent_offers=true&get_descriptions=true`,
+        {
+            credentials: 'include',
+        }
+    );
+
+    if (resp.status !== 200) {
+        throw new Error('invalid status');
+    }
+
+    const data = (await resp.json()) as TradeOffersAPIResponse;
+    return {
+        received: (data.response?.trade_offers_received || []).map(extendedOfferStateMapper),
+        sent: (data.response?.trade_offers_sent || []).map(extendedOfferStateMapper),
+        steam_id: access.steam_id,
+        descriptions: data.response?.descriptions || [],
     };
 }
 
