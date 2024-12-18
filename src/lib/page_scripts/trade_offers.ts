@@ -6,6 +6,7 @@ import {ClientSend} from '../bridge/client';
 import {PingSetupExtension} from '../bridge/handlers/ping_setup_extension';
 import {PingExtensionStatus} from '../bridge/handlers/ping_extension_status';
 import {FetchSteamTrades, FetchSteamTradesResponse} from '../bridge/handlers/fetch_steam_trades';
+import {getUserSteamID} from '../utils/userinfo';
 
 init('src/lib/page_scripts/trade_offers.js', main);
 
@@ -76,10 +77,8 @@ async function annotateTradeOfferItemElements() {
                 isOwnItem = false;
                 apiItem = trade?.received_asset_ids?.find((a) => a.classid === classId && a.instanceid === instanceId);
             }
-            
-            const ownerId = isOwnItem
-                ? JSON.parse(document.getElementById('application_config')?.dataset?.userinfo || '{}').steamid
-                : trade?.other_steam_id64;
+
+            const ownerId = isOwnItem ? getUserSteamID() : trade?.other_steam_id64;
 
             if (ownerId) {
                 tradeItemElement.setAttribute('data-csfloat-owner-steamid', ownerId);
