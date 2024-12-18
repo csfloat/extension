@@ -22,9 +22,9 @@ async function fetchTradeOffers(isSentPage: boolean) {
     let refetchRequired = true;
     if (g_steamTrades.sent || g_steamTrades.received) {
         const latestTradeId = Number.parseInt(g_steamTrades[isSentPage ? 'sent' : 'received']?.[0].offer_id);
-        const latestTradeElement = Number.parseInt(document.querySelector('.tradeoffer')?.id.split('_')[1] ?? '0');
+        const latestTradeIDFromPage = Number.parseInt(document.querySelector('.tradeoffer')?.id.split('_')[1] ?? '0');
 
-        refetchRequired = Number.isNaN(latestTradeId) || latestTradeId !== latestTradeElement;
+        refetchRequired = Number.isNaN(latestTradeId) || latestTradeId !== latestTradeIDFromPage;
     }
 
     if (!refetchRequired) {
@@ -40,7 +40,7 @@ async function fetchTradeOffers(isSentPage: boolean) {
 /**
  * Fetches the api data for trade offers and stores relevant data in the DOM to be used by Lit components.
  */
-async function getAndStoreTradeOffers() {
+async function annotateTradeOfferItemElements() {
     const isSentPage = location.pathname.includes('sent');
 
     const steamTrades = await fetchTradeOffers(isSentPage);
@@ -48,18 +48,18 @@ async function getAndStoreTradeOffers() {
     const tradeOffers = document.querySelectorAll('.tradeoffer');
 
     for (const tradeOffer of tradeOffers) {
-        const tradeId = tradeOffer.id.split('_')[1];
-        const tradeItems = tradeOffer.querySelectorAll('.trade_item');
+        const tradeOfferID = tradeOffer.id.split('_')[1];
+        const tradeItemElements = tradeOffer.querySelectorAll('.trade_item');
         const trade = isSentPage
-            ? steamTrades.sent.find((t) => t.offer_id === tradeId)
-            : steamTrades.received.find((t) => t.offer_id === tradeId);
+            ? steamTrades.sent.find((t) => t.offer_id === tradeOfferID)
+            : steamTrades.received.find((t) => t.offer_id === tradeOfferID);
 
-        for (const tradeItem of tradeItems) {
-            const economyItemParts = tradeItem.getAttribute('data-economy-item')?.split('/');
+        for (const tradeItemElement of tradeItemElements) {
+            const economyItemParts = tradeItemElement.getAttribute('data-economy-item')?.split('/');
             const classId = economyItemParts?.[2];
             const instanceId = economyItemParts?.[3];
 
-            if (!instanceId) {
+            if (!classId || !instanceId) {
                 continue;
             }
 
@@ -67,7 +67,7 @@ async function getAndStoreTradeOffers() {
                 (d) => d.classid === classId && d.instanceid === instanceId
             );
             if (description) {
-                tradeItem.setAttribute('data-description', JSON.stringify(description));
+                tradeItemElement.setAttribute('data-csfloat-description', JSON.stringify(description));
             }
 
             let isOwnItem = true;
@@ -76,20 +76,23 @@ async function getAndStoreTradeOffers() {
                 isOwnItem = false;
                 apiItem = trade?.received_asset_ids?.find((a) => a.classid === classId && a.instanceid === instanceId);
             }
+            
             const ownerId = isOwnItem
                 ? JSON.parse(document.getElementById('application_config')?.dataset?.userinfo || '{}').steamid
                 : trade?.other_steam_id64;
 
-            tradeItem.setAttribute('data-owner-steamid', ownerId);
+            if (ownerId) {
+                tradeItemElement.setAttribute('data-csfloat-owner-steamid', ownerId);
+            }
             if (apiItem?.assetid) {
-                tradeItem.setAttribute('data-assetid', apiItem.assetid);
+                tradeItemElement.setAttribute('data-csfloat-assetid', apiItem.assetid);
             }
         }
     }
 }
 
 if (!inPageContext()) {
-    getAndStoreTradeOffers();
+    annotateTradeOfferItemElements();
 
     const refresh = setInterval(() => {
         const widget = document.getElementsByTagName('csfloat-better-tracking-widget');

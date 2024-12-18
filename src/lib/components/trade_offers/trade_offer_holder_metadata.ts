@@ -8,14 +8,14 @@ import {rgAsset} from '../../types/steam';
 @InjectAppend('.tradeoffer .trade_item', InjectionMode.CONTINUOUS)
 export class TradeOfferHolderMetadata extends ItemHolderMetadata {
     get assetId(): string | undefined {
-        return $J(this).parent().attr('data-assetid');
+        return $J(this).parent().attr('data-csfloat-assetid');
     }
 
     get asset(): rgAsset | undefined {
-        return JSON.parse($J(this).parent().attr('data-description') ?? '{}') as rgAsset;
+        return JSON.parse($J(this).parent().attr('data-csfloat-description') ?? '{}') as rgAsset;
     }
 
     get ownerSteamId(): string | undefined {
-        return $J(this).parent().attr('data-owner-steamid');
+        return $J(this).parent().attr('data-csfloat-owner-steamid');
     }
 }
