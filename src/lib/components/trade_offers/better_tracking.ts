@@ -53,29 +53,19 @@ export class BetterTrackingWidget extends FloatElement {
     async connectedCallback() {
         super.connectedCallback();
 
-        try {
-            // Used for api.steampowered.com requests, all tokens stay on the users' device
-            const hasPermissions = await ClientSend(HasPermissions, {
-                permissions: ['alarms'],
-                origins: ['*://*.steampowered.com/*'],
-            });
+        // Used for api.steampowered.com requests, all tokens stay on the users' device
+        const hasPermissions = await ClientSend(HasPermissions, {
+            permissions: ['alarms'],
+            origins: ['*://*.steampowered.com/*'],
+        });
 
-            if (hasPermissions.granted) {
-                // In case they switched accounts on CSFloat or Steam or initial ping was lost, send redundant pings
-                ClientSend(PingSetupExtension, {});
-                return;
-            }
-
-            const trades = await ClientSend(FetchPendingTrades, {state: 'queued,pending,verified', limit: 1});
-            if (trades.count === 0) {
-                // They aren't actively using CSFloat Market, no need to show this
-                return;
-            }
-
-            this.show = true;
-        } catch (e) {
-            console.info('user is not logged into CSFloat');
+        if (hasPermissions.granted) {
+            // In case they switched accounts on CSFloat or Steam or initial ping was lost, send redundant pings
+            ClientSend(PingSetupExtension, {});
+            return;
         }
+
+        this.show = true;
     }
 
     render() {
