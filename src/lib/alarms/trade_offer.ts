@@ -8,22 +8,7 @@ import {CancelTradeOffer} from '../bridge/handlers/cancel_trade_offer';
 import {FetchSteamUser} from '../bridge/handlers/fetch_steam_user';
 import {rgDescription} from '../types/steam';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
-
-export interface ExtendedOfferStatus {
-    offer_id: string;
-    state: TradeOfferState;
-    given_asset_ids?: ExtendedSingleOffer[];
-    received_asset_ids?: ExtendedSingleOffer[];
-    time_created?: number;
-    time_updated?: number;
-    other_steam_id64?: string;
-}
-
-export interface ExtendedSingleOffer {
-    assetid: string;
-    classid: string;
-    instanceid: string;
-}
+import { convertToSteamID64 } from '../utils/userinfo';
 
 export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     const {offers, type} = await getSentTradeOffers();
@@ -218,9 +203,9 @@ interface TradeOfferItem {
     est_usd: string;
 }
 
-interface TradeOffersAPIOffer {
+export interface TradeOffersAPIOffer {
     tradeofferid: string;
-    accountid_other: string;
+    accountid_other: number;
     trade_offer_state: TradeOfferState;
     items_to_give?: TradeOfferItem[];
     items_to_receive?: TradeOfferItem[];
@@ -244,32 +229,8 @@ function offerStateMapper(e: TradeOffersAPIOffer): OfferStatus {
         received_asset_ids: (e.items_to_receive || []).map((e) => e.assetid),
         time_created: e.time_created,
         time_updated: e.time_updated,
-        other_steam_id64: (BigInt('76561197960265728') + BigInt(e.accountid_other)).toString(),
+        other_steam_id64: convertToSteamID64(e.accountid_other),
     } as OfferStatus;
-}
-
-function extendedOfferStateMapper(e: TradeOffersAPIOffer) {
-    return {
-        offer_id: e.tradeofferid,
-        state: e.trade_offer_state,
-        given_asset_ids: (e.items_to_give || []).map((e) => {
-            return {
-                assetid: e.assetid,
-                classid: e.classid,
-                instanceid: e.instanceid,
-            } as ExtendedSingleOffer;
-        }),
-        received_asset_ids: (e.items_to_receive || []).map((e) => {
-            return {
-                assetid: e.assetid,
-                classid: e.classid,
-                instanceid: e.instanceid,
-            } as ExtendedSingleOffer;
-        }),
-        time_created: e.time_created,
-        time_updated: e.time_updated,
-        other_steam_id64: (BigInt('76561197960265728') + BigInt(e.accountid_other)).toString(),
-    };
 }
 
 async function getSentTradeOffersFromAPI(): Promise<OfferStatus[]> {
@@ -317,8 +278,8 @@ async function getSentAndReceivedTradeOffersFromAPI(): Promise<{
 }
 
 export async function getTradeOffersWithDescriptionFromAPI(steam_id?: string): Promise<{
-    received: ExtendedOfferStatus[];
-    sent: ExtendedOfferStatus[];
+    received: TradeOffersAPIOffer[];
+    sent: TradeOffersAPIOffer[];
     descriptions: rgDescription[];
     steam_id?: string | null;
 }> {
@@ -354,8 +315,8 @@ export async function getTradeOffersWithDescriptionFromAPI(steam_id?: string): P
 
     const data = (await resp.json()) as TradeOffersAPIResponse;
     return {
-        received: (data.response?.trade_offers_received || []).map(extendedOfferStateMapper),
-        sent: (data.response?.trade_offers_sent || []).map(extendedOfferStateMapper),
+        received: data.response?.trade_offers_received || [],
+        sent: data.response?.trade_offers_sent || [],
         steam_id: access.steam_id,
         descriptions: data.response?.descriptions || [],
     };

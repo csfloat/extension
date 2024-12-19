@@ -24,3 +24,12 @@ export function getUserSteamID() {
     }
     return userInfo.steamid;
 }
+
+/**
+ * Converts a SteamID32 to a SteamID64
+ * @param steamID32 number
+ * @returns SteamID64
+ */
+export function convertToSteamID64(steamID32: number) {
+    return (BigInt('76561197960265728') + BigInt(steamID32)).toString();
+}

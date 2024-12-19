@@ -6,7 +6,7 @@ import {ClientSend} from '../bridge/client';
 import {PingSetupExtension} from '../bridge/handlers/ping_setup_extension';
 import {PingExtensionStatus} from '../bridge/handlers/ping_extension_status';
 import {FetchSteamTrades, FetchSteamTradesResponse} from '../bridge/handlers/fetch_steam_trades';
-import {getUserSteamID} from '../utils/userinfo';
+import {convertToSteamID64, getUserSteamID} from '../utils/userinfo';
 
 init('src/lib/page_scripts/trade_offers.js', main);
 
@@ -22,7 +22,7 @@ async function fetchTradeOffers(steam_id: string, isSentPage: boolean) {
     const g_steamTrades = JSON.parse(localStorage.getItem('g_steamTrades') || '{}') as FetchSteamTradesResponse;
     let refetchRequired = true;
     if (g_steamTrades.sent || g_steamTrades.received) {
-        const latestTradeId = Number.parseInt(g_steamTrades[isSentPage ? 'sent' : 'received']?.[0].offer_id);
+        const latestTradeId = Number.parseInt(g_steamTrades[isSentPage ? 'sent' : 'received']?.[0].tradeofferid);
         const latestTradeIDFromPage = Number.parseInt(document.querySelector('.tradeoffer')?.id.split('_')[1] ?? '0');
 
         refetchRequired = Number.isNaN(latestTradeId) || latestTradeId !== latestTradeIDFromPage;
@@ -58,9 +58,13 @@ async function annotateTradeOfferItemElements() {
     for (const tradeOffer of tradeOffers) {
         const tradeOfferID = tradeOffer.id.split('_')[1];
         const tradeItemElements = tradeOffer.querySelectorAll('.trade_item');
+
         const trade = isSentPage
-            ? steamTrades.sent.find((t) => t.offer_id === tradeOfferID)
-            : steamTrades.received.find((t) => t.offer_id === tradeOfferID);
+            ? steamTrades.sent.find((t) => t.tradeofferid === tradeOfferID)
+            : steamTrades.received.find((t) => t.tradeofferid === tradeOfferID);
+        if (!trade) {
+            continue;
+        }
 
         for (const tradeItemElement of tradeItemElements) {
             // Format: classinfo/{appid}/{classid}/{instanceid}
@@ -81,13 +85,13 @@ async function annotateTradeOfferItemElements() {
             }
 
             let isOwnItem = true;
-            let apiItem = trade?.given_asset_ids?.find((a) => a.classid === classId && a.instanceid === instanceId);
+            let apiItem = trade?.items_to_give?.find((a) => a.classid === classId && a.instanceid === instanceId);
             if (!apiItem) {
                 isOwnItem = false;
-                apiItem = trade?.received_asset_ids?.find((a) => a.classid === classId && a.instanceid === instanceId);
+                apiItem = trade?.items_to_receive?.find((a) => a.classid === classId && a.instanceid === instanceId);
             }
 
-            const ownerId = isOwnItem ? steam_id : trade?.other_steam_id64;
+            const ownerId = isOwnItem ? steam_id : convertToSteamID64(trade.accountid_other);
 
             if (ownerId) {
                 tradeItemElement.setAttribute('data-csfloat-owner-steamid', ownerId);
