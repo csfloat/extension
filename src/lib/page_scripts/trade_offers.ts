@@ -15,27 +15,15 @@ function main() {}
 /**
  * Gets the trade offers from the local storage or fetches them from the API.
  * Local storage serves as a cache here.
- * @param isSentPage if the current page is the sent trade offers page
+ * @param steam_id the steam id of logged in user
  * @returns the trade offers
  */
-async function fetchTradeOffers(steam_id: string, isSentPage: boolean) {
-    const g_steamTrades = JSON.parse(localStorage.getItem('g_steamTrades') || '{}') as FetchSteamTradesResponse;
-    let refetchRequired = true;
-    if (g_steamTrades.sent || g_steamTrades.received) {
-        const latestTradeOfferID = Number.parseInt(g_steamTrades[isSentPage ? 'sent' : 'received']?.[0].tradeofferid);
-        const latestTradeOfferIDFromPage = Number.parseInt(document.querySelector('.tradeoffer')?.id.split('_')[1] ?? '0');
+async function fetchTradeOffers(steam_id: string) {
+    const latestTradeIDFromPage = document.querySelector('.tradeoffer')?.id.split('_')[1];
+    const trade_offer_id = latestTradeIDFromPage ? Number.parseInt(latestTradeIDFromPage) : undefined;
 
-        refetchRequired = Number.isNaN(latestTradeOfferID) || latestTradeOfferID !== latestTradeOfferIDFromPage;
-    }
-
-    if (!refetchRequired) {
-        return g_steamTrades;
-    }
-
-    const steamTrades = await ClientSend(FetchSteamTrades, {steam_id});
-
-    localStorage.setItem('g_steamTrades', JSON.stringify(steamTrades));
-    return steamTrades;
+    console.log('Fetching trade offers', steam_id, trade_offer_id);
+    return await ClientSend(FetchSteamTrades, {steam_id, trade_offer_id});
 }
 
 /**
@@ -49,19 +37,16 @@ async function annotateTradeOfferItemElements() {
         return;
     }
 
-    const isSentPage = location.pathname.includes('sent');
-
-    const steamTrades = await fetchTradeOffers(steam_id, isSentPage);
+    const steamTrades = await fetchTradeOffers(steam_id);
 
     const tradeOffers = document.querySelectorAll('.tradeoffer');
 
     for (const tradeOffer of tradeOffers) {
         const tradeOfferID = tradeOffer.id.split('_')[1];
         const tradeItemElements = tradeOffer.querySelectorAll('.trade_item');
-
-        const tradeOfferAPI = isSentPage
-            ? steamTrades.sent.find((t) => t.tradeofferid === tradeOfferID)
-            : steamTrades.received.find((t) => t.tradeofferid === tradeOfferID);
+        const tradeOfferAPI =
+            steamTrades.sent.find((t) => t.tradeofferid === tradeOfferID) ??
+            steamTrades.received.find((t) => t.tradeofferid === tradeOfferID);
         if (!tradeOfferAPI) {
             continue;
         }
@@ -85,10 +70,14 @@ async function annotateTradeOfferItemElements() {
             }
 
             let isOwnItem = true;
-            let apiItem = tradeOfferAPI?.items_to_give?.find((a) => a.classid === classId && a.instanceid === instanceId);
+            let apiItem = tradeOfferAPI?.items_to_give?.find(
+                (a) => a.classid === classId && a.instanceid === instanceId
+            );
             if (!apiItem) {
                 isOwnItem = false;
-                apiItem = tradeOfferAPI?.items_to_receive?.find((a) => a.classid === classId && a.instanceid === instanceId);
+                apiItem = tradeOfferAPI?.items_to_receive?.find(
+                    (a) => a.classid === classId && a.instanceid === instanceId
+                );
             }
 
             const ownerId = isOwnItem ? steam_id : convertToSteamID64(tradeOfferAPI.accountid_other);

@@ -8,7 +8,7 @@ import {CancelTradeOffer} from '../bridge/handlers/cancel_trade_offer';
 import {FetchSteamUser} from '../bridge/handlers/fetch_steam_user';
 import {rgDescription} from '../types/steam';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
-import { convertToSteamID64 } from '../utils/userinfo';
+import {convertToSteamID64} from '../utils/userinfo';
 
 export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     const {offers, type} = await getSentTradeOffers();
