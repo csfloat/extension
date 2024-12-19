@@ -18,7 +18,7 @@ function main() {}
  * @param isSentPage if the current page is the sent trade offers page
  * @returns the trade offers
  */
-async function fetchTradeOffers(isSentPage: boolean) {
+async function fetchTradeOffers(steam_id: string, isSentPage: boolean) {
     const g_steamTrades = JSON.parse(localStorage.getItem('g_steamTrades') || '{}') as FetchSteamTradesResponse;
     let refetchRequired = true;
     if (g_steamTrades.sent || g_steamTrades.received) {
@@ -32,7 +32,7 @@ async function fetchTradeOffers(isSentPage: boolean) {
         return g_steamTrades;
     }
 
-    const steamTrades = await ClientSend(FetchSteamTrades, {});
+    const steamTrades = await ClientSend(FetchSteamTrades, {steam_id});
 
     localStorage.setItem('g_steamTrades', JSON.stringify(steamTrades));
     return steamTrades;
@@ -42,9 +42,16 @@ async function fetchTradeOffers(isSentPage: boolean) {
  * Fetches the api data for trade offers and stores relevant data in the DOM to be used by Lit components.
  */
 async function annotateTradeOfferItemElements() {
+    const steam_id = getUserSteamID();
+
+    if (!steam_id) {
+        console.error('Failed to get steam_id', steam_id);
+        return;
+    }
+
     const isSentPage = location.pathname.includes('sent');
 
-    const steamTrades = await fetchTradeOffers(isSentPage);
+    const steamTrades = await fetchTradeOffers(steam_id, isSentPage);
 
     const tradeOffers = document.querySelectorAll('.tradeoffer');
 
@@ -56,6 +63,8 @@ async function annotateTradeOfferItemElements() {
             : steamTrades.received.find((t) => t.offer_id === tradeOfferID);
 
         for (const tradeItemElement of tradeItemElements) {
+            // Format: classinfo/{appid}/{classid}/{instanceid}
+            // Example: data-economy-item="classinfo/730/310777185/302028390"
             const economyItemParts = tradeItemElement.getAttribute('data-economy-item')?.split('/');
             const classId = economyItemParts?.[2];
             const instanceId = economyItemParts?.[3];
@@ -78,7 +87,7 @@ async function annotateTradeOfferItemElements() {
                 apiItem = trade?.received_asset_ids?.find((a) => a.classid === classId && a.instanceid === instanceId);
             }
 
-            const ownerId = isOwnItem ? getUserSteamID() : trade?.other_steam_id64;
+            const ownerId = isOwnItem ? steam_id : trade?.other_steam_id64;
 
             if (ownerId) {
                 tradeItemElement.setAttribute('data-csfloat-owner-steamid', ownerId);

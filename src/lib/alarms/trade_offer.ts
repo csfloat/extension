@@ -316,14 +316,12 @@ async function getSentAndReceivedTradeOffersFromAPI(): Promise<{
     };
 }
 
-export async function getTradeOffersWithDescriptionFromAPI(): Promise<{
+export async function getTradeOffersWithDescriptionFromAPI(steam_id?: string): Promise<{
     received: ExtendedOfferStatus[];
     sent: ExtendedOfferStatus[];
     descriptions: rgDescription[];
     steam_id?: string | null;
 }> {
-    const access = await getAccessToken();
-
     // check if permissions are granted
     const steamPoweredPermissions = await HasPermissions.handleRequest(
         {
@@ -337,9 +335,11 @@ export async function getTradeOffersWithDescriptionFromAPI(): Promise<{
             received: [],
             sent: [],
             descriptions: [],
-            steam_id: access.steam_id,
+            steam_id: steam_id,
         };
     }
+
+    const access = await getAccessToken(steam_id);
 
     const resp = await fetch(
         `https://api.steampowered.com/IEconService/GetTradeOffers/v1/?access_token=${access.token}&get_received_offers=true&get_sent_offers=true&get_descriptions=true`,

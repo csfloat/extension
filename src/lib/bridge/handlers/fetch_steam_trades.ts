@@ -3,7 +3,9 @@ import {rgDescription} from '../../types/steam';
 import {SimpleHandler} from './main';
 import {RequestType} from './types';
 
-interface FetchSteamTradesRequest {}
+interface FetchSteamTradesRequest {
+    steam_id?: string;
+}
 
 export interface FetchSteamTradesResponse {
     received: ExtendedOfferStatus[];
@@ -15,7 +17,7 @@ export interface FetchSteamTradesResponse {
 export const FetchSteamTrades = new SimpleHandler<FetchSteamTradesRequest, FetchSteamTradesResponse>(
     RequestType.FETCH_STEAM_TRADES,
     async (req) => {
-        const resp = await getTradeOffersWithDescriptionFromAPI();
+        const resp = await getTradeOffersWithDescriptionFromAPI(req.steam_id);
         if (!resp) {
             throw new Error('Error fetching Steam trade offers from API');
         }
