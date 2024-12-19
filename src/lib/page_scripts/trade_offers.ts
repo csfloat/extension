@@ -22,10 +22,10 @@ async function fetchTradeOffers(steam_id: string, isSentPage: boolean) {
     const g_steamTrades = JSON.parse(localStorage.getItem('g_steamTrades') || '{}') as FetchSteamTradesResponse;
     let refetchRequired = true;
     if (g_steamTrades.sent || g_steamTrades.received) {
-        const latestTradeId = Number.parseInt(g_steamTrades[isSentPage ? 'sent' : 'received']?.[0].tradeofferid);
-        const latestTradeIDFromPage = Number.parseInt(document.querySelector('.tradeoffer')?.id.split('_')[1] ?? '0');
+        const latestTradeOfferID = Number.parseInt(g_steamTrades[isSentPage ? 'sent' : 'received']?.[0].tradeofferid);
+        const latestTradeOfferIDFromPage = Number.parseInt(document.querySelector('.tradeoffer')?.id.split('_')[1] ?? '0');
 
-        refetchRequired = Number.isNaN(latestTradeId) || latestTradeId !== latestTradeIDFromPage;
+        refetchRequired = Number.isNaN(latestTradeOfferID) || latestTradeOfferID !== latestTradeOfferIDFromPage;
     }
 
     if (!refetchRequired) {
@@ -59,10 +59,10 @@ async function annotateTradeOfferItemElements() {
         const tradeOfferID = tradeOffer.id.split('_')[1];
         const tradeItemElements = tradeOffer.querySelectorAll('.trade_item');
 
-        const trade = isSentPage
+        const tradeOfferAPI = isSentPage
             ? steamTrades.sent.find((t) => t.tradeofferid === tradeOfferID)
             : steamTrades.received.find((t) => t.tradeofferid === tradeOfferID);
-        if (!trade) {
+        if (!tradeOfferAPI) {
             continue;
         }
 
@@ -85,13 +85,13 @@ async function annotateTradeOfferItemElements() {
             }
 
             let isOwnItem = true;
-            let apiItem = trade?.items_to_give?.find((a) => a.classid === classId && a.instanceid === instanceId);
+            let apiItem = tradeOfferAPI?.items_to_give?.find((a) => a.classid === classId && a.instanceid === instanceId);
             if (!apiItem) {
                 isOwnItem = false;
-                apiItem = trade?.items_to_receive?.find((a) => a.classid === classId && a.instanceid === instanceId);
+                apiItem = tradeOfferAPI?.items_to_receive?.find((a) => a.classid === classId && a.instanceid === instanceId);
             }
 
-            const ownerId = isOwnItem ? steam_id : convertToSteamID64(trade.accountid_other);
+            const ownerId = isOwnItem ? steam_id : convertToSteamID64(tradeOfferAPI.accountid_other);
 
             if (ownerId) {
                 tradeItemElement.setAttribute('data-csfloat-owner-steamid', ownerId);
