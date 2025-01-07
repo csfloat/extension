@@ -16,8 +16,8 @@ class HandlerJob<Req> extends Job<WrappedRequest<Req>> {
 
     hashCode(): string {
         // Ensure deterministic stringification between two requests for the same
-        // properties
-        return stringify(this.data);
+        // properties. Do not cache based on the sender since it changes every request.
+        return stringify(this.req);
     }
 }
 
