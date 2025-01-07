@@ -5,7 +5,7 @@ import {inPageContext} from '../utils/snips';
 import {ClientSend} from '../bridge/client';
 import {PingSetupExtension} from '../bridge/handlers/ping_setup_extension';
 import {PingExtensionStatus} from '../bridge/handlers/ping_extension_status';
-import {FetchSteamTrades, FetchSteamTradesResponse} from '../bridge/handlers/fetch_steam_trades';
+import {FetchSteamTrades} from '../bridge/handlers/fetch_steam_trades';
 import {convertToSteamID64, getUserSteamID} from '../utils/userinfo';
 
 init('src/lib/page_scripts/trade_offers.js', main);
@@ -21,6 +21,10 @@ function main() {}
 async function fetchTradeOffers(steam_id: string) {
     const latestTradeIDFromPage = document.querySelector('.tradeoffer')?.id.split('_')[1];
     const trade_offer_id = latestTradeIDFromPage ? Number.parseInt(latestTradeIDFromPage) : undefined;
+
+    if (!trade_offer_id) {
+        return;
+    }
 
     console.log('Fetching trade offers', steam_id, trade_offer_id);
     return await ClientSend(FetchSteamTrades, {steam_id, trade_offer_id});
@@ -38,6 +42,10 @@ async function annotateTradeOfferItemElements() {
     }
 
     const steamTrades = await fetchTradeOffers(steam_id);
+
+    if (!steamTrades) {
+        return;
+    }
 
     const tradeOffers = document.querySelectorAll('.tradeoffer');
 
