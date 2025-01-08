@@ -77,9 +77,7 @@ async function annotateTradeOfferItemElements() {
             }
 
             let isOwnItem = true;
-            let apiItem = tradeOffer?.items_to_give?.find(
-                (a) => a.classid === classId && a.instanceid === instanceId
-            );
+            let apiItem = tradeOffer?.items_to_give?.find((a) => a.classid === classId && a.instanceid === instanceId);
             if (!apiItem) {
                 isOwnItem = false;
                 apiItem = tradeOffer?.items_to_receive?.find(
