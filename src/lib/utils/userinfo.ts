@@ -30,6 +30,6 @@ export function getUserSteamID() {
  * @param steamID32 number
  * @returns SteamID64
  */
-export function convertToSteamID64(steamID32: number) {
+export function convertSteamID32To64(steamID32: number) {
     return (BigInt('76561197960265728') + BigInt(steamID32)).toString();
 }

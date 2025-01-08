@@ -8,7 +8,7 @@ import {CancelTradeOffer} from '../bridge/handlers/cancel_trade_offer';
 import {FetchSteamUser} from '../bridge/handlers/fetch_steam_user';
 import {rgDescription} from '../types/steam';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
-import {convertToSteamID64} from '../utils/userinfo';
+import {convertSteamID32To64} from '../utils/userinfo';
 
 export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     const {offers, type} = await getSentTradeOffers();
@@ -229,7 +229,7 @@ function offerStateMapper(e: TradeOffersAPIOffer): OfferStatus {
         received_asset_ids: (e.items_to_receive || []).map((e) => e.assetid),
         time_created: e.time_created,
         time_updated: e.time_updated,
-        other_steam_id64: convertToSteamID64(e.accountid_other),
+        other_steam_id64: convertSteamID32To64(e.accountid_other),
     } as OfferStatus;
 }
 

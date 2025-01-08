@@ -6,6 +6,7 @@ import {RequestType} from './types';
 
 interface FetchSteamTradesRequest {
     steam_id?: string;
+    // Used for caching the request uniquely, does not affect the return results
     trade_offer_id?: number;
 }
 
