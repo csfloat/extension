@@ -5,7 +5,7 @@ import {inPageContext} from '../utils/snips';
 import {ClientSend} from '../bridge/client';
 import {PingSetupExtension} from '../bridge/handlers/ping_setup_extension';
 import {PingExtensionStatus} from '../bridge/handlers/ping_extension_status';
-import {FetchSteamTrades} from '../bridge/handlers/fetch_steam_trades';
+import {FetchSteamTrades, FetchSteamTradesResponse} from '../bridge/handlers/fetch_steam_trades';
 import {convertSteamID32To64, getUserSteamID} from '../utils/userinfo';
 
 init('src/lib/page_scripts/trade_offers.js', main);
@@ -18,7 +18,7 @@ function main() {}
  * @param steam_id the steam id of logged in user
  * @returns the trade offers
  */
-function fetchTradeOffers(steam_id: string) {
+function fetchTradeOffers(steam_id: string): Promise<FetchSteamTradesResponse> | undefined {
     const latestTradeIDFromPage = document.querySelector('.tradeoffer')?.id.split('_')[1];
     const trade_offer_id = latestTradeIDFromPage ? Number.parseInt(latestTradeIDFromPage) : undefined;
 

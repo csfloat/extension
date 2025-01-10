@@ -12,7 +12,11 @@ export class TradeOfferHolderMetadata extends ItemHolderMetadata {
     }
 
     get asset(): rgAsset | undefined {
-        return JSON.parse($J(this).parent().attr('data-csfloat-description') ?? '{}') as rgAsset;
+        const dataDescription = $J(this).parent().attr('data-csfloat-description');
+
+        if (!dataDescription) return undefined;
+
+        return JSON.parse(dataDescription) as rgAsset;
     }
 
     get ownerSteamId(): string | undefined {
