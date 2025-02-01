@@ -22,6 +22,7 @@ import {Contract} from '../../types/float_market';
 import '../common/ui/floatbar';
 import {ClientSend} from '../../bridge/client';
 import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
+import './list_item_modal';
 
 /**
  * Why do we bind to iteminfo0 AND iteminfo1?
@@ -64,6 +65,9 @@ export class SelectedItemInfo extends FloatElement {
 
     @state()
     private loading: boolean = false;
+
+    @state()
+    private showListModal: boolean = false;
 
     private stall: FetchStallResponse | undefined;
 
@@ -205,11 +209,18 @@ export class SelectedItemInfo extends FloatElement {
 
         return html`
             <div class="market-btn-container">
-                <a class="market-btn" href="https://csfloat.com/sell" target="_blank">
+                <a class="market-btn" @click="${() => (this.showListModal = true)}">
                     <span>List on </span>
                     <img src="https://csfloat.com/assets/n_full_logo.png" height="21" style="margin-left: 5px;" />
                 </a>
             </div>
+            ${this.showListModal && this.asset && this.itemInfo
+                ? html`<csfloat-list-item-modal
+                      .asset="${this.asset}"
+                      .itemInfo="${this.itemInfo}"
+                      @close="${() => (this.showListModal = false)}"
+                  ></csfloat-list-item-modal>`
+                : ''}
         `;
     }
 
