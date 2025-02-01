@@ -5,7 +5,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     const hasPermissions = await chrome.permissions.contains({
-        origins: ['*://*.steampowered.com/*']
+        origins: ['*://*.steampowered.com/*'],
     });
 
     if (hasPermissions) {
@@ -16,7 +16,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         requestButton.addEventListener('click', async () => {
             try {
                 const success = await chrome.permissions.request({
-                    origins: ['*://*.steampowered.com/*']
+                    origins: ['*://*.steampowered.com/*'],
                 });
                 if (success) {
                     // extension requires reload to apply permissions
