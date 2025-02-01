@@ -25,7 +25,7 @@ function unifiedHandler(request: any, sender: MessageSender, sendResponse: (resp
         });
 }
 
-function requestPermissions(permissions: string[], origins: string[], sendResponse: any) {
+function requestPermissions(permissions: chrome.runtime.ManifestPermissions[], origins: string[], sendResponse: any) {
     chrome.permissions.request({permissions, origins}, (granted) => sendResponse(granted));
 
     return true;
