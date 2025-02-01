@@ -7,7 +7,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     const hasPermissions = await chrome.permissions.contains({
         origins: ['*://*.steampowered.com/*']
     });
+
     if (hasPermissions) {
+        // If permissions are already granted, disable the button
         requestButton.children[1].textContent = 'Permissions already granted';
         requestButton.setAttribute('disabled', 'true');
     } else {
@@ -16,7 +18,10 @@ window.addEventListener('DOMContentLoaded', async () => {
                 const success = await chrome.permissions.request({
                     origins: ['*://*.steampowered.com/*']
                 });
-                console.log('Requested permissions:', success);
+                if (success) {
+                    // extension requires reload to apply permissions
+                    browser.runtime.reload();
+                }
             } catch (error) {
                 console.error('Error requesting permissions:', error);
             }

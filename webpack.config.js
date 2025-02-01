@@ -39,7 +39,6 @@ function convertToFirefoxManifest(manifest) {
         js: ['src/lib/page_scripts/csfloat.js'],
     });
     cp.host_permissions.push('*://*.csfloat.com/*');
-    cp.host_permissions.push('*://*.steampowered.com/*');
     return cp;
 }
 
