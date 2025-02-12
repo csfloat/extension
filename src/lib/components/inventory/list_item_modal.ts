@@ -29,7 +29,7 @@ export class ListItemModal extends FloatElement {
     private pricePercentage: number = 100;
 
     @state()
-    private auctionDuration: 1 | 3 | 5 | 7 | 14 = 7;
+    private auctionDuration: 1 | 3 | 7 | 14 = 7;
 
     @state()
     private isLoading: boolean = false;
@@ -454,13 +454,11 @@ export class ListItemModal extends FloatElement {
                                               (this.auctionDuration = Number((e.target as HTMLSelectElement).value) as
                                                   | 1
                                                   | 3
-                                                  | 5
                                                   | 7
                                                   | 14)}"
                                       >
                                           <option value="1">1 Day</option>
                                           <option value="3">3 Days</option>
-                                          <option value="5">5 Days</option>
                                           <option value="7">7 Days</option>
                                           <option value="14">14 Days</option>
                                       </select>
