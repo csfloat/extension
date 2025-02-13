@@ -40,6 +40,13 @@ export class ListItemModal extends FloatElement {
     @state()
     private listingId: string | undefined;
 
+    private readonly DURATION_OPTIONS = [
+        {value: 1, label: '1 Day'},
+        {value: 3, label: '3 Days'},
+        {value: 7, label: '7 Days'},
+        {value: 14, label: '14 Days'},
+    ] as const;
+
     static styles = [
         ...FloatElement.styles,
         css`
@@ -133,51 +140,104 @@ export class ListItemModal extends FloatElement {
 
             .submit-button {
                 width: 100%;
-                padding: 10px;
-                background: #66c0f4;
+                padding: 12px;
+                background: rgb(35, 123, 255);
                 border: none;
-                border-radius: 4px;
-                color: #ffffff;
-                font-size: 16px;
+                border-radius: 8px;
+                color: white;
+                font-size: 14px;
+                font-weight: 500;
                 cursor: pointer;
-                margin-top: 10px;
+                margin-top: 24px;
+                transition: all 0.2s ease;
+                box-shadow: 0 4px 12px rgba(35, 123, 255, 0.3);
+            }
+
+            .submit-button:hover:not(:disabled) {
+                background: rgb(29, 100, 209);
+                transform: translateY(-1px);
             }
 
             .submit-button:disabled {
-                background: #2a475e;
+                background: rgba(35, 123, 255, 0.1);
+                color: rgba(255, 255, 255, 0.5);
+                box-shadow: none;
                 cursor: not-allowed;
+                transform: none;
             }
 
             .listing-type-selector {
-                margin-bottom: 20px;
+                margin-bottom: 24px;
                 display: flex;
-                gap: 10px;
+                gap: 12px;
             }
 
             .type-button {
                 flex: 1;
-                padding: 10px;
-                background: #2a475e;
-                border: 1px solid #000000;
-                color: #ffffff;
+                padding: 12px;
+                background: rgba(35, 123, 255, 0.1);
+                border: none;
+                border-radius: 8px;
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 14px;
+                font-weight: 500;
                 cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .type-button:hover {
+                background: rgba(35, 123, 255, 0.15);
+                transform: translateY(-1px);
             }
 
             .type-button.active {
-                background: #66c0f4;
+                background: rgb(35, 123, 255);
+                color: white;
+                box-shadow: 0 4px 12px rgba(35, 123, 255, 0.3);
+            }
+
+            .type-button.active:hover {
+                background: rgb(29, 100, 209);
+                transform: translateY(-1px);
             }
 
             .auction-settings {
-                margin-top: 10px;
+                margin-top: 24px;
             }
 
-            .duration-select {
-                width: 100%;
-                padding: 8px;
-                margin-top: 5px;
-                background: #2a475e;
-                border: 1px solid #000000;
-                color: #ffffff;
+            .duration-selector {
+                display: flex;
+                gap: 12px;
+                margin-top: 12px;
+            }
+
+            .duration-radio {
+                display: none;
+            }
+
+            .duration-button {
+                flex: 1;
+                padding: 10px;
+                text-align: center;
+                background: rgba(35, 123, 255, 0.1);
+                border: none;
+                border-radius: 8px;
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .duration-button:hover {
+                background: rgba(35, 123, 255, 0.15);
+                transform: translateY(-1px);
+            }
+
+            .duration-radio:checked + .duration-button {
+                background: rgb(35, 123, 255);
+                color: white;
+                box-shadow: 0 4px 12px rgba(35, 123, 255, 0.3);
             }
 
             .description-input {
@@ -474,21 +534,27 @@ export class ListItemModal extends FloatElement {
                             ? html`
                                   <div class="auction-settings">
                                       <label>Auction Duration</label>
-                                      <select
-                                          class="duration-select"
-                                          .value="${this.auctionDuration}"
-                                          @change="${(e: Event) =>
-                                              (this.auctionDuration = Number((e.target as HTMLSelectElement).value) as
-                                                  | 1
-                                                  | 3
-                                                  | 7
-                                                  | 14)}"
-                                      >
-                                          <option value="1">1 Day</option>
-                                          <option value="3">3 Days</option>
-                                          <option value="7">7 Days</option>
-                                          <option value="14">14 Days</option>
-                                      </select>
+                                      <div class="duration-selector">
+                                          ${this.DURATION_OPTIONS.map(
+                                              (option) => html`
+                                                  <input
+                                                      type="radio"
+                                                      id="duration-${option.value}"
+                                                      name="duration"
+                                                      class="duration-radio"
+                                                      value="${option.value}"
+                                                      ?checked="${this.auctionDuration === option.value}"
+                                                      @change="${(e: Event) =>
+                                                          (this.auctionDuration = Number(
+                                                              (e.target as HTMLInputElement).value
+                                                          ) as 1 | 3 | 7 | 14)}"
+                                                  />
+                                                  <label for="duration-${option.value}" class="duration-button">
+                                                      ${option.label}
+                                                  </label>
+                                              `
+                                          )}
+                                      </div>
                                   </div>
                               `
                             : ''}
