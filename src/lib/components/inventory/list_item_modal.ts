@@ -762,7 +762,7 @@ export class ListItemModal extends FloatElement {
                                       <span>$${this.formatPrice(this.customPrice)}</span>
                                   </div>
                                   <div class="price-breakdown-row">
-                                      <span>Sale Fee (2%)</span>
+                                      <span>Sale Fee (${this.SALES_FEE_PERCENTAGE * 100}%)</span>
                                       <span>-$${this.formatPrice(this.getSaleFee(this.customPrice))}</span>
                                   </div>
                                   <div class="price-breakdown-row">
