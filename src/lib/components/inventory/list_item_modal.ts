@@ -435,13 +435,13 @@ export class ListItemModal extends FloatElement {
                         />
                         <input
                             type="range"
-                            min="1"
-                            max="200"
+                            min="80"
+                            max="120"
                             .value="${this.pricePercentage}"
                             @input="${this.handlePercentageChange}"
                             class="percentage-slider"
                         />
-                        <div>Percentage of recommended price: ${this.pricePercentage.toFixed(1)}%</div>
+                        <div>Percentage of recommended price: ${this.pricePercentage.toFixed(0)}%</div>
 
                         ${this.listingType === 'auction'
                             ? html`
