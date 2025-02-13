@@ -49,7 +49,7 @@ export class ListItemModal extends FloatElement {
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: rgba(0, 0, 0, 0.5);
+                background: rgba(0, 0, 0, 0.6);
                 z-index: 1000;
                 display: flex;
                 justify-content: center;
@@ -57,23 +57,46 @@ export class ListItemModal extends FloatElement {
             }
 
             .modal-content {
-                background: #1b2838;
+                background: rgba(21, 23, 28, 0.8);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
                 padding: 20px;
-                border-radius: 4px;
                 width: 500px;
                 max-width: 90%;
                 font-family: 'Roboto', sans-serif;
+                border-width: 2px;
+                border-style: solid;
+                border-color: rgba(193, 206, 255, 0.07);
+                border-radius: 12px;
+                box-shadow: rgba(15, 15, 15, 0.6) 0px 0px 12px 8px;
             }
 
             .modal-header {
                 display: flex;
                 justify-content: space-between;
-                align-items: center;
+                align-items: start;
                 margin-bottom: 20px;
             }
 
+            .modal-header-left {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+            }
+
+            .modal-icon {
+                display: block;
+                width: 40px;
+                height: 40px;
+                padding: 10px;
+                background-color: rgba(35, 123, 255, 0.15);
+                border-radius: 10px;
+                object-fit: contain;
+            }
+
             .modal-title {
-                font-size: 18px;
+                margin: 0;
+                font-size: 28px;
                 color: #ffffff;
             }
 
@@ -81,7 +104,7 @@ export class ListItemModal extends FloatElement {
                 background: none;
                 border: none;
                 color: #ffffff;
-                font-size: 20px;
+                font-size: 28px;
                 cursor: pointer;
             }
 
@@ -392,7 +415,10 @@ export class ListItemModal extends FloatElement {
             >
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2 class="modal-title">List Item on CSFloat</h2>
+                        <div class="modal-header-left">
+                            <img class="modal-icon" src="https://csfloat.com/assets/karambit-icon.png" />
+                            <h2 class="modal-title">List Item on CSFloat</h2>
+                        </div>
                         <button class="close-button" @click="${() => this.dispatchEvent(new CustomEvent('close'))}">
                             ×
                         </button>
