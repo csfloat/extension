@@ -62,6 +62,7 @@ export class ListItemModal extends FloatElement {
                 border-radius: 4px;
                 width: 500px;
                 max-width: 90%;
+                font-family: 'Roboto', sans-serif;
             }
 
             .modal-header {
