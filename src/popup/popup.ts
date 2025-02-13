@@ -10,7 +10,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     if (hasPermissions) {
         // If permissions are already granted, disable the button
-        requestButton.children[1].textContent = 'Permissions already granted';
+        requestButton.children[1].textContent = 'Offer Tracking Enabled';
         requestButton.setAttribute('disabled', 'true');
     } else {
         requestButton.addEventListener('click', async () => {
