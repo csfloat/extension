@@ -40,6 +40,10 @@ export class ListItemModal extends FloatElement {
     @state()
     private listingId: string | undefined;
 
+    private readonly MAX_PRICE_CENTS = 100000 * 100; // $100,000
+
+    private readonly SALES_FEE_PERCENTAGE = 0.02;
+
     private readonly DURATION_OPTIONS = [
         {value: 1, label: '1 Day'},
         {value: 3, label: '3 Days'},
@@ -70,7 +74,7 @@ export class ListItemModal extends FloatElement {
                 padding: 20px;
                 width: 500px;
                 max-width: 90%;
-                font-family: 'Roboto', sans-serif;
+                font-family: Roboto, "Helvetica Neue", sans-serif;
                 border-width: 2px;
                 border-style: solid;
                 border-color: rgba(193, 206, 255, 0.07);
@@ -117,25 +121,155 @@ export class ListItemModal extends FloatElement {
 
             .price-section {
                 margin-bottom: 20px;
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 14px;
+            }
+
+            .price-input-container {
+                position: relative;
+                margin-top: 8px;
+            }
+
+            .price-input-prefix {
+                position: absolute;
+                left: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 14px;
+                pointer-events: none;
             }
 
             .price-input {
                 width: 100%;
-                padding: 8px;
-                margin-top: 5px;
-                background: #2a475e;
-                border: 1px solid #000000;
-                color: #ffffff;
+                box-sizing: border-box;
+                padding: 12px;
+                padding-left: 28px;
+                background: rgba(35, 123, 255, 0.1);
+                border: none;
+                border-radius: 8px;
+                color: white;
+                font-size: 14px;
+                font-weight: 500;
+                font-family: 'Roboto', sans-serif;
+                transition: background 0.2s ease;
+            }
+
+            .price-input::placeholder {
+                color: rgba(255, 255, 255, 0.4);
+            }
+
+            .price-input:focus {
+                outline: none;
+                background: rgba(35, 123, 255, 0.15);
+            }
+
+            .price-input::-webkit-outer-spin-button,
+            .price-input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+
+            .price-input[type='number'] {
+                -moz-appearance: textfield;
             }
 
             .percentage-slider {
                 width: 100%;
-                margin-top: 10px;
+                margin: 16px 0;
+                height: 8px;
+                background: rgba(35, 123, 255, 0.15);
+                border-radius: 4px;
+                -webkit-appearance: none;
+                appearance: none;
+                cursor: pointer;
+                outline: none;
+                position: relative;
+            }
+
+            .percentage-slider::before {
+                content: '';
+                position: absolute;
+                height: 100%;
+                width: calc(var(--slider-percentage, 100) * 1%);
+                background-color: rgb(35, 123, 255);
+                border-radius: 4px;
+                pointer-events: none;
+            }
+
+            .percentage-slider::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: rgb(35, 123, 255);
+                cursor: pointer;
+                box-shadow: 0 2px 6px rgba(35, 123, 255, 0.3);
+                margin-top: -6px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .percentage-slider::-webkit-slider-runnable-track {
+                width: 100%;
+                height: 8px;
+                border-radius: 4px;
+                background: transparent;
+            }
+
+            .percentage-slider::-moz-range-thumb {
+                width: 20px;
+                height: 20px;
+                border: none;
+                border-radius: 50%;
+                background: rgb(35, 123, 255);
+                cursor: pointer;
+                box-shadow: 0 2px 6px rgba(35, 123, 255, 0.3);
+                position: relative;
+                z-index: 1;
+            }
+
+            .percentage-slider::-moz-range-track {
+                width: 100%;
+                height: 8px;
+                border-radius: 4px;
+                background: transparent;
+            }
+
+            .percentage-slider::-webkit-slider-thumb:hover,
+            .percentage-slider::-moz-range-thumb:hover {
+                transform: scale(1.2);
             }
 
             .error-message {
                 color: #ff4444;
                 margin-top: 10px;
+            }
+
+            .price-breakdown {
+                margin: 24px 0;
+            }
+
+            .price-breakdown-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+                color: rgb(158, 167, 177)
+                font-size: 16px;
+            }
+
+            .price-breakdown-row:last-child {
+                margin-bottom: 0;
+                padding-top: 8px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                color: #FFFFFF;
+                font-size: 20px
+            }
+
+            .price-breakdown-row.fee {
+                color: rgba(255, 0, 0, 0.8);
             }
 
             .submit-button {
@@ -148,7 +282,6 @@ export class ListItemModal extends FloatElement {
                 font-size: 14px;
                 font-weight: 500;
                 cursor: pointer;
-                margin-top: 24px;
                 transition: all 0.2s ease;
                 box-shadow: 0 4px 12px rgba(35, 123, 255, 0.3);
             }
@@ -330,6 +463,13 @@ export class ListItemModal extends FloatElement {
 
     async connectedCallback() {
         super.connectedCallback();
+        // Set initial slider progress
+        requestAnimationFrame(() => {
+            const slider = this.shadowRoot?.querySelector('.percentage-slider') as HTMLInputElement;
+            if (slider) {
+                slider.style.setProperty('--slider-percentage', '50');
+            }
+        });
         await this.fetchRecommendedPrice();
     }
 
@@ -360,8 +500,7 @@ export class ListItemModal extends FloatElement {
             return {isValid: false, error: 'Please enter a valid price greater than $0.00'};
         }
 
-        if (price > 10000000) {
-            // $100,000 in cents
+        if (price > this.MAX_PRICE_CENTS) {
             return {isValid: false, error: 'Price cannot exceed $100,000 USD'};
         }
 
@@ -378,22 +517,69 @@ export class ListItemModal extends FloatElement {
 
         this.error = undefined;
         this.customPrice = price;
-        if (this.recommendedPrice) {
-            this.pricePercentage = Number(((this.customPrice / this.recommendedPrice) * 100).toFixed(1));
-        }
+    }
+
+    private getSaleFee(cents: number): number {
+        return Math.max(1, cents * this.SALES_FEE_PERCENTAGE);
+    }
+
+    private formatPrice(cents: number): string {
+        return (cents / 100).toFixed(2);
+    }
+
+    private formatInputPrice(cents: number): string {
+        // For input, show the exact value without forcing decimals
+        const dollars = (cents / 100).toString();
+        // Remove trailing .00 if it exists
+        return dollars.replace(/\.?0+$/, '');
     }
 
     private handlePriceChange(e: Event) {
-        const value = (e.target as HTMLInputElement).value;
-        const price = Math.round(Number(parseFloat(value)) * 100);
-        this.updatePrice(price);
+        const input = e.target as HTMLInputElement;
+        let value = input.value;
+
+        // Remove any non-numeric or non-decimal characters
+        value = value.replace(/[^\d.]/g, '');
+
+        // Ensure only one decimal point
+        const parts = value.split('.');
+        if (parts.length > 2) {
+            value = parts[0] + '.' + parts.slice(1).join('');
+        }
+
+        // Limit decimal places to 2
+        if (parts.length === 2) {
+            value = parts[0] + '.' + parts[1].slice(0, 2);
+        }
+
+        // Update the input value
+        input.value = value;
+
+        // Convert to cents for storage
+        const dollars = parseFloat(value || '0');
+        if (dollars * 100 > this.MAX_PRICE_CENTS) {
+            input.value = (this.MAX_PRICE_CENTS / 100).toString();
+            this.updatePrice(this.MAX_PRICE_CENTS);
+        } else {
+            const cents = Math.ceil(dollars * 100);
+            this.updatePrice(Math.max(1, cents));
+        }
     }
 
     private handlePercentageChange(e: Event) {
-        const value = (e.target as HTMLInputElement).value;
-        this.pricePercentage = Number(parseFloat(value).toFixed(1));
+        const input = e.target as HTMLInputElement;
+        const value = parseFloat(input.value);
+        this.pricePercentage = value;
+
+        // Update the slider progress - normalize to 0-100 based on min-max range
+        requestAnimationFrame(() => {
+            const normalizedValue = ((value - 80) / (120 - 80)) * 100;
+            input.style.setProperty('--slider-percentage', normalizedValue.toString());
+        });
+
         if (this.recommendedPrice) {
-            const newPrice = Math.round((this.pricePercentage / 100) * this.recommendedPrice);
+            const exactPrice = (value / 100) * this.recommendedPrice;
+            const newPrice = Math.ceil(exactPrice);
             this.updatePrice(newPrice);
         }
     }
@@ -508,27 +694,34 @@ export class ListItemModal extends FloatElement {
                                 ? `$${(this.recommendedPrice / 100).toFixed(2)}`
                                 : 'N/A'}
                         </label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            max="100000"
-                            class="price-input"
-                            .value="${this.customPrice ? (this.customPrice / 100).toFixed(2) : ''}"
-                            @input="${this.handlePriceChange}"
-                            placeholder="${this.listingType === 'buy_now'
-                                ? 'Enter listing price in USD (max $100,000)'
-                                : 'Enter starting price in USD (max $100,000)'}"
-                        />
+                        <div class="price-input-container">
+                            <span class="price-input-prefix">$</span>
+                            <input
+                                type="text"
+                                inputmode="decimal"
+                                class="price-input"
+                                .value="${this.customPrice ? this.formatInputPrice(this.customPrice) : ''}"
+                                @input="${this.handlePriceChange}"
+                                placeholder="${this.listingType === 'buy_now'
+                                    ? 'Enter listing price in USD (max $100,000)'
+                                    : 'Enter starting price in USD (max $100,000)'}"
+                            />
+                        </div>
                         <input
                             type="range"
                             min="80"
                             max="120"
+                            step="0.1"
                             .value="${this.pricePercentage}"
                             @input="${this.handlePercentageChange}"
                             class="percentage-slider"
                         />
-                        <div>Percentage of recommended price: ${this.pricePercentage.toFixed(0)}%</div>
+                        <div>
+                            Percentage of recommended price:
+                            ${this.recommendedPrice && this.customPrice
+                                ? Math.round((this.customPrice / this.recommendedPrice) * 100)
+                                : 100}%
+                        </div>
 
                         ${this.listingType === 'auction'
                             ? html`
@@ -561,6 +754,28 @@ export class ListItemModal extends FloatElement {
                     </div>
 
                     ${this.error ? html`<div class="error-message">${this.error}</div>` : ''}
+                    ${this.customPrice
+                        ? html`
+                              <div class="price-breakdown">
+                                  <div class="price-breakdown-row">
+                                      <span>Subtotal</span>
+                                      <span>$${this.formatPrice(this.customPrice)}</span>
+                                  </div>
+                                  <div class="price-breakdown-row">
+                                      <span>Sale Fee (2%)</span>
+                                      <span>-$${this.formatPrice(this.getSaleFee(this.customPrice))}</span>
+                                  </div>
+                                  <div class="price-breakdown-row">
+                                      <span>Total Earnings</span>
+                                      <span
+                                          >$${this.formatPrice(
+                                              this.customPrice - this.getSaleFee(this.customPrice)
+                                          )}</span
+                                      >
+                                  </div>
+                              </div>
+                          `
+                        : ''}
 
                     <button
                         class="submit-button"
