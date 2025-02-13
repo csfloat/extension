@@ -8,6 +8,7 @@ import {state} from 'lit/decorators.js';
 import {FetchPendingTrades} from '../../bridge/handlers/fetch_pending_trades';
 import {HasPermissions} from '../../bridge/handlers/has_permissions';
 import {PingSetupExtension} from '../../bridge/handlers/ping_setup_extension';
+import { isFirefox } from '../../utils/detect';
 
 @CustomElement()
 @InjectAfter(
@@ -17,6 +18,9 @@ import {PingSetupExtension} from '../../bridge/handlers/ping_setup_extension';
 export class BetterTrackingWidget extends FloatElement {
     @state()
     show = false;
+
+    @state()
+    isFirefox = isFirefox();
 
     static styles = [
         ...FloatElement.styles,
@@ -49,6 +53,14 @@ export class BetterTrackingWidget extends FloatElement {
             }
         `,
     ];
+
+    steamButton() {
+        return {
+            text: this.isFirefox ? 'Enable in the Extension Popup' : 'Enable',
+            type: this.isFirefox ? 'grey_white' : "green_white",
+            disabled: this.isFirefox
+        };
+    }
 
     async connectedCallback() {
         super.connectedCallback();
@@ -92,7 +104,7 @@ export class BetterTrackingWidget extends FloatElement {
                           <span class="item-name">Setup Offer Tracking on CSFloat</span>
                           <div class="sale-info">Verify trades while preserving your privacy.</div>
                       </div>
-                      <csfloat-steam-button id="csfloat-enable-enhanced" .text="${'Enable'}"></csfloat-steam-button>
+                      <csfloat-steam-button id="csfloat-enable-enhanced" .text="${this.steamButton().text}" .type="${this.steamButton().type}" .disabled=${this.steamButton().disabled}></csfloat-steam-button>
                   </div>
               `
             : html``;

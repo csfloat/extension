@@ -7,6 +7,7 @@ import {PingSetupExtension} from '../bridge/handlers/ping_setup_extension';
 import {PingExtensionStatus} from '../bridge/handlers/ping_extension_status';
 import {FetchSteamTrades, FetchSteamTradesResponse} from '../bridge/handlers/fetch_steam_trades';
 import {convertSteamID32To64, getUserSteamID} from '../utils/userinfo';
+import { isFirefox } from '../utils/detect';
 
 init('src/lib/page_scripts/trade_offers.js', main);
 
@@ -112,6 +113,10 @@ if (!inPageContext()) {
         }
 
         btn.addEventListener('click', async () => {
+            if (isFirefox()) {
+                alert('Please enable the feature in the extension popup');
+                return;
+            }
             chrome.runtime.sendMessage(
                 {
                     message: 'requestPermissions',
