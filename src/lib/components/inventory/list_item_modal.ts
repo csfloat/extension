@@ -132,11 +132,11 @@ export class ListItemModal extends FloatElement {
 
             .price-input-prefix {
                 position: absolute;
-                left: 12px;
+                left: 18px;
                 top: 50%;
                 transform: translateY(-50%);
                 color: rgba(255, 255, 255, 0.8);
-                font-size: 14px;
+                font-size: 20px;
                 pointer-events: none;
             }
 
@@ -144,24 +144,18 @@ export class ListItemModal extends FloatElement {
                 width: 100%;
                 box-sizing: border-box;
                 padding: 12px;
-                padding-left: 28px;
-                background: rgba(35, 123, 255, 0.1);
+                padding-left: 40px;
+                background: rgba(193, 206, 255, .04);
                 border: none;
-                border-radius: 8px;
-                color: white;
-                font-size: 14px;
+                border-radius: 10px;
+                color: #FFFFFF;
+                font-size: 20px;
                 font-weight: 500;
-                font-family: 'Roboto', sans-serif;
                 transition: background 0.2s ease;
             }
 
             .price-input::placeholder {
                 color: rgba(255, 255, 255, 0.4);
-            }
-
-            .price-input:focus {
-                outline: none;
-                background: rgba(35, 123, 255, 0.15);
             }
 
             .price-input::-webkit-outer-spin-button,
@@ -172,6 +166,18 @@ export class ListItemModal extends FloatElement {
 
             .price-input[type='number'] {
                 -moz-appearance: textfield;
+            }
+
+            .price-input[type='text'] {
+                color: #FFFFFF;
+                border: none;
+                border-radius: 10px;
+                background: rgba(193, 206, 255, .04);
+            }
+
+            .price-input[type='text']:focus {
+                outline: none;
+                background: rgba(193, 206, 255, .07);
             }
 
             .percentage-slider {
