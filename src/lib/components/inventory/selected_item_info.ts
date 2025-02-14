@@ -219,7 +219,7 @@ export class SelectedItemInfo extends FloatElement {
                     <img src="https://csfloat.com/assets/n_full_logo.png" height="21" style="margin-left: 5px;" />
                 </a>
             </div>
-            ${this.showListModal && this.asset && this.itemInfo
+            ${this.showListModal && this.asset && (this.itemInfo || !isSkin(this.asset.description))
                 ? html`<csfloat-list-item-modal
                       .asset="${this.asset}"
                       .itemInfo="${this.itemInfo}"
