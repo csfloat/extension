@@ -323,7 +323,9 @@ export class ListItemModal extends FloatElement {
                                     View Your Stall on CSFloat
                                 </a>
                             </div>
-                            <button class="close-modal-button" @click="${this.handleClose}">Done</button>
+                            <button class="base-button primary-button success-button" @click="${this.handleClose}">
+                                Done
+                            </button>
                         </div>
                     </div>
                 </div>
