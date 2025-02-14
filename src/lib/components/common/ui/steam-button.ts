@@ -18,6 +18,9 @@ export class SteamButton extends FloatElement {
     @property({type: String})
     private type: ButtonType = ButtonType.GreenWhite;
 
+    @property({type: Boolean})
+    private disabled: boolean = false;
+
     static styles = [
         ...FloatElement.styles,
         css`
@@ -102,6 +105,10 @@ export class SteamButton extends FloatElement {
                 font-size: 12px;
                 line-height: 20px;
             }
+
+            .btn_disabled {
+                cursor: default;
+            }
         `,
     ];
 
@@ -112,6 +119,9 @@ export class SteamButton extends FloatElement {
     btnClass() {
         const r: {[key: string]: boolean} = {btn_small: true};
         r[`btn_${this.type}_innerfade`] = true;
+        if (this.disabled) {
+            r.btn_disabled = true;
+        }
         return classMap(r);
     }
 
