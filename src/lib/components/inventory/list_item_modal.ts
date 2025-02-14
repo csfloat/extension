@@ -850,7 +850,9 @@ export class ListItemModal extends FloatElement {
                             Buy Now
                         </button>
                         <button
-                            class="type-button ${this.listingType === 'auction' ? 'active' : ''}"
+                            class="base-button secondary-button type-button ${this.listingType === 'auction'
+                                ? 'active'
+                                : ''}"
                             @click="${() => (this.listingType = 'auction')}"
                         >
                             Auction
