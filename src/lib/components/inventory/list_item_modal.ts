@@ -70,6 +70,10 @@ export class ListItemModal extends FloatElement {
     async connectedCallback() {
         super.connectedCallback();
 
+        // Prevent background scrolling
+        document.body.style.overflow = 'hidden';
+        document.body.style.paddingRight = 'var(--scrollbar-width)';
+
         try {
             this.isInitialLoading = true;
             const isLoggedIn = await isLoggedIntoCSFloat();
@@ -85,10 +89,6 @@ export class ListItemModal extends FloatElement {
             };
         }
 
-        // Prevent background scrolling
-        document.body.style.overflow = 'hidden';
-        document.body.style.paddingRight = 'var(--scrollbar-width)';
-
         try {
             await this.fetchRecommendedPrice();
             if (!this.recommendedPrice) {
@@ -99,7 +99,7 @@ export class ListItemModal extends FloatElement {
         } finally {
             this.isInitialLoading = false;
 
-            // Set initial slider progress
+            // Set initial slider progress after initial loading is done
             requestAnimationFrame(() => {
                 const slider = this.shadowRoot?.querySelector('.percentage-slider') as HTMLInputElement;
                 if (slider) {
@@ -138,6 +138,7 @@ export class ListItemModal extends FloatElement {
         } catch (error: unknown) {
             this.error = {
                 message: error instanceof Error ? error.message : 'Failed to fetch price. Please try again later.',
+                cta: 'Done',
             };
             throw error; // Re-throw to handle in connectedCallback
         }
@@ -369,13 +370,19 @@ export class ListItemModal extends FloatElement {
                     ${this.error
                         ? html`<div class="error-container">
                               <div class="error-message">${this.error.message}</div>
-                              <a
-                                  href="${this.error.ctaHref}"
-                                  class="base-button primary-button error-cta"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  >${this.error.cta}</a
-                              >
+                              ${this.error.cta
+                                  ? html`<button
+                                        @click="${() => {
+                                            if (this.error?.ctaHref) {
+                                                window.open(this.error?.ctaHref, '_blank');
+                                            }
+                                            this.handleClose();
+                                        }}"
+                                        class="base-button primary-button error-cta"
+                                    >
+                                        ${this.error.cta}
+                                    </button>`
+                                  : html``}
                           </div>`
                         : html``}
                     ${this.error?.cta
