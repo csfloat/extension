@@ -114,7 +114,7 @@ if (!inPageContext()) {
 
         btn.addEventListener('click', async () => {
             if (isFirefox()) {
-                alert('Please enable the feature in the extension popup');
+                alert('Please enable the feature in the extension popup in the top right of your browser');
                 return;
             }
             chrome.runtime.sendMessage(
