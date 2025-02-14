@@ -423,7 +423,7 @@ export class ListItemModal extends FloatElement {
 
             .success-content {
                 text-align: center;
-                padding: 20px 0;
+                padding: 0;
             }
 
             .success-emoji {
@@ -444,18 +444,8 @@ export class ListItemModal extends FloatElement {
                 margin-bottom: 20px;
             }
 
-            .success-link {
-                padding: 10px;
-                background: #2a475e;
-                border: 1px solid #000000;
-                border-radius: 4px;
-                color: #ffffff;
+            .success-links a {
                 text-decoration: none;
-                transition: background-color 0.2s;
-            }
-
-            .success-link:hover {
-                background: #3d6c8d;
             }
 
             .divider {
@@ -809,11 +799,15 @@ export class ListItemModal extends FloatElement {
                                 <a
                                     href="https://csfloat.com/item/${this.listingId}"
                                     target="_blank"
-                                    class="success-link"
+                                    class="base-button secondary-button success-link"
                                 >
                                     View ${this.listingType === 'buy_now' ? 'Listing' : 'Auction'}
                                 </a>
-                                <a href="https://csfloat.com/stall/me" target="_blank" class="success-link">
+                                <a
+                                    href="https://csfloat.com/stall/me"
+                                    target="_blank"
+                                    class="base-button secondary-button success-link"
+                                >
                                     View Your Stall on CSFloat
                                 </a>
                             </div>
