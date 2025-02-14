@@ -520,5 +520,50 @@ export const listItemModalStyles = [
             background: #cc3333;
             transform: translateY(-1px);
         }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite linear;
+            border-radius: 4px;
+        }
+
+        .skeleton-text {
+            height: 20px;
+            margin: 10px 0;
+        }
+
+        .skeleton-price {
+            height: 40px;
+            margin: 15px 0;
+        }
+
+        .skeleton-button {
+            height: 36px;
+            width: 120px;
+            margin: 10px 0;
+        }
+
+        .error-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .error-cta {
+            text-decoration: none;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
     `,
 ];
