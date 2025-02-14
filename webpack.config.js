@@ -39,6 +39,8 @@ function convertToFirefoxManifest(manifest) {
         js: ['src/lib/page_scripts/csfloat.js'],
     });
     cp.host_permissions.push('*://*.csfloat.com/*');
+    // Force optional host permissions to be required
+    cp.host_permissions = cp.host_permissions.concat(cp.optional_host_permissions);
     return cp;
 }
 
