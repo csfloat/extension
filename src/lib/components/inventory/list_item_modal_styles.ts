@@ -397,25 +397,13 @@ export const listItemModalStyles = [
             text-decoration: none;
         }
 
+        .success-button {
+            width: 100%;
+        }
+
         .divider {
             border-top: 1px solid #4b5f73;
             margin: 20px 0;
-        }
-
-        .close-modal-button {
-            width: 100%;
-            padding: 10px;
-            background: #2a475e;
-            border: none;
-            border-radius: 4px;
-            color: #ffffff;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .close-modal-button:hover {
-            background: #3d6c8d;
         }
 
         .tradable-warning {
