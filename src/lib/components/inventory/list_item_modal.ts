@@ -158,6 +158,7 @@ export class ListItemModal extends FloatElement {
             .modal-header-left {
                 display: flex;
                 align-items: center;
+                gap: 16px;
             }
 
             .modal-icon {
@@ -314,8 +315,15 @@ export class ListItemModal extends FloatElement {
             }
 
             .error-message {
-                color: #ff4444;
-                margin-top: 10px;
+                color: #FFFFFF;
+                width: 100%;
+                padding-left: 10px;
+                padding-top: 10px;
+                padding-bottom: 10px;
+                background: #FF4444;
+                margin-top: 16px;
+                border-radius: 6px;
+                box-sizing: border-box;
             }
 
             .price-breakdown {
@@ -595,7 +603,6 @@ export class ListItemModal extends FloatElement {
             }
         } catch (error) {
             console.error('Failed to fetch recommended price:', error);
-            this.handleClose();
         }
     }
 
@@ -628,7 +635,7 @@ export class ListItemModal extends FloatElement {
             this.recommendedPrice = response.price;
             this.customPrice = this.recommendedPrice;
         } catch (error: unknown) {
-            this.error = error instanceof Error ? error.message : 'Failed to fetch recommended price';
+            this.error = error instanceof Error ? error.message : 'Failed to fetch price. Please try again later.';
             throw error; // Re-throw to handle in connectedCallback
         } finally {
             this.isLoading = false;
@@ -834,19 +841,22 @@ export class ListItemModal extends FloatElement {
                         <button class="close-button" @click="${this.handleClose}">×</button>
                     </div>
 
+                    ${this.error
+                        ? html`<div class="error-message">${this.error}</div>`
+                        : html`
                     <div class="listing-type-selector">
                         <button
-                            class="base-button secondary-button type-button ${this.listingType === 'buy_now'
-                                ? 'active'
-                                : ''}"
+                            class="base-button secondary-button type-button ${
+                                this.listingType === 'buy_now' ? 'active' : ''
+                            }"
                             @click="${() => (this.listingType = 'buy_now')}"
                         >
                             Buy Now
                         </button>
                         <button
-                            class="base-button secondary-button type-button ${this.listingType === 'auction'
-                                ? 'active'
-                                : ''}"
+                            class="base-button secondary-button type-button ${
+                                this.listingType === 'auction' ? 'active' : ''
+                            }"
                             @click="${() => (this.listingType = 'auction')}"
                         >
                             Auction
@@ -856,11 +866,13 @@ export class ListItemModal extends FloatElement {
                     <div class="price-section">
                         <label>
                             Recommended Price:
-                            ${this.isLoading
-                                ? 'Loading...'
-                                : this.recommendedPrice
-                                ? `$${(this.recommendedPrice / 100).toFixed(2)}`
-                                : 'N/A'}
+                            ${
+                                this.isLoading
+                                    ? 'Loading...'
+                                    : this.recommendedPrice
+                                    ? `$${(this.recommendedPrice / 100).toFixed(2)}`
+                                    : 'N/A'
+                            }
                         </label>
                         <div class="price-input-container">
                             <span class="price-input-prefix">$</span>
@@ -870,9 +882,11 @@ export class ListItemModal extends FloatElement {
                                 class="price-input"
                                 .value="${this.customPrice ? this.formatInputPrice(this.customPrice) : ''}"
                                 @input="${this.handlePriceChange}"
-                                placeholder="${this.listingType === 'buy_now'
-                                    ? 'Enter listing price in USD (max $100,000)'
-                                    : 'Enter starting price in USD (max $100,000)'}"
+                                placeholder="${
+                                    this.listingType === 'buy_now'
+                                        ? 'Enter listing price in USD (max $100,000)'
+                                        : 'Enter starting price in USD (max $100,000)'
+                                }"
                             />
                         </div>
                         <input
@@ -886,111 +900,122 @@ export class ListItemModal extends FloatElement {
                         />
                         <div>
                             Percentage of recommended price:
-                            ${this.recommendedPrice && this.customPrice
-                                ? Math.round((this.customPrice / this.recommendedPrice) * 100)
-                                : 100}%
+                            ${
+                                this.recommendedPrice && this.customPrice
+                                    ? Math.round((this.customPrice / this.recommendedPrice) * 100)
+                                    : 100
+                            }%
                         </div>
 
-                        ${this.listingType === 'auction'
+                        ${
+                            this.listingType === 'auction'
+                                ? html`
+                                      <div class="auction-settings">
+                                          <label>Auction Duration</label>
+                                          <div class="duration-selector">
+                                              ${this.DURATION_OPTIONS.map(
+                                                  (option) => html`
+                                                      <input
+                                                          type="radio"
+                                                          id="duration-${option.value}"
+                                                          name="duration"
+                                                          class="duration-radio"
+                                                          value="${option.value}"
+                                                          ?checked="${this.auctionDuration === option.value}"
+                                                          @change="${(e: Event) =>
+                                                              (this.auctionDuration = Number(
+                                                                  (e.target as HTMLInputElement).value
+                                                              ) as 1 | 3 | 7 | 14)}"
+                                                      />
+                                                      <label for="duration-${option.value}" class="duration-button">
+                                                          ${option.label}
+                                                      </label>
+                                                  `
+                                              )}
+                                          </div>
+                                      </div>
+                                  `
+                                : ''
+                        }
+                    </div>
+
+                    ${
+                        this.customPrice
                             ? html`
-                                  <div class="auction-settings">
-                                      <label>Auction Duration</label>
-                                      <div class="duration-selector">
-                                          ${this.DURATION_OPTIONS.map(
-                                              (option) => html`
-                                                  <input
-                                                      type="radio"
-                                                      id="duration-${option.value}"
-                                                      name="duration"
-                                                      class="duration-radio"
-                                                      value="${option.value}"
-                                                      ?checked="${this.auctionDuration === option.value}"
-                                                      @change="${(e: Event) =>
-                                                          (this.auctionDuration = Number(
-                                                              (e.target as HTMLInputElement).value
-                                                          ) as 1 | 3 | 7 | 14)}"
-                                                  />
-                                                  <label for="duration-${option.value}" class="duration-button">
-                                                      ${option.label}
-                                                  </label>
-                                              `
-                                          )}
+                                  <div class="price-breakdown">
+                                      <div class="price-breakdown-row">
+                                          <span>Subtotal</span>
+                                          <span>$${this.formatPrice(this.customPrice)}</span>
+                                      </div>
+                                      <div class="price-breakdown-row">
+                                          <span>Sale Fee (${this.SALES_FEE_PERCENTAGE * 100}%)</span>
+                                          <span>-$${this.formatPrice(this.getSaleFee(this.customPrice))}</span>
+                                      </div>
+                                      <div class="price-breakdown-row">
+                                          <span>Total Earnings</span>
+                                          <span
+                                              >$${this.formatPrice(
+                                                  this.customPrice - this.getSaleFee(this.customPrice)
+                                              )}</span
+                                          >
                                       </div>
                                   </div>
                               `
-                            : ''}
-                    </div>
-
-                    ${this.error ? html`<div class="error-message">${this.error}</div>` : ''}
-                    ${this.customPrice
-                        ? html`
-                              <div class="price-breakdown">
-                                  <div class="price-breakdown-row">
-                                      <span>Subtotal</span>
-                                      <span>$${this.formatPrice(this.customPrice)}</span>
-                                  </div>
-                                  <div class="price-breakdown-row">
-                                      <span>Sale Fee (${this.SALES_FEE_PERCENTAGE * 100}%)</span>
-                                      <span>-$${this.formatPrice(this.getSaleFee(this.customPrice))}</span>
-                                  </div>
-                                  <div class="price-breakdown-row">
-                                      <span>Total Earnings</span>
-                                      <span
-                                          >$${this.formatPrice(
-                                              this.customPrice - this.getSaleFee(this.customPrice)
-                                          )}</span
-                                      >
-                                  </div>
-                              </div>
-                          `
-                        : ''}
+                            : ''
+                    }
 
                     <button
                         class="base-button primary-button submit-button"
                         ?disabled="${this.isLoading || !this.customPrice}"
                         @click="${this.handleSubmit}"
                     >
-                        ${this.isLoading
-                            ? 'Listing...'
-                            : this.listingType === 'buy_now'
-                            ? 'List for Sale'
-                            : 'Start Auction'}
+                        ${
+                            this.isLoading
+                                ? 'Listing...'
+                                : this.listingType === 'buy_now'
+                                ? 'List for Sale'
+                                : 'Start Auction'
+                        }
                     </button>
                 </div>
-                ${this.showConfirmationModal
-                    ? html`
-                          <div
-                              class="modal-backdrop ${this.isConfirmationClosing ? 'closing' : ''}"
-                              @click="${(e: Event) => {
-                                  if (e.target === e.currentTarget) this.handleConfirmationClose();
-                              }}"
-                          >
+                ${
+                    this.showConfirmationModal
+                        ? html`
                               <div
-                                  class="confirmation-modal-content modal-content ${this.isConfirmationClosing
-                                      ? 'closing'
-                                      : ''}"
+                                  class="modal-backdrop ${this.isConfirmationClosing ? 'closing' : ''}"
+                                  @click="${(e: Event) => {
+                                      if (e.target === e.currentTarget) this.handleConfirmationClose();
+                                  }}"
                               >
-                                  <div class="confirmation-title">Are You Sure?</div>
-                                  <div class="confirmation-buttons">
-                                      <button
-                                          class="base-button confirmation-button primary-button"
-                                          ?disabled="${this.isLoading}"
-                                          @click="${this.confirmListing}"
-                                      >
-                                          ${'Yes'}
-                                      </button>
-                                      <button
-                                          class="base-button confirmation-button danger-button"
-                                          ?disabled="${this.isLoading}"
-                                          @click="${this.handleConfirmationClose}"
-                                      >
-                                          Cancel
-                                      </button>
+                                  <div
+                                      class="confirmation-modal-content modal-content ${this.isConfirmationClosing
+                                          ? 'closing'
+                                          : ''}"
+                                  >
+                                      <div class="confirmation-title">Are You Sure?</div>
+                                      <div class="confirmation-buttons">
+                                          <button
+                                              class="base-button confirmation-button primary-button"
+                                              ?disabled="${this.isLoading}"
+                                              @click="${this.confirmListing}"
+                                          >
+                                              ${'Yes'}
+                                          </button>
+                                          <button
+                                              class="base-button confirmation-button danger-button"
+                                              ?disabled="${this.isLoading}"
+                                              @click="${this.handleConfirmationClose}"
+                                          >
+                                              Cancel
+                                          </button>
+                                      </div>
                                   </div>
                               </div>
-                          </div>
-                      `
-                    : html``}
+                          `
+                        : html``
+                }
+                    `}
+                </div>
             </div>
         `;
     }
