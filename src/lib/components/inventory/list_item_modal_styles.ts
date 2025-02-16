@@ -301,6 +301,7 @@ export const listItemModalStyles = [
             margin-bottom: 24px;
             display: flex;
             gap: 12px;
+            justify-content: space-between;
         }
 
         .type-button {
