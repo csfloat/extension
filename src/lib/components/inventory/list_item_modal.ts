@@ -333,24 +333,6 @@ export class ListItemModal extends FloatElement {
             `;
         }
 
-        if (this.isInitialLoading) {
-            return html`
-                <div class="loading-skeleton">
-                    <div class="skeleton skeleton-text" style="width: 60%"></div>
-                    <div class="listing-type-selector">
-                        <div class="skeleton skeleton-button"></div>
-                        <div class="skeleton skeleton-button"></div>
-                    </div>
-                    <div class="price-section">
-                        <div class="skeleton skeleton-text" style="width: 40%"></div>
-                        <div class="skeleton skeleton-price"></div>
-                        <div class="skeleton skeleton-text" style="width: 80%"></div>
-                    </div>
-                    <div class="skeleton skeleton-button" style="width: 100%"></div>
-                </div>
-            `;
-        }
-
         return html`
             <div
                 class="modal-backdrop ${this.isClosing ? 'closing' : ''}"
@@ -367,6 +349,21 @@ export class ListItemModal extends FloatElement {
                         <button class="close-button" @click="${this.handleClose}">×</button>
                     </div>
 
+                    ${this.isInitialLoading
+                        ? html` <div class="loading-skeleton">
+                              <div class="skeleton skeleton-text" style="width: 100%"></div>
+                              <div class="listing-type-selector">
+                                  <div class="skeleton skeleton-button" style="width: 100%"></div>
+                                  <div class="skeleton skeleton-button" style="width: 100%"></div>
+                              </div>
+                              <div class="price-section">
+                                  <div class="skeleton skeleton-text" style="width: 100%"></div>
+                                  <div class="skeleton skeleton-price" style="width: 100%"></div>
+                                  <div class="skeleton skeleton-text" style="width: 100%"></div>
+                              </div>
+                              <div class="skeleton skeleton-button" style="width: 100%"></div>
+                          </div>`
+                        : html``}
                     ${this.error
                         ? html`<div class="error-container">
                               <div class="error-message">${this.error.message}</div>
@@ -385,7 +382,7 @@ export class ListItemModal extends FloatElement {
                                   : html``}
                           </div>`
                         : html``}
-                    ${this.error?.cta
+                    ${this.error?.cta || this.isInitialLoading
                         ? html``
                         : html`<div class="listing-type-selector">
                                   <button
