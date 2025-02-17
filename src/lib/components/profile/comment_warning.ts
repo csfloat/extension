@@ -53,7 +53,7 @@ export class CommentWarning extends FloatElement {
         const text = this.getRawCommentBoxText();
         const words = new Set(text.toLowerCase().split(' '));
 
-        const hasTriggerWord = ['buy', 'sell', 'bought', 'sold', 'csfloat'].some((e) => words.has(e));
+        const hasTriggerWord = ['buy', 'sell', 'bought', 'sold', 'csfloat', 'float'].some((e) => words.has(e));
         this.show = hasTriggerWord;
     }
 
