@@ -131,6 +131,7 @@ export class ListItemModal extends FloatElement {
         try {
             const response = await ClientSend(FetchRecommendedPrice, {
                 market_hash_name: this.asset.description.market_hash_name,
+                paint_index: this.itemInfo?.paintindex,
             });
 
             this.recommendedPrice = response.price;

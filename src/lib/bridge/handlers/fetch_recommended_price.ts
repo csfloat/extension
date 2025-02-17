@@ -4,6 +4,7 @@ import {gPriceFetcher} from '../../services/price_fetcher';
 
 export interface FetchRecommendedPriceRequest {
     market_hash_name: string;
+    paint_index?: number;
 }
 
 export interface FetchRecommendedPriceResponse {
@@ -12,5 +13,5 @@ export interface FetchRecommendedPriceResponse {
 
 export const FetchRecommendedPrice = new SimpleHandler<FetchRecommendedPriceRequest, FetchRecommendedPriceResponse>(
     RequestType.FETCH_RECOMMENDED_PRICE,
-    async (req) => ({price: await gPriceFetcher.fetch(req.market_hash_name)})
+    async (req) => ({price: await gPriceFetcher.fetch(req.market_hash_name, req.paint_index)})
 );
