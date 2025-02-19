@@ -63,7 +63,11 @@ class PriceFetcher {
             ]);
 
             if (!regularResponse.ok || !dopplerResponse.ok) {
-                throw new Error(`Failed to fetch prices: ${regularResponse.status}, ${dopplerResponse.status}`);
+                console.error(`Failed to fetch prices: ${regularResponse.status}, ${dopplerResponse.status}`);
+                if (regularResponse.status === 401) {
+                    throw new Error('Not authenticated');
+                }
+                throw new Error('Failed to fetch prices');
             }
 
             const regularData = (await regularResponse.json()) as PriceListResponse[];
