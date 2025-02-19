@@ -76,26 +76,29 @@ export class ListItemModal extends FloatElement {
 
         try {
             this.isInitialLoading = true;
-            const isLoggedIn = await isLoggedIntoCSFloat();
-            // Throw error if not logged in
-            if (!isLoggedIn) {
-                throw new Error('Not logged in');
-            }
-        } catch (error) {
-            this.error = {
-                message: 'Please log into CSFloat before listing items',
-                cta: 'Log into CSFloat',
-                ctaHref: 'https://csfloat.com/',
-            };
-        }
 
-        try {
-            await this.fetchRecommendedPrice();
-            if (!this.recommendedPrice) {
-                throw new Error('Could not fetch recommended price');
+            const isLoggedIn = await isLoggedIntoCSFloat();
+            if (!isLoggedIn) {
+                throw new Error('Not authenticated');
             }
+
+            // Will also throw if not logged in
+            await this.fetchRecommendedPrice();
         } catch (error) {
-            console.error('Failed to fetch recommended price:', error);
+            console.error('Failed to initialize listing modal:', error);
+
+            if (error instanceof Error && error.message === 'Not authenticated') {
+                this.error = {
+                    message: 'You must be logged into CSFloat to list items.',
+                    cta: 'Log into CSFloat',
+                    ctaHref: 'https://csfloat.com/',
+                };
+            } else {
+                this.error = {
+                    message: error instanceof Error ? error.message : 'Something went wrong. Please try again later.',
+                    cta: 'Done',
+                };
+            }
         } finally {
             this.isInitialLoading = false;
 
@@ -128,21 +131,13 @@ export class ListItemModal extends FloatElement {
             return;
         }
 
-        try {
-            const response = await ClientSend(FetchRecommendedPrice, {
-                market_hash_name: this.asset.description.market_hash_name,
-                paint_index: this.itemInfo?.paintindex,
-            });
+        const response = await ClientSend(FetchRecommendedPrice, {
+            market_hash_name: this.asset.description.market_hash_name,
+            paint_index: this.itemInfo?.paintindex,
+        });
 
-            this.recommendedPrice = response.price;
-            this.customPrice = this.recommendedPrice;
-        } catch (error: unknown) {
-            this.error = {
-                message: error instanceof Error ? error.message : 'Failed to fetch price. Please try again later.',
-                cta: 'Done',
-            };
-            throw error; // Re-throw to handle in connectedCallback
-        }
+        this.recommendedPrice = response.price;
+        this.customPrice = this.recommendedPrice;
     }
 
     private validatePrice(price: number | undefined): {isValid: boolean; error?: {message: string}} {
