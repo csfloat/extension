@@ -26,18 +26,26 @@ export const listItemModalStyles = [
         @keyframes fadeIn {
             from {
                 opacity: 0;
+                backdrop-filter: blur(0px);
+                -webkit-backdrop-filter: blur(0px);
             }
             to {
                 opacity: 1;
+                backdrop-filter: blur(4px);
+                -webkit-backdrop-filter: blur(4px);
             }
         }
 
         @keyframes fadeOut {
             from {
                 opacity: 1;
+                backdrop-filter: blur(4px);
+                -webkit-backdrop-filter: blur(4px);
             }
             to {
                 opacity: 0;
+                backdrop-filter: blur(0px);
+                -webkit-backdrop-filter: blur(0px);
             }
         }
 
@@ -69,8 +77,6 @@ export const listItemModalStyles = [
 
         .modal-content {
             background: rgba(21, 23, 28, 0.8);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
             padding: 20px;
             width: 500px;
             max-width: 90%;
