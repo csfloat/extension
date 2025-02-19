@@ -42,8 +42,11 @@ export const ListItem = new SimpleHandler<ListItemRequest, ListItemResponse>(Req
     });
 
     if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error || 'Failed to list item');
+        console.error('Failed to list item:', response.status, response.statusText);
+        if (response.status === 401) {
+            throw new Error('Not authenticated');
+        }
+        throw new Error('Failed to list item');
     }
 
     const data = await response.json();
