@@ -85,6 +85,12 @@ export const listItemModalStyles = [
             animation: modalIn 0.2s ease forwards;
         }
 
+        /* Override Steam's default font-family for inputs and buttons */
+        .modal-content input,
+        .modal-content button {
+            font-family: inherit;
+        }
+
         .modal-content.closing {
             animation: modalOut 0.2s ease forwards;
         }
