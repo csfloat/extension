@@ -57,6 +57,7 @@ export async function pingTradeStatus(expectedSteamID?: string) {
                 access_token_steam_id: access?.steam_id,
                 history_error: errors?.history_error,
                 trade_offer_error: errors?.trade_offer_error,
+                blocked_buyers_error: errors?.blocked_buyers_error,
             },
             {}
         );
