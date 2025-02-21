@@ -104,4 +104,6 @@ export interface Trade {
     trade_url: string;
     steam_offer: SteamOffer;
     wait_for_cancel_ping?: boolean;
+    seller_blocked_buyer_at?: string;
+    buyer_blocked_seller_at?: string;
 }

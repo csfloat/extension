@@ -8,6 +8,7 @@ export interface PingExtensionStatusRequest {
     access_token_steam_id?: string | null;
     history_error?: string | null;
     trade_offer_error?: string | null;
+    blocked_buyers_error?: string | null;
 }
 
 export interface PingExtensionStatusResponse {}

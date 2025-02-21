@@ -7,6 +7,7 @@ import {PingExtensionStatus} from '../bridge/handlers/ping_extension_status';
 import {AccessToken, getAccessToken} from './access_token';
 import {gStore} from '../storage/store';
 import {StorageKey} from '../storage/keys';
+import {reportBlockedBuyers} from './blocked_users';
 
 export const PING_CSFLOAT_TRADE_STATUS_ALARM_NAME = 'ping_csfloat_trade_status_alarm';
 
@@ -56,6 +57,7 @@ export async function pingTradeStatus(expectedSteamID?: string) {
                 access_token_steam_id: access?.steam_id,
                 history_error: errors?.history_error,
                 trade_offer_error: errors?.trade_offer_error,
+                blocked_buyers_error: errors?.blocked_buyers_error,
             },
             {}
         );
@@ -67,10 +69,18 @@ export async function pingTradeStatus(expectedSteamID?: string) {
 interface UpdateErrors {
     history_error?: string;
     trade_offer_error?: string;
+    blocked_buyers_error?: string;
 }
 
 async function pingUpdates(pendingTrades: Trade[]): Promise<UpdateErrors> {
     const errors: UpdateErrors = {};
+
+    try {
+        await reportBlockedBuyers(pendingTrades);
+    } catch (e) {
+        console.error('failed to report blocked buyers', e);
+        errors.blocked_buyers_error = (e as any).toString();
+    }
 
     try {
         await cancelUnconfirmedTradeOffers(pendingTrades);
