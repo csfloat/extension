@@ -10,6 +10,7 @@ export enum StorageKey {
     GLOBAL_FILTERS = 'global',
     ACCESS_TOKEN = 'access_token',
     LAST_TRADE_PING_ATTEMPT = 'last_trade_ping_attempt',
+    LAST_TRADE_BLOCKED_PING_ATTEMPT = 'last_trade_blocked_ping_attempt',
 }
 
 export type DynamicStorageKey = string;
