@@ -48,4 +48,8 @@ export const PAGE_SIZE = newRow<number>(StorageKey.PAGE_SIZE);
 // Dynamic prefixes should be the market hash name of the item
 export const DYNAMIC_ITEM_FILTERS = newDynamicRow<SerializedFilter[]>(StorageKey.ITEM_FILTERS);
 export const GLOBAL_FILTERS = newRow<SerializedFilter[]>(StorageKey.GLOBAL_FILTERS);
-export const PRICE_CACHE = newRow<{timestamp: number; prices: Record<string, number>}>(StorageKey.PRICE_CACHE);
+export const PRICE_CACHE = newRow<{
+    lastUpdated: number;
+    prices: Record<string, number>;
+    dopplerPrices?: Record<string, Record<number, number>>;
+}>(StorageKey.PRICE_CACHE);
