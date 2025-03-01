@@ -573,6 +573,7 @@ export const listItemModalStyles = [
             display: flex;
             flex-direction: column;
             gap: 10px;
+            margin-bottom: 10px;
         }
 
         .error-cta {

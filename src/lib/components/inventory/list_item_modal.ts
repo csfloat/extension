@@ -132,11 +132,6 @@ export class ListItemModal extends FloatElement {
 
         // Restore scroll position
         window.scrollTo(0, this.scrollPosition);
-
-        // Reload window if listed
-        if (this.listingId) {
-            window.location.reload();
-        }
     }
 
     async fetchRecommendedPrice() {
@@ -287,9 +282,7 @@ export class ListItemModal extends FloatElement {
         } catch (error) {
             this.error = {
                 message:
-                    error instanceof Error
-                        ? error.message
-                        : 'Failed to list item. Make sure you are logged into CSFloat.',
+                    typeof error === 'string' ? error : 'Failed to list item. Make sure you are logged into CSFloat.',
             };
             console.error(error);
         } finally {
@@ -300,7 +293,9 @@ export class ListItemModal extends FloatElement {
     private async handleClose() {
         this.isClosing = true;
         await new Promise((resolve) => setTimeout(resolve, 200)); // Wait for animation
-        this.dispatchEvent(new CustomEvent('close'));
+        this.dispatchEvent(
+            new CustomEvent('close', {detail: this.listingId ? {listingId: this.listingId} : undefined})
+        );
     }
 
     private async handleConfirmationClose() {
