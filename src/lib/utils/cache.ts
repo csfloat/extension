@@ -4,6 +4,7 @@ export interface ICache<T> {
     getOrThrow(key: string): T;
     has(key: string): boolean;
     size(): number;
+    clear(): void;
 }
 
 /**
@@ -34,6 +35,10 @@ export class Cache<T> implements ICache<T> {
 
     size(): number {
         return Object.keys(this.cache_).length;
+    }
+
+    clear(): void {
+        this.cache_ = {};
     }
 }
 
@@ -92,5 +97,9 @@ export class TTLCache<T> implements ICache<T> {
 
     size(): number {
         return Object.keys(this.cache_).length;
+    }
+
+    clear(): void {
+        this.cache_ = {};
     }
 }

@@ -63,6 +63,7 @@ export class SelectedItemInfo extends FloatElement {
     @state()
     private loading: boolean = false;
 
+    @state()
     private stall: FetchStallResponse | undefined;
 
     @state()
@@ -196,7 +197,7 @@ export class SelectedItemInfo extends FloatElement {
                 ? html`<csfloat-list-item-modal
                       .asset="${this.asset}"
                       .itemInfo="${this.itemInfo}"
-                      @close="${() => (this.showListModal = false)}"
+                      @close="${this.handleModalClose}"
                   ></csfloat-list-item-modal>`
                 : ''}
         `;
@@ -236,17 +237,34 @@ export class SelectedItemInfo extends FloatElement {
             }
         );
 
-        if (g_ActiveInventory?.m_owner?.strSteamId) {
-            // Ignore errors
-            gStallFetcher
-                .fetch({steam_id64: g_ActiveInventory?.m_owner.strSteamId})
-                .then((stall) => (this.stall = stall));
-        }
+        this.refreshStallData();
 
         // Make sure the parent container can overflow
         const parentContainer = this.closest<HTMLElement>('.item_desc_content');
         if (parentContainer) {
             parentContainer.style.overflow = 'visible';
+        }
+    }
+
+    private handleModalClose(e: CustomEvent) {
+        this.showListModal = false;
+
+        // If an item was listed, refresh the stall data
+        if (e.detail?.listingId) {
+            this.refreshStallData();
+        }
+    }
+
+    private refreshStallData() {
+        if (g_ActiveInventory?.m_owner?.strSteamId) {
+            gStallFetcher
+                .fetch({steam_id64: g_ActiveInventory.m_owner.strSteamId}, true)
+                .then((stall) => (this.stall = stall))
+                .catch((error) => {
+                    console.error('Failed to refresh stall data:', error);
+                });
+        } else {
+            console.error('Failed to refresh stall data: No steam ID found');
         }
     }
 }
