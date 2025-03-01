@@ -58,6 +58,8 @@ export class ListItemModal extends FloatElement {
 
     private readonly MAX_PRICE_CENTS = 100000 * 100; // $100,000
 
+    private readonly MIN_PRICE_CENTS = 3; // $0.03
+
     private readonly SALES_FEE_PERCENTAGE = 0.02;
 
     private readonly DURATION_OPTIONS = [
@@ -150,8 +152,11 @@ export class ListItemModal extends FloatElement {
     }
 
     private validatePrice(price: number | undefined): {isValid: boolean; error?: {message: string}} {
-        if (!price || isNaN(price) || price <= 0) {
-            return {isValid: false, error: {message: 'Please enter a valid price greater than $0.00'}};
+        if (!price || isNaN(price) || price < this.MIN_PRICE_CENTS) {
+            return {
+                isValid: false,
+                error: {message: `Please enter a valid price of at least $${(this.MIN_PRICE_CENTS / 100).toFixed(2)}`},
+            };
         }
 
         if (price > this.MAX_PRICE_CENTS) {
@@ -209,12 +214,23 @@ export class ListItemModal extends FloatElement {
 
         // Convert to cents for storage
         const dollars = parseFloat(value || '0');
-        if (dollars * 100 > this.MAX_PRICE_CENTS) {
+        const cents = Math.ceil(dollars * 100);
+
+        // Validate the price
+        if (cents < this.MIN_PRICE_CENTS) {
+            this.error = {
+                message: `Please enter a valid price of at least $${(this.MIN_PRICE_CENTS / 100).toFixed(2)}`,
+            };
+            this.customPrice = undefined;
+        } else if (cents > this.MAX_PRICE_CENTS) {
+            this.error = {
+                message: 'Price cannot exceed $100,000 USD',
+            };
             input.value = (this.MAX_PRICE_CENTS / 100).toString();
-            this.updatePrice(this.MAX_PRICE_CENTS);
+            this.customPrice = this.MAX_PRICE_CENTS;
         } else {
-            const cents = Math.ceil(dollars * 100);
-            this.updatePrice(Math.max(1, cents));
+            this.error = undefined;
+            this.customPrice = cents;
         }
     }
 
@@ -232,7 +248,22 @@ export class ListItemModal extends FloatElement {
         if (this.recommendedPrice) {
             const exactPrice = (value / 100) * this.recommendedPrice;
             const newPrice = Math.ceil(exactPrice);
-            this.updatePrice(newPrice);
+
+            // Validate the price
+            if (newPrice < this.MIN_PRICE_CENTS) {
+                this.error = {
+                    message: `Please enter a valid price of at least $${(this.MIN_PRICE_CENTS / 100).toFixed(2)}`,
+                };
+                this.customPrice = undefined;
+            } else if (newPrice > this.MAX_PRICE_CENTS) {
+                this.error = {
+                    message: 'Price cannot exceed $100,000 USD',
+                };
+                this.customPrice = this.MAX_PRICE_CENTS;
+            } else {
+                this.error = undefined;
+                this.customPrice = newPrice;
+            }
         }
     }
 
