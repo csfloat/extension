@@ -54,6 +54,8 @@ export class ListItemModal extends FloatElement {
     @state()
     private isConfirmationClosing: boolean = false;
 
+    private scrollPosition: number = 0;
+
     private readonly MAX_PRICE_CENTS = 100000 * 100; // $100,000
 
     private readonly SALES_FEE_PERCENTAGE = 0.02;
@@ -70,9 +72,15 @@ export class ListItemModal extends FloatElement {
     async connectedCallback() {
         super.connectedCallback();
 
-        // Prevent background scrolling
+        // Store the current scroll position
+        this.scrollPosition = window.scrollY;
+
+        // Force scrollbar to always be visible but prevent scrolling
+        document.documentElement.style.overflowY = 'scroll';
         document.body.style.overflow = 'hidden';
-        document.body.style.paddingRight = 'var(--scrollbar-width)';
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${this.scrollPosition}px`;
+        document.body.style.width = '100%';
 
         try {
             this.isInitialLoading = true;
@@ -115,9 +123,15 @@ export class ListItemModal extends FloatElement {
     disconnectedCallback() {
         super.disconnectedCallback();
 
-        // Restore background scrolling
+        // Restore normal scrolling and scroll position
+        document.documentElement.style.overflowY = '';
         document.body.style.overflow = '';
-        document.body.style.paddingRight = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+
+        // Restore scroll position
+        window.scrollTo(0, this.scrollPosition);
 
         // Reload window if listed
         if (this.listingId) {
