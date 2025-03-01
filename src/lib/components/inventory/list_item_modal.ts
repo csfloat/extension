@@ -146,7 +146,7 @@ export class ListItemModal extends FloatElement {
         });
 
         this.recommendedPrice = response.price;
-        this.customPrice = this.recommendedPrice;
+        this.customPrice ??= this.recommendedPrice;
     }
 
     private validatePrice(price: number | undefined): {isValid: boolean; error?: {message: string}} {
