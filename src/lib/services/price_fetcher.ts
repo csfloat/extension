@@ -16,24 +16,24 @@ interface DopplerPriceListResponse {
 }
 
 interface PriceCache {
-    timestamp: number;
+    lastUpdated: number;
     prices: Record<string, number>;
     dopplerPrices: Record<string, Record<number, number>>;
 }
 
 class PriceFetcher {
-    async fetch(market_hash_name: string, paintIndex?: number): Promise<number> {
+    async fetch(marketHashName: string, paintIndex?: number): Promise<number> {
         const {prices, dopplerPrices} = await this.getValidPrices();
 
         // If it's a Doppler and we have a paint index, use the Doppler price
         if (paintIndex !== undefined) {
-            const dopplerPrice = dopplerPrices[market_hash_name]?.[paintIndex];
+            const dopplerPrice = dopplerPrices[marketHashName]?.[paintIndex];
             if (dopplerPrice) {
                 return dopplerPrice;
             }
         }
 
-        return prices[market_hash_name] || 0;
+        return prices[marketHashName] || 0;
     }
 
     private async getValidPrices(): Promise<{
@@ -44,7 +44,7 @@ class PriceFetcher {
 
         // Try loading from storage first
         const storedCache = await gStore.getWithStorage<PriceCache>(chrome.storage.local, PRICE_CACHE.key);
-        if (storedCache && now - storedCache.timestamp < DEFAULT_CACHE_DURATION) {
+        if (storedCache && now - storedCache.lastUpdated < DEFAULT_CACHE_DURATION) {
             return {
                 prices: storedCache.prices,
                 dopplerPrices: storedCache.dopplerPrices || {},
@@ -89,17 +89,22 @@ class PriceFetcher {
             }
 
             await gStore.setWithStorage(chrome.storage.local, PRICE_CACHE.key, {
-                timestamp: now,
+                lastUpdated: now,
                 prices,
                 dopplerPrices,
             });
 
             return {prices, dopplerPrices};
         } catch (error) {
-            // On error, return existing cache regardless of age, or empty objects if no cache exists
+            // If we have no stored cache, bubble up the error
+            if (!storedCache) {
+                throw new Error('Failed to fetch prices and no cached data available');
+            }
+
+            // On error with existing cache, return existing cache regardless of age
             return {
-                prices: storedCache?.prices || {},
-                dopplerPrices: storedCache?.dopplerPrices || {},
+                prices: storedCache.prices || {},
+                dopplerPrices: storedCache.dopplerPrices || {},
             };
         }
     }

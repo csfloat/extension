@@ -92,6 +92,7 @@ export const listItemModalStyles = [
 
         .modal-content {
             background: rgba(21, 23, 28, 0.8);
+            backdrop-filter: blur(16px);
             padding: 20px;
             width: 500px;
             max-width: 90%;
