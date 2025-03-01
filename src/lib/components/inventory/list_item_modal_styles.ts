@@ -4,8 +4,23 @@ import {FloatElement} from '../custom';
 export const listItemModalStyles = [
     ...FloatElement.styles,
     css`
-        :host {
-            --scrollbar-width: ${window.innerWidth - document.documentElement.clientWidth}px;
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 14px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(21, 23, 28, 0.8);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(193, 206, 255, 0.2);
+            border-radius: 7px;
+            border: 3px solid rgba(21, 23, 28, 0.8);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(193, 206, 255, 0.3);
         }
 
         .modal-backdrop {
