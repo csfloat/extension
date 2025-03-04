@@ -441,7 +441,7 @@ export class ListItemModal extends FloatElement {
 
                               <div class="price-section">
                                   <label>
-                                      Recommended Price:
+                                      Recommended Price in USD:
                                       ${this.recommendedPrice ? `$${(this.recommendedPrice / 100).toFixed(2)}` : 'N/A'}
                                   </label>
                                   <div class="price-input-container">
