@@ -148,6 +148,21 @@ function isAbstractType(asset: rgAsset, type: string, internalName: string): boo
     return asset.tags.some((e) => e.category === 'Type' && e.internal_name === internalName);
 }
 
+/**
+ * Checks if the item is a skins that supports bluegem data
+ * I.e. Case Hardened or Heat Treated, not gloves
+ * @param itemInfo item info
+ * @returns true if the item is a blue skin, false otherwise
+ */
+export function isBlueSkin(itemInfo: ItemInfo): boolean {
+    return (
+        itemInfo.item_name !== undefined &&
+        itemInfo.weapon_type !== undefined &&
+        ['Case Hardened', 'Heat Treated'].includes(itemInfo.item_name) &&
+        !itemInfo.weapon_type.includes('Gloves')
+    );
+}
+
 export function getFadeCalculatorAndSupportedWeapon(
     asset: rgAsset
 ): [typeof FadeCalculator | typeof AcidFadeCalculator | typeof AmberFadeCalculator, string] | undefined {

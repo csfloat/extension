@@ -25,4 +25,5 @@ export enum RequestType {
     FETCH_STEAM_TRADES = 23,
     FETCH_BLOCKED_USERS = 24,
     PING_BLOCKED_USERS = 25,
+    FETCH_BLUEGEM = 26,
 }

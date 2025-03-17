@@ -13,12 +13,15 @@ import {
     floor,
     isCharm,
     isSellableOnCSFloat,
+    isBlueSkin,
 } from '../../utils/skin';
 import {Observe} from '../../utils/observers';
 import {FetchStallResponse} from '../../bridge/handlers/fetch_stall';
 import {gStallFetcher} from '../../services/stall_fetcher';
 import {Contract} from '../../types/float_market';
 import '../common/ui/floatbar';
+import {ClientSend} from '../../bridge/client';
+import {BluegemPatternData, FetchBluegem} from '../../bridge/handlers/fetch_bluegem';
 
 /**
  * Why do we bind to iteminfo0 AND iteminfo1?
@@ -63,6 +66,8 @@ export class SelectedItemInfo extends FloatElement {
     private loading: boolean = false;
 
     private stall: FetchStallResponse | undefined;
+
+    private bluegemData: BluegemPatternData | undefined;
 
     get asset(): InventoryAsset | undefined {
         return g_ActiveInventory?.selectedItem;
@@ -109,9 +114,15 @@ export class SelectedItemInfo extends FloatElement {
 
             containerChildren.push(html`<div>Paint Seed: ${formatSeed(this.itemInfo)}</div>`);
 
+            // Fade skins
             const fadePercentage = getFadePercentage(this.asset.description, this.itemInfo);
             if (fadePercentage !== undefined) {
                 containerChildren.push(html`<div>Fade: ${floor(fadePercentage, 5)}%</div>`);
+            }
+
+            // All case hardened and heat treated skins except gloves
+            if (isBlueSkin(this.itemInfo)) {
+                containerChildren.push(this.renderBluegem());
             }
         } else if (isCharm(this.asset.description) && this.itemInfo) {
             containerChildren.push(
@@ -145,6 +156,22 @@ export class SelectedItemInfo extends FloatElement {
             >
             </csfloat-float-bar>
         `;
+    }
+
+    renderBluegem(): TemplateResult<1> {
+        if (!this.itemInfo || !this.bluegemData) {
+            return html``;
+        }
+
+        // Some skins got only one blue value
+        if (this.bluegemData.backside_blue === undefined) {
+            return html`<div>Blue: ${this.bluegemData.playside_blue}%</div>`;
+        }
+
+        const placement = this.itemInfo.weapon_type === 'AK-47' ? 'Top / Magazine' : 'Front / Back';
+        return html`<div>
+            Blue (${placement}): ${this.bluegemData.playside_blue}% / ${this.bluegemData.backside_blue}%
+        </div>`;
     }
 
     renderFloatMarketListing(): TemplateResult<1> {
@@ -202,6 +229,21 @@ export class SelectedItemInfo extends FloatElement {
                 });
             } catch (e: any) {
                 console.error(`Failed to fetch float for ${this.asset.assetid}: ${e.toString()}`);
+            }
+
+            // Fetch bluegem data if needed
+            if (this.itemInfo && isBlueSkin(this.itemInfo)) {
+                try {
+                    const bluegemResponse = await ClientSend(FetchBluegem, {
+                        type: this.itemInfo.weapon_type!.replace(' ', '_'),
+                        paintseed: this.itemInfo.paintseed,
+                    });
+                    if (bluegemResponse) {
+                        this.bluegemData = bluegemResponse;
+                    }
+                } catch (e: any) {
+                    console.error(`Failed to fetch bluegem for ${this.asset.assetid}: ${e.toString()}`);
+                }
             }
         }
         this.loading = false;
