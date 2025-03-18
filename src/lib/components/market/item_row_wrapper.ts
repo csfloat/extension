@@ -146,7 +146,10 @@ export class ItemRowWrapper extends FloatElement {
                 }
             } catch (e: any) {
                 console.error(`Failed to fetch bluegem for ${this.asset.id}: ${e.toString()}`);
+                this.bluegemData = undefined;
             }
+        } else {
+            this.bluegemData = undefined;
         }
 
         if (

@@ -242,7 +242,10 @@ export class SelectedItemInfo extends FloatElement {
                     }
                 } catch (e: any) {
                     console.error(`Failed to fetch bluegem for ${this.asset.assetid}: ${e.toString()}`);
+                    this.bluegemData = undefined;
                 }
+            } else {
+                this.bluegemData = undefined;
             }
         }
         this.loading = false;
