@@ -1,3 +1,4 @@
+import {ItemInfo} from './fetch_inspect_info';
 import {SimpleHandler} from './main';
 import {RequestType} from './types';
 
@@ -15,8 +16,7 @@ export interface BluegemPatternData {
 }
 
 export interface FetchBluegemRequest {
-    type: string;
-    paintseed: number;
+    iteminfo: ItemInfo;
 }
 
 const bluegemCache: Record<string, Record<number, BluegemPatternData | undefined>> = {};
@@ -24,6 +24,10 @@ const bluegemCache: Record<string, Record<number, BluegemPatternData | undefined
 export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, BluegemPatternData | undefined>(
     RequestType.FETCH_BLUEGEM,
     async (req) => {
+        if (!req.iteminfo.weapon_type) {
+            return undefined;
+        }
+
         if (Object.keys(bluegemCache).length === 0) {
             const url = chrome.runtime.getURL(`data/bluegem.json`);
             try {
@@ -39,6 +43,8 @@ export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, BluegemPatter
             }
         }
 
-        return bluegemCache[req.type]?.[req.paintseed];
+        const type = req.iteminfo.weapon_type.replace(' ', '_');
+        const paintseed = req.iteminfo.paintseed;
+        return bluegemCache[type]?.[paintseed];
     }
 );

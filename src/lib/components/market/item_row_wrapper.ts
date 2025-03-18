@@ -139,8 +139,7 @@ export class ItemRowWrapper extends FloatElement {
         if (this.itemInfo && this.asset && isBlueSkin(this.itemInfo)) {
             try {
                 const bluegemResponse = await ClientSend(FetchBluegem, {
-                    type: this.itemInfo.weapon_type!.replace(' ', '_'),
-                    paintseed: this.itemInfo.paintseed,
+                    iteminfo: this.itemInfo,
                 });
                 if (bluegemResponse) {
                     this.bluegemData = bluegemResponse;

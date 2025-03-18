@@ -235,8 +235,7 @@ export class SelectedItemInfo extends FloatElement {
             if (this.itemInfo && isBlueSkin(this.itemInfo)) {
                 try {
                     const bluegemResponse = await ClientSend(FetchBluegem, {
-                        type: this.itemInfo.weapon_type!.replace(' ', '_'),
-                        paintseed: this.itemInfo.paintseed,
+                        iteminfo: this.itemInfo,
                     });
                     if (bluegemResponse) {
                         this.bluegemData = bluegemResponse;
