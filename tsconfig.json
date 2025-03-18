@@ -13,5 +13,5 @@
         "useDefineForClassFields": false,
         "moduleResolution": "Node"
     },
-    "exclude": ["dist/", "scripts/"]
+    "exclude": ["dist/", "tools/"]
 }

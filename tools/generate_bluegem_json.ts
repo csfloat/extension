@@ -4,10 +4,8 @@
 
 /**
  * This script generates a JSON file containing the bluegem pattern data for each item.
- * It fetches the data from the bluegem.app API and writes it to a file in the dist/data directory.
+ * It fetches the data from the bluegem.app API and writes it to a file in the /data directory.
  * To run this script, install deno and run:
- * `deno run --allow-net --allow-write --allow-read scripts/generateBluegemJson.ts`
- * or
  * `npm run generate_bluegem`
  */
 

@@ -18,7 +18,7 @@
         "lint": "eslint --ignore-path .lintignore --ext .js,.ts .",
         "format": "prettier --ignore-path .lintignore --write \"**/*.+(js|ts|json)\"",
         "checkformat": "prettier --ignore-path .lintignore --check \"**/*.+(js|ts|json)\"",
-        "generate_bluegem": "deno run --allow-net --allow-write --allow-read scripts/generateBluegemJson.ts"
+        "generate_bluegem": "deno run --allow-net --allow-write --allow-read tools/generateBluegemJson.ts"
     },
     "author": "step7750",
     "license": "MIT",
