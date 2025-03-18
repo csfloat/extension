@@ -157,24 +157,16 @@ export abstract class ItemHolderMetadata extends FloatElement {
 
             if (isBlueSkin(this.itemInfo)) {
                 try {
-                    await this.annotateBluegem(this.itemInfo);
+                    this.bluegemData = await ClientSend(FetchBluegem, {
+                        iteminfo: this.itemInfo,
+                    });
                 } catch (e: any) {
                     console.error(`Failed to fetch bluegem for ${this.assetId}: ${e.toString()}`);
+                    this.bluegemData = undefined;
                 }
+            } else {
+                this.bluegemData = undefined;
             }
-        }
-    }
-
-    /**
-     * Initialises `bluegemData` with the bluegem data for the item
-     * @param info - The item info
-     */
-    async annotateBluegem(info: ItemInfo): Promise<void> {
-        const bluegemResponse = await ClientSend(FetchBluegem, {
-            iteminfo: info,
-        });
-        if (bluegemResponse) {
-            this.bluegemData = bluegemResponse;
         }
     }
 

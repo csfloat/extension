@@ -234,12 +234,9 @@ export class SelectedItemInfo extends FloatElement {
             // Fetch bluegem data if needed
             if (this.itemInfo && isBlueSkin(this.itemInfo)) {
                 try {
-                    const bluegemResponse = await ClientSend(FetchBluegem, {
+                    this.bluegemData = await ClientSend(FetchBluegem, {
                         iteminfo: this.itemInfo,
                     });
-                    if (bluegemResponse) {
-                        this.bluegemData = bluegemResponse;
-                    }
                 } catch (e: any) {
                     console.error(`Failed to fetch bluegem for ${this.asset.assetid}: ${e.toString()}`);
                     this.bluegemData = undefined;
