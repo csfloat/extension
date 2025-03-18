@@ -165,7 +165,11 @@ export abstract class ItemHolderMetadata extends FloatElement {
         }
     }
 
-    async annotateBluegem(info: ItemInfo) {
+    /**
+     * Initialises `bluegemData` with the bluegem data for the item
+     * @param info - The item info
+     */
+    async annotateBluegem(info: ItemInfo): Promise<void> {
         const bluegemResponse = await ClientSend(FetchBluegem, {
             type: info.weapon_type!.replace(' ', '_'),
             paintseed: info.paintseed,
