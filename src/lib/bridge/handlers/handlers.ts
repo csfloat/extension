@@ -26,6 +26,7 @@ import {CancelTradeOffer} from './cancel_trade_offer';
 import {FetchSteamTrades} from './fetch_steam_trades';
 import {FetchBlockedUsers} from './fetch_blocked_users';
 import {PingBlockedUsers} from './ping_blocked_users';
+import {FetchBluegem} from './fetch_bluegem';
 
 export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.EXECUTE_SCRIPT_ON_PAGE]: ExecuteScriptOnPage,
@@ -54,4 +55,5 @@ export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.FETCH_STEAM_TRADES]: FetchSteamTrades,
     [RequestType.FETCH_BLOCKED_USERS]: FetchBlockedUsers,
     [RequestType.PING_BLOCKED_USERS]: PingBlockedUsers,
+    [RequestType.FETCH_BLUEGEM]: FetchBluegem,
 };

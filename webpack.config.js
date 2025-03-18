@@ -98,6 +98,7 @@ module.exports = (env) => {
             new CopyPlugin({
                 patterns: [
                     {from: 'icons', to: 'icons', context: '.'},
+                    {from: 'data', to: 'data', context: '.'},
                     {from: 'src/global.css', to: 'src/', context: '.'},
                     {from: 'src/background_ff.html', to: 'src/', context: '.'},
                     {from: 'src/steamcommunity_ruleset.json', to: 'src/', context: '.'},

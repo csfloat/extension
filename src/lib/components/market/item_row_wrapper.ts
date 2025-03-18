@@ -8,12 +8,14 @@ import {rgAsset, ListingData} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {getMarketInspectLink, inlineEasyInspect, inlineStickersAndKeychains} from './helpers';
-import {formatSeed, getFadePercentage, isSkin, renderClickableRank, floor, isCharm} from '../../utils/skin';
+import {formatSeed, getFadePercentage, isSkin, renderClickableRank, floor, isCharm, isBlueSkin} from '../../utils/skin';
 import {gFilterService} from '../../services/filter';
 import {AppId, ContextId, Currency} from '../../types/steam_constants';
 import {defined} from '../../utils/checkers';
 import {pickTextColour} from '../../utils/colours';
 import '../common/ui/floatbar';
+import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
+import {ClientSend} from '../../bridge/client';
 
 @CustomElement()
 @InjectAppend('#searchResultsRows .market_listing_row .market_listing_item_name_block', InjectionMode.CONTINUOUS)
@@ -95,6 +97,9 @@ export class ItemRowWrapper extends FloatElement {
     @state()
     private error: string | undefined;
 
+    @state()
+    private bluegemData: FetchBluegemResponse | undefined;
+
     async connectedCallback() {
         super.connectedCallback();
 
@@ -128,6 +133,20 @@ export class ItemRowWrapper extends FloatElement {
                 const textColour = colour ? pickTextColour(colour, '#8F98A0', '#484848') : '';
                 $J(this).css('color', textColour);
             });
+        }
+
+        // Fetch bluegem data if needed
+        if (this.itemInfo && this.asset && isBlueSkin(this.itemInfo)) {
+            try {
+                this.bluegemData = await ClientSend(FetchBluegem, {
+                    iteminfo: this.itemInfo,
+                });
+            } catch (e: any) {
+                console.error(`Failed to fetch bluegem for ${this.asset.id}: ${e.toString()}`);
+                this.bluegemData = undefined;
+            }
+        } else {
+            this.bluegemData = undefined;
         }
 
         if (
@@ -176,6 +195,7 @@ export class ItemRowWrapper extends FloatElement {
                         ? html`<br />
                               Fade: ${floor(fadePercentage, 5)}%`
                         : nothing}
+                    ${this.renderBluegem()}
                 </div>
             `;
         } else if (this.itemInfo && isCharm(this.asset)) {
@@ -189,6 +209,22 @@ export class ItemRowWrapper extends FloatElement {
         } else {
             return html`<div>Loading...</div>`;
         }
+    }
+
+    renderBluegem(): TemplateResult<1> {
+        if (!this.itemInfo || !this.bluegemData) {
+            return html``;
+        }
+
+        // Some skins got only one blue value
+        if (this.bluegemData.backside_blue === undefined) {
+            return html`<div>Blue: ${this.bluegemData.playside_blue}%</div>`;
+        }
+
+        return html`<div>
+            Blue (${this.bluegemData.placement}): ${this.bluegemData.playside_blue}% /
+            ${this.bluegemData.backside_blue}%
+        </div>`;
     }
 
     renderFloatBar(): TemplateResult<1> {

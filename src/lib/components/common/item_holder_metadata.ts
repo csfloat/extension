@@ -4,10 +4,12 @@ import {state} from 'lit/decorators.js';
 import {rgAsset} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
-import {formatFloatWithRank, formatSeed, getFadePercentage, getLowestRank, isCharm} from '../../utils/skin';
+import {formatFloatWithRank, formatSeed, getFadePercentage, getLowestRank, isBlueSkin, isCharm} from '../../utils/skin';
 import {isSkin, floor} from '../../utils/skin';
 import {getRankColour} from '../../utils/ranks';
 import {Observe} from '../../utils/observers';
+import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
+import {ClientSend} from '../../bridge/client';
 
 // Generic annotator of item holder metadata (float, seed, etc...)
 // Must be extended to use as a component
@@ -32,6 +34,7 @@ export abstract class ItemHolderMetadata extends FloatElement {
             .fade {
                 background: -webkit-linear-gradient(0deg, #d9bba5 0%, #e5903b 33%, #db5977 66%, #6775e1 100%);
                 -webkit-background-clip: text;
+                background-clip: text;
                 -webkit-text-fill-color: transparent;
             }
 
@@ -39,11 +42,18 @@ export abstract class ItemHolderMetadata extends FloatElement {
                 font-weight: 1000;
                 -webkit-text-stroke: 1px black;
             }
+
+            .bluegem {
+                color: deepskyblue;
+            }
         `,
     ];
 
     @state()
     private itemInfo: ItemInfo | undefined;
+
+    @state()
+    private bluegemData: FetchBluegemResponse | undefined;
 
     get assetId(): string | undefined {
         return $J(this).parent().attr('id')?.split('_')[2];
@@ -81,14 +91,17 @@ export abstract class ItemHolderMetadata extends FloatElement {
             return html`
                 <span>
                     <span class="float">${formatFloatWithRank(this.itemInfo, 6)}</span>
-                    <span class="seed"
-                        >${formatSeed(this.itemInfo)}
+                    <span class="seed">
+                        ${formatSeed(this.itemInfo)}
                         ${fadePercentage !== undefined
                             ? html`<span class="fade ${rank && rank <= 5 ? 'csfloat-shine-fade-text' : ''}"
                                   >(${floor(fadePercentage, 1)}%)</span
                               >`
-                            : nothing}</span
-                    >
+                            : nothing}
+                        ${this.bluegemData
+                            ? html`<span class="bluegem">(${floor(this.bluegemData.playside_blue, 1)}%)</span>`
+                            : nothing}
+                    </span>
                 </span>
             `;
         } else if (isCharm(this.asset)) {
@@ -141,6 +154,19 @@ export abstract class ItemHolderMetadata extends FloatElement {
 
         if (this.itemInfo) {
             this.annotateRankShine(this.itemInfo);
+
+            if (isBlueSkin(this.itemInfo)) {
+                try {
+                    this.bluegemData = await ClientSend(FetchBluegem, {
+                        iteminfo: this.itemInfo,
+                    });
+                } catch (e: any) {
+                    console.error(`Failed to fetch bluegem for ${this.assetId}: ${e.toString()}`);
+                    this.bluegemData = undefined;
+                }
+            } else {
+                this.bluegemData = undefined;
+            }
         }
     }
 
