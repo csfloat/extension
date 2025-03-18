@@ -14,7 +14,7 @@ import {AppId, ContextId, Currency} from '../../types/steam_constants';
 import {defined} from '../../utils/checkers';
 import {pickTextColour} from '../../utils/colours';
 import '../common/ui/floatbar';
-import {BluegemPatternData, FetchBluegem} from '../../bridge/handlers/fetch_bluegem';
+import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
 import {ClientSend} from '../../bridge/client';
 
 @CustomElement()
@@ -98,7 +98,7 @@ export class ItemRowWrapper extends FloatElement {
     private error: string | undefined;
 
     @state()
-    private bluegemData: BluegemPatternData | undefined;
+    private bluegemData: FetchBluegemResponse | undefined;
 
     async connectedCallback() {
         super.connectedCallback();
@@ -221,9 +221,9 @@ export class ItemRowWrapper extends FloatElement {
             return html`<div>Blue: ${this.bluegemData.playside_blue}%</div>`;
         }
 
-        const placement = this.itemInfo.weapon_type === 'AK-47' ? 'Top / Magazine' : 'Front / Back';
         return html`<div>
-            Blue (${placement}): ${this.bluegemData.playside_blue}% / ${this.bluegemData.backside_blue}%
+            Blue (${this.bluegemData.placement}): ${this.bluegemData.playside_blue}% /
+            ${this.bluegemData.backside_blue}%
         </div>`;
     }
 

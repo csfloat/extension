@@ -8,7 +8,7 @@ import {formatFloatWithRank, formatSeed, getFadePercentage, getLowestRank, isBlu
 import {isSkin, floor} from '../../utils/skin';
 import {getRankColour} from '../../utils/ranks';
 import {Observe} from '../../utils/observers';
-import {BluegemPatternData, FetchBluegem} from '../../bridge/handlers/fetch_bluegem';
+import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
 import {ClientSend} from '../../bridge/client';
 
 // Generic annotator of item holder metadata (float, seed, etc...)
@@ -53,7 +53,7 @@ export abstract class ItemHolderMetadata extends FloatElement {
     private itemInfo: ItemInfo | undefined;
 
     @state()
-    private bluegemData: BluegemPatternData | undefined;
+    private bluegemData: FetchBluegemResponse | undefined;
 
     get assetId(): string | undefined {
         return $J(this).parent().attr('id')?.split('_')[2];

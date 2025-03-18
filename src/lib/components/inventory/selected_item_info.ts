@@ -21,7 +21,7 @@ import {gStallFetcher} from '../../services/stall_fetcher';
 import {Contract} from '../../types/float_market';
 import '../common/ui/floatbar';
 import {ClientSend} from '../../bridge/client';
-import {BluegemPatternData, FetchBluegem} from '../../bridge/handlers/fetch_bluegem';
+import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
 
 /**
  * Why do we bind to iteminfo0 AND iteminfo1?
@@ -67,7 +67,7 @@ export class SelectedItemInfo extends FloatElement {
 
     private stall: FetchStallResponse | undefined;
 
-    private bluegemData: BluegemPatternData | undefined;
+    private bluegemData: FetchBluegemResponse | undefined;
 
     get asset(): InventoryAsset | undefined {
         return g_ActiveInventory?.selectedItem;
@@ -168,9 +168,9 @@ export class SelectedItemInfo extends FloatElement {
             return html`<div>Blue: ${this.bluegemData.playside_blue}%</div>`;
         }
 
-        const placement = this.itemInfo.weapon_type === 'AK-47' ? 'Top / Magazine' : 'Front / Back';
         return html`<div>
-            Blue (${placement}): ${this.bluegemData.playside_blue}% / ${this.bluegemData.backside_blue}%
+            Blue (${this.bluegemData.placement}): ${this.bluegemData.playside_blue}% /
+            ${this.bluegemData.backside_blue}%
         </div>`;
     }
 

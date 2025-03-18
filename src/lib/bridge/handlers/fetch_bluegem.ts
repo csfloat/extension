@@ -2,7 +2,7 @@ import {ItemInfo} from './fetch_inspect_info';
 import {SimpleHandler} from './main';
 import {RequestType} from './types';
 
-export interface BluegemPatternData {
+interface BluegemPatternData {
     playside_blue: number;
     playside_purple?: number;
     playside_gold?: number;
@@ -19,12 +19,15 @@ export interface FetchBluegemRequest {
     iteminfo: ItemInfo;
 }
 
+export type FetchBluegemResponse = BluegemPatternData & {placement: string};
+
 const bluegemCache: Record<string, Record<number, BluegemPatternData | undefined>> = {};
 
-export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, BluegemPatternData | undefined>(
+export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, FetchBluegemResponse | undefined>(
     RequestType.FETCH_BLUEGEM,
     async (req) => {
-        if (!req.iteminfo.weapon_type) {
+        const itemInfo = req.iteminfo;
+        if (!itemInfo.weapon_type) {
             return undefined;
         }
 
@@ -43,8 +46,20 @@ export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, BluegemPatter
             }
         }
 
-        const type = req.iteminfo.weapon_type.replace(' ', '_');
-        const paintseed = req.iteminfo.paintseed;
-        return bluegemCache[type]?.[paintseed];
+        const type = itemInfo.weapon_type.replace(' ', '_');
+        const paintseed = itemInfo.paintseed;
+
+        // Be careful to check if the type exists
+        const patternData = bluegemCache[type]?.[paintseed];
+        if (!patternData) {
+            return undefined;
+        }
+
+        const placement = itemInfo.weapon_type === 'AK-47' ? 'Top / Magazine' : 'Front / Back';
+
+        return {
+            placement,
+            ...patternData,
+        };
     }
 );
