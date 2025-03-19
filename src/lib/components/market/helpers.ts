@@ -1,6 +1,8 @@
 import {rgAsset, rgInternalDescription} from '../../types/steam';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {AppId, ContextId} from '../../types/steam_constants';
+import {tooltipStyles} from '../common/ui/tooltip';
+import {css} from 'lit';
 
 /**
  * If possible, constructs the inspect link from the given listing ID using page variables
@@ -59,17 +61,24 @@ function generateAppliedInlineHTML(
     const names = nameMatch[2].split(', ');
 
     return imagesHtml.map((imageHtml, i) => {
+        // convert the title to alt to avoid double tooltips
+        const strippedImage = imageHtml.replace('title="', 'alt="');
         const url =
             parsedType === type
                 ? `https://steamcommunity.com/market/listings/730/${parsedType} | ${names[i]}`
                 : `https://steamcommunity.com/market/search?q=${parsedType} | ${names[i]}`;
+        const tooltipText = `${parsedType} | ${names[i]}`;
 
-        return `<span style="display: inline-block; text-align: center;">
-                    <a target="_blank" href="${url}">${imagesHtml[i]}</a>
+        return `
+            <div class="hint--top hint--rounded hint--no-arrow" aria-label="${tooltipText}">
+                <span style="display: inline-block; text-align: center;">
+                    <a target="_blank" href="${url}">${strippedImage}</a>
                     <span style="display: block;">
                         ${textFormatFn(i)}
                     </span>
-                </span>`;
+                </span>
+            </div>
+        `;
     });
 }
 
@@ -129,6 +138,31 @@ export function inlineStickersAndKeychains(itemNameBlock: JQuery<Element>, itemI
             ${blobs.reduce((acc, v) => acc + v, '')}
         </div>
     `);
+
+    // Apply tooltip styles if not already present
+    if (!$J('#csfloat-tooltip-styles').length) {
+        const stickerStyles = [
+            ...tooltipStyles,
+            css`
+                /* Sticker hover scale effect */
+                .csfloat-stickers-container a img {
+                    transition: transform 0.2s ease;
+                }
+                .csfloat-stickers-container a:hover img {
+                    transform: scale(1.25);
+                    z-index: 1000;
+                    position: relative;
+                }
+            `,
+        ];
+        const styleString = stickerStyles.map((style) => style.toString()).join('\n');
+        const styleElement = document.createElement('style');
+        styleElement.id = 'csfloat-tooltip-styles';
+        styleElement.textContent = styleString;
+
+        // Append to the super container once
+        $J('#searchResultsRows').append(styleElement);
+    }
 
     // Add Steam's item popover on-hover
     CreateItemHoverFromContainer(g_rgAssets, elementId, asset.appid, asset.contextid, asset.id, asset.amount);
