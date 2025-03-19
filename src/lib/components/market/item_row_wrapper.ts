@@ -16,6 +16,7 @@ import {pickTextColour} from '../../utils/colours';
 import '../common/ui/floatbar';
 import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
 import {ClientSend} from '../../bridge/client';
+import {waitForTrue} from '../../utils/observers';
 
 @CustomElement()
 @InjectAppend('#searchResultsRows .market_listing_row .market_listing_item_name_block', InjectionMode.CONTINUOUS)
@@ -160,12 +161,14 @@ export class ItemRowWrapper extends FloatElement {
             MarketCheckHash();
         }
 
-        // Make sure the parent containers can overflow
+        // Make sure the parent containers can overflow for tooltips
         const parentContainer = $J(this).parent();
         if (parentContainer) {
             parentContainer.css('overflow', 'visible');
             parentContainer.parent().css('overflow', 'visible');
         }
+
+        this.cleanupOverlaps();
     }
 
     render() {
@@ -240,5 +243,33 @@ export class ItemRowWrapper extends FloatElement {
             >
             </csfloat-float-bar>
         `;
+    }
+
+    /**
+     * Avoid overlap with other extensions
+     */
+    async cleanupOverlaps() {
+        // CS2 Trader
+        waitForTrue(() => $J(this).parent().parent().find('.stickerHolderMarket').length > 0).then((result) => {
+            if (!result) return;
+
+            const listingRow = $J(this).parent().parent();
+            listingRow.find('.stickerHolderMarket').css('display', 'none');
+            listingRow.find('.stickersTotal').css('display', 'none');
+            listingRow.find('.floatBarMarket').css('display', 'none');
+        });
+
+        // Steam Inventory Helper
+        waitForTrue(() => $J(this).parent().parent().find('div.sih-images').length > 0).then((result) => {
+            if (!result) return;
+
+            $J(this).parent().css({
+                'max-width': '100%',
+                'margin-top': '8px',
+            });
+            const baseContainer = $J(this).parent().parent();
+            baseContainer.find('.sih-images').css('display', 'none');
+            baseContainer.find('.sih-keychains').css('display', 'none');
+        });
     }
 }
