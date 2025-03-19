@@ -22,6 +22,7 @@ export abstract class ItemHolderMetadata extends FloatElement {
                 bottom: 3px;
                 right: 3px;
                 font-size: 12px;
+                text-align: right;
             }
 
             .seed {
