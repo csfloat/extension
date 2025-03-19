@@ -248,7 +248,7 @@ export class ItemRowWrapper extends FloatElement {
     /**
      * Avoid overlap with other extensions
      */
-    async cleanupOverlaps() {
+    cleanupOverlaps() {
         // CS2 Trader
         waitForTrue(() => $J(this).parent().parent().find('.stickerHolderMarket').length > 0).then((result) => {
             if (!result) return;
