@@ -16,24 +16,22 @@ import {pickTextColour} from '../../utils/colours';
 import '../common/ui/floatbar';
 import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
 import {ClientSend} from '../../bridge/client';
-import {ConflictingMode, StyleConflictingElement} from '../decorators';
+import {ConflictingMode, HideConflictingElement, StyleConflictingElement} from '../decorators';
 
 @CustomElement()
 @InjectAppend('#searchResultsRows .market_listing_row .market_listing_item_name_block', InjectionMode.CONTINUOUS)
 // Hide CS2 Trader elements
-@StyleConflictingElement(
-    '#searchResultsRows .market_listing_row .stickerHolderMarket, #searchResultsRows .market_listing_row .stickersTotal, #searchResultsRows .market_listing_row .floatBarMarket',
-    ConflictingMode.CONTINUOUS
+@HideConflictingElement(
+    '#searchResultsRows .market_listing_row .stickerHolderMarket, #searchResultsRows .market_listing_row .stickersTotal, #searchResultsRows .market_listing_row .floatBarMarket'
 )
 // Hide SIH elements
-@StyleConflictingElement(
-    '#searchResultsRows .market_listing_row .sih-images, #searchResultsRows .market_listing_row .sih-keychains',
-    ConflictingMode.CONTINUOUS
+@HideConflictingElement(
+    '#searchResultsRows .market_listing_row .sih-images, #searchResultsRows .market_listing_row .sih-keychains'
 )
 // Restyle SIH's new row
 @StyleConflictingElement(
     '#searchResultsRows .market_listing_row .market_listing_item_name_block',
-    ConflictingMode.CONTINUOUS,
+    ConflictingMode.ONCE,
     {'max-width': '100%', 'margin-top': '8px'}
 )
 export class ItemRowWrapper extends FloatElement {
