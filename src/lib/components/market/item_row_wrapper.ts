@@ -7,14 +7,13 @@ import {cache} from 'decorator-cache-getter';
 import {rgAsset, ListingData} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
-import {getMarketInspectLink, inlineEasyInspect} from './helpers';
+import {getMarketInspectLink, inlineEasyInspect, inlineStickersAndKeychains} from './helpers';
 import {formatSeed, getFadePercentage, isSkin, renderClickableRank, floor, isCharm, isBlueSkin} from '../../utils/skin';
 import {gFilterService} from '../../services/filter';
 import {AppId, ContextId, Currency} from '../../types/steam_constants';
 import {defined} from '../../utils/checkers';
 import {pickTextColour} from '../../utils/colours';
 import '../common/ui/floatbar';
-import './sticker_display';
 import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
 import {ClientSend} from '../../bridge/client';
 import {waitForTrue} from '../../utils/observers';
@@ -121,34 +120,10 @@ export class ItemRowWrapper extends FloatElement {
         }
 
         if (this.itemInfo && this.asset) {
-            // Create a sticker display element
-            const stickerDisplay = document.createElement('csfloat-sticker-display');
-            stickerDisplay.classList.add('economy_item_hoverable');
-            const elementId = `listing_${this.listingId}_csfloat`;
-            stickerDisplay.id = elementId;
-            // @ts-ignore - We know these properties exist on our Lit element
-            stickerDisplay.itemInfo = this.itemInfo;
-            // @ts-ignore
-            stickerDisplay.asset = this.asset;
-
-            // Remove Steam's inspect button
-            const itemNameBlock = $J(this).parent().parent().find('.market_listing_item_name_block');
-            itemNameBlock.parent().find('.market_listing_row_action')?.parent().remove();
-            // Remove Steam's stickers and keychains
-            itemNameBlock.parent().find('.market_listing_row_details')?.remove();
-
-            // Only add if not already present
-            if (!itemNameBlock.find('csfloat-sticker-display').length) {
-                itemNameBlock.prepend(stickerDisplay);
-            }
-
-            CreateItemHoverFromContainer(
-                g_rgAssets,
-                elementId,
-                this.asset.appid,
-                this.asset.contextid,
-                this.asset.id,
-                this.asset.amount
+            inlineStickersAndKeychains(
+                $J(this).parent().parent().find('.market_listing_item_name_block'),
+                this.itemInfo,
+                this.asset
             );
         }
 
@@ -186,7 +161,7 @@ export class ItemRowWrapper extends FloatElement {
             MarketCheckHash();
         }
 
-        // Make sure the parent containers can overflow for tooltips
+        // Make sure the parent containers can overflow
         const parentContainer = $J(this).parent();
         if (parentContainer) {
             parentContainer.css('overflow', 'visible');
