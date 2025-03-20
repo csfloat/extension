@@ -20,14 +20,17 @@ import {ConflictingMode, StyleConflictingElement} from '../decorators';
 
 @CustomElement()
 @InjectAppend('#searchResultsRows .market_listing_row .market_listing_item_name_block', InjectionMode.CONTINUOUS)
+// Hide CS2 Trader elements
 @StyleConflictingElement(
     '#searchResultsRows .market_listing_row .stickerHolderMarket, #searchResultsRows .market_listing_row .stickersTotal, #searchResultsRows .market_listing_row .floatBarMarket',
     ConflictingMode.CONTINUOUS
 )
+// Hide SIH elements
 @StyleConflictingElement(
     '#searchResultsRows .market_listing_row .sih-images, #searchResultsRows .market_listing_row .sih-keychains',
     ConflictingMode.CONTINUOUS
 )
+// Restyle SIH's new row
 @StyleConflictingElement(
     '#searchResultsRows .market_listing_row .market_listing_item_name_block',
     ConflictingMode.CONTINUOUS,
