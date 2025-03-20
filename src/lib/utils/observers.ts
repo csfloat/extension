@@ -24,7 +24,6 @@ type WaitForElementOptions = {
  */
 export async function waitForTrue(compute: () => boolean, options?: WaitForElementOptions) {
     const {interval = 200, maxTries = 10} = options || {};
-    console.log('waitForTrue', compute(), interval, maxTries);
     let tries = 0;
     while (!compute() && tries < maxTries) {
         tries++;
