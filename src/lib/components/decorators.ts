@@ -21,22 +21,22 @@ export function StyleConflictingElement(selector: string, mode: ConflictingMode,
             return;
         }
 
-        const hideElements = () => {
+        const styleElements = () => {
             $J(selector).each(function () {
                 $J(this).css(cssProps);
             });
         };
 
-        const checkAndHide = async () => {
+        const checkAndStyle = async () => {
             const found = $J(selector).length > 0;
             if (found) {
-                hideElements();
+                styleElements();
             }
             return found;
         };
 
         const interval = setInterval(async () => {
-            const result = await checkAndHide();
+            const result = await checkAndStyle();
             if (result && mode === ConflictingMode.ONCE) {
                 clearInterval(interval);
             }
