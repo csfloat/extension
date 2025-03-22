@@ -20,7 +20,12 @@ type CSSProperties = JQuery.PlainObject<
  * @param mode Whether to apply once or continuously
  * @param cssProps CSS properties to apply
  */
-export function StyleConflictingElement(extension: ConflictingExtension, selector: string, mode: ConflictingMode, cssProps: CSSProperties): any {
+export function StyleConflictingElement(
+    extension: ConflictingExtension,
+    selector: string,
+    mode: ConflictingMode,
+    cssProps: CSSProperties
+): any {
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
         if (!inPageContext()) {
             return;
@@ -49,6 +54,10 @@ export function StyleConflictingElement(extension: ConflictingExtension, selecto
     };
 }
 
-export function HideConflictingElement(extension: ConflictingExtension, selector: string, mode: ConflictingMode = ConflictingMode.ONCE) {
+export function HideConflictingElement(
+    extension: ConflictingExtension,
+    selector: string,
+    mode: ConflictingMode = ConflictingMode.ONCE
+) {
     return StyleConflictingElement(extension, selector, mode, {display: 'none'});
 }
