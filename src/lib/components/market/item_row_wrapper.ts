@@ -16,20 +16,20 @@ import {pickTextColour} from '../../utils/colours';
 import '../common/ui/floatbar';
 import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
 import {ClientSend} from '../../bridge/client';
-import {ConflictingMode, HideConflictingElement, StyleConflictingElement} from '../decorators';
+import {ConflictingExtension, ConflictingMode, HideConflictingElement, StyleConflictingElement} from '../decorators';
 
 @CustomElement()
 @InjectAppend('#searchResultsRows .market_listing_row .market_listing_item_name_block', InjectionMode.CONTINUOUS)
-// Hide CS2 Trader elements
 @HideConflictingElement(
+    ConflictingExtension.CS2_TRADER,
     '#searchResultsRows .market_listing_row .stickerHolderMarket, #searchResultsRows .market_listing_row .stickersTotal, #searchResultsRows .market_listing_row .floatBarMarket'
 )
-// Hide SIH elements
 @HideConflictingElement(
+    ConflictingExtension.SIH,
     '#searchResultsRows .market_listing_row .sih-images, #searchResultsRows .market_listing_row .sih-keychains'
 )
-// Restyle SIH's new row
 @StyleConflictingElement(
+    ConflictingExtension.SIH,
     '#searchResultsRows .market_listing_row .market_listing_item_name_block',
     ConflictingMode.ONCE,
     {'max-width': '100%', 'margin-top': '8px'}

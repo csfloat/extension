@@ -1,5 +1,10 @@
 import {inPageContext} from '../utils/snips';
 
+export enum ConflictingExtension {
+    CS2_TRADER,
+    SIH,
+}
+
 export enum ConflictingMode {
     ONCE, // Hide conflicting elements only once when found
     CONTINUOUS, // Continuously check and hide conflicting elements
@@ -15,7 +20,7 @@ type CSSProperties = JQuery.PlainObject<
  * @param mode Whether to apply once or continuously
  * @param cssProps CSS properties to apply
  */
-export function StyleConflictingElement(selector: string, mode: ConflictingMode, cssProps: CSSProperties): any {
+export function StyleConflictingElement(extension: ConflictingExtension, selector: string, mode: ConflictingMode, cssProps: CSSProperties): any {
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
         if (!inPageContext()) {
             return;
@@ -44,6 +49,6 @@ export function StyleConflictingElement(selector: string, mode: ConflictingMode,
     };
 }
 
-export function HideConflictingElement(selector: string, mode: ConflictingMode = ConflictingMode.ONCE) {
-    return StyleConflictingElement(selector, mode, {display: 'none'});
+export function HideConflictingElement(extension: ConflictingExtension, selector: string, mode: ConflictingMode = ConflictingMode.ONCE) {
+    return StyleConflictingElement(extension, selector, mode, {display: 'none'});
 }
