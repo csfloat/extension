@@ -89,10 +89,8 @@ export class StickerDisplay extends FloatElement {
             return nothing;
         }
 
-        const elementId = `listing_${this.itemInfo.m}_csfloat`;
-
         return html`
-            <div class="csfloat-stickers-container" id="${elementId}">
+            <div class="csfloat-stickers-container">
                 ${this.stickers.map((sticker) => this.renderAppliedItem(sticker, true))}
                 ${this.keychains.map((keychain) => this.renderAppliedItem(keychain, false))}
             </div>
@@ -123,7 +121,7 @@ export class StickerDisplay extends FloatElement {
         return '';
     }
 
-    get getStickerDescription(): rgInternalDescription | undefined {
+    get stickerDescription(): rgInternalDescription | undefined {
         if (!this.itemInfo.stickers?.length) {
             return;
         }
@@ -136,7 +134,7 @@ export class StickerDisplay extends FloatElement {
         }
     }
 
-    get getKeychainDescription(): rgInternalDescription | undefined {
+    get keychainDescription(): rgInternalDescription | undefined {
         if (!this.itemInfo.keychains?.length) {
             return;
         }
@@ -181,7 +179,7 @@ export class StickerDisplay extends FloatElement {
     }
 
     private loadStickers(): void {
-        const description = this.getStickerDescription;
+        const description = this.stickerDescription;
 
         if (description?.type !== 'html' || !description.value.includes('sticker')) {
             this.stickers = [];
@@ -194,7 +192,7 @@ export class StickerDisplay extends FloatElement {
     }
 
     private loadKeychains(): void {
-        const description = this.getKeychainDescription;
+        const description = this.keychainDescription;
 
         if (description?.type !== 'html' || description.value.includes('sticker')) {
             this.keychains = [];
@@ -211,7 +209,6 @@ export class StickerDisplay extends FloatElement {
 
         if (this.itemInfo && this.asset) {
             try {
-                // Load stickers and keychains
                 this.loadStickers();
                 this.loadKeychains();
             } catch (e) {
