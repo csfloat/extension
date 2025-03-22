@@ -17,10 +17,24 @@ import '../common/ui/floatbar';
 import './sticker_display';
 import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
 import {ClientSend} from '../../bridge/client';
-import {waitForTrue} from '../../utils/observers';
+import {ConflictingMode, HideConflictingElement, StyleConflictingElement} from '../decorators';
 
 @CustomElement()
 @InjectAppend('#searchResultsRows .market_listing_row .market_listing_item_name_block', InjectionMode.CONTINUOUS)
+// Hide CS2 Trader elements
+@HideConflictingElement(
+    '#searchResultsRows .market_listing_row .stickerHolderMarket, #searchResultsRows .market_listing_row .stickersTotal, #searchResultsRows .market_listing_row .floatBarMarket'
+)
+// Hide SIH elements
+@HideConflictingElement(
+    '#searchResultsRows .market_listing_row .sih-images, #searchResultsRows .market_listing_row .sih-keychains'
+)
+// Restyle SIH's new row
+@StyleConflictingElement(
+    '#searchResultsRows .market_listing_row .market_listing_item_name_block',
+    ConflictingMode.ONCE,
+    {'max-width': '100%', 'margin-top': '8px'}
+)
 export class ItemRowWrapper extends FloatElement {
     static styles = [
         ...FloatElement.styles,
@@ -192,8 +206,6 @@ export class ItemRowWrapper extends FloatElement {
             parentContainer.css('overflow', 'visible');
             parentContainer.parent().css('overflow', 'visible');
         }
-
-        this.cleanupOverlaps();
     }
 
     render() {
@@ -268,33 +280,5 @@ export class ItemRowWrapper extends FloatElement {
             >
             </csfloat-float-bar>
         `;
-    }
-
-    /**
-     * Avoid overlap with other extensions
-     */
-    cleanupOverlaps() {
-        // CS2 Trader
-        waitForTrue(() => $J(this).parent().parent().find('.stickerHolderMarket').length > 0).then((result) => {
-            if (!result) return;
-
-            const listingRow = $J(this).parent().parent();
-            listingRow.find('.stickerHolderMarket').css('display', 'none');
-            listingRow.find('.stickersTotal').css('display', 'none');
-            listingRow.find('.floatBarMarket').css('display', 'none');
-        });
-
-        // Steam Inventory Helper
-        waitForTrue(() => $J(this).parent().parent().find('div.sih-images').length > 0).then((result) => {
-            if (!result) return;
-
-            $J(this).parent().css({
-                'max-width': '100%',
-                'margin-top': '8px',
-            });
-            const baseContainer = $J(this).parent().parent();
-            baseContainer.find('.sih-images').css('display', 'none');
-            baseContainer.find('.sih-keychains').css('display', 'none');
-        });
     }
 }
