@@ -46,11 +46,15 @@ export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, FetchBluegemR
             }
         }
 
-        const type = itemInfo.weapon_type.replace(' ', '_');
         const paintseed = itemInfo.paintseed;
+        let type = itemInfo.weapon_type;
+        // Add pattern name to distinguish the Five-SeveNs
+        if (itemInfo.paintindex === 831) {
+            type += ' Heat Treated';
+        }
 
         // Be careful to check if the type exists
-        const patternData = bluegemCache[type]?.[paintseed];
+        const patternData = bluegemCache[type.replace(/ /g, '_')]?.[paintseed];
         if (!patternData) {
             return undefined;
         }
