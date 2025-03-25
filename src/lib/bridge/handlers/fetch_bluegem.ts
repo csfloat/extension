@@ -20,8 +20,8 @@ interface FetchBluegemRequest {
 }
 
 interface BluegemDataCache {
-    [defindex: number]: {
-        [paintindex: number]: {
+    [paintindex: number]: {
+        [defindex: number]: {
             [paintseed: number]: BluegemPatternData | undefined;
         }
     }
