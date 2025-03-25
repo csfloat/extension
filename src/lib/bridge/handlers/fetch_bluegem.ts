@@ -19,9 +19,16 @@ export interface FetchBluegemRequest {
     iteminfo: ItemInfo;
 }
 
+export interface BluegemDataCache {
+    [defindex: number]: {
+        [paintindex: number]: {
+            [paintseed: number]: BluegemPatternData | undefined;
+        }
+    }
+}
 export type FetchBluegemResponse = BluegemPatternData & {placement: string};
 
-const bluegemCache: Record<string, Record<number, BluegemPatternData | undefined>> = {};
+const bluegemCache: BluegemDataCache = {};
 
 export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, FetchBluegemResponse | undefined>(
     RequestType.FETCH_BLUEGEM,
@@ -32,7 +39,7 @@ export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, FetchBluegemR
         }
 
         if (Object.keys(bluegemCache).length === 0) {
-            const url = chrome.runtime.getURL(`data/bluegem.json`);
+            const url = chrome.runtime.getURL('data/bluegem.json');
             try {
                 const resp = await fetch(url);
                 const json = await resp.json();
@@ -46,15 +53,12 @@ export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, FetchBluegemR
             }
         }
 
-        const paintseed = itemInfo.paintseed;
-        let type = itemInfo.weapon_type;
-        // Add pattern name to distinguish the Five-SeveNs
-        if (itemInfo.paintindex === 831) {
-            type += ' Heat Treated';
-        }
+        const defIndex = itemInfo.defindex;
+        const paintIndex = itemInfo.paintindex;
+        const paintSeed = itemInfo.paintseed;
 
         // Be careful to check if the type exists
-        const patternData = bluegemCache[type.replace(/ /g, '_')]?.[paintseed];
+        const patternData = bluegemCache[paintIndex]?.[defIndex]?.[paintSeed];
         if (!patternData) {
             return undefined;
         }
