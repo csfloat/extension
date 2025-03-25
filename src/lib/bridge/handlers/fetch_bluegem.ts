@@ -15,13 +15,20 @@ interface BluegemPatternData {
     backside_contour_purple?: number;
 }
 
-export interface FetchBluegemRequest {
+interface FetchBluegemRequest {
     iteminfo: ItemInfo;
 }
 
+interface BluegemDataCache {
+    [defindex: number]: {
+        [paintindex: number]: {
+            [paintseed: number]: BluegemPatternData | undefined;
+        };
+    };
+}
 export type FetchBluegemResponse = BluegemPatternData & {placement: string};
 
-const bluegemCache: Record<string, Record<number, BluegemPatternData | undefined>> = {};
+const bluegemCache: BluegemDataCache = {};
 
 export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, FetchBluegemResponse | undefined>(
     RequestType.FETCH_BLUEGEM,
@@ -32,7 +39,7 @@ export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, FetchBluegemR
         }
 
         if (Object.keys(bluegemCache).length === 0) {
-            const url = chrome.runtime.getURL(`data/bluegem.json`);
+            const url = chrome.runtime.getURL('data/bluegem.json');
             try {
                 const resp = await fetch(url);
                 const json = await resp.json();
@@ -46,20 +53,18 @@ export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, FetchBluegemR
             }
         }
 
-        const paintseed = itemInfo.paintseed;
-        let type = itemInfo.weapon_type;
-        // Add pattern name to distinguish the Five-SeveNs
-        if (itemInfo.paintindex === 831) {
-            type += ' Heat Treated';
-        }
+        const defIndex = itemInfo.defindex;
+        const paintIndex = itemInfo.paintindex;
+        const paintSeed = itemInfo.paintseed;
 
         // Be careful to check if the type exists
-        const patternData = bluegemCache[type.replace(/ /g, '_')]?.[paintseed];
+        const patternData = bluegemCache[defIndex]?.[paintIndex]?.[paintSeed];
         if (!patternData) {
             return undefined;
         }
 
-        const placement = itemInfo.weapon_type === 'AK-47' ? 'Top / Magazine' : 'Front / Back';
+        // AK-47 skins are mirrored, hence we use different positions
+        const placement = defIndex === 7 ? 'Top / Magazine' : 'Front / Back';
 
         return {
             placement,

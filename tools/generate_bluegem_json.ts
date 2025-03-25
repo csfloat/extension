@@ -9,33 +9,113 @@
  * `npm run generate_bluegem`
  */
 
-const itemTypes = [
-    'AK-47',
-    'Bayonet',
-    'Bowie_Knife',
-    'Butterfly_Knife',
-    'Classic_Knife',
-    'Falchion_Knife',
-    'Five-SeveN',
-    'Flip_Knife',
-    'Gut_Knife',
-    'Huntsman_Knife',
-    'Karambit',
-    'Kukri_Knife',
-    'M9_Bayonet',
-    'MAC-10',
-    'Navaja_Knife',
-    'Nomad_Knife',
-    'Paracord_Knife',
-    'Shadow_Daggers',
-    'Skeleton_Knife',
-    'Stiletto_Knife',
-    'Survival_Knife',
-    'Talon_Knife',
-    'Ursus_Knife',
-    'Desert_Eagle',
-    'Five-SeveN_Heat_Treated',
-];
+interface ItemType {
+    def_index: number;
+    paint_index: number;
+}
+
+const itemTypes: Record<string, ItemType> = {
+    'AK-47': {
+        def_index: 7,
+        paint_index: 44,
+    },
+    Bayonet: {
+        def_index: 500,
+        paint_index: 44,
+    },
+    Bowie_Knife: {
+        def_index: 514,
+        paint_index: 44,
+    },
+    Butterfly_Knife: {
+        def_index: 515,
+        paint_index: 44,
+    },
+    Classic_Knife: {
+        def_index: 503,
+        paint_index: 44,
+    },
+    Falchion_Knife: {
+        def_index: 512,
+        paint_index: 44,
+    },
+    'Five-SeveN': {
+        def_index: 3,
+        paint_index: 44,
+    },
+    Flip_Knife: {
+        def_index: 505,
+        paint_index: 44,
+    },
+    Gut_Knife: {
+        def_index: 506,
+        paint_index: 44,
+    },
+    Huntsman_Knife: {
+        def_index: 509,
+        paint_index: 44,
+    },
+    Karambit: {
+        def_index: 507,
+        paint_index: 44,
+    },
+    Kukri_Knife: {
+        def_index: 526,
+        paint_index: 44,
+    },
+    M9_Bayonet: {
+        def_index: 508,
+        paint_index: 44,
+    },
+    'MAC-10': {
+        def_index: 17,
+        paint_index: 44,
+    },
+    Navaja_Knife: {
+        def_index: 520,
+        paint_index: 44,
+    },
+    Nomad_Knife: {
+        def_index: 521,
+        paint_index: 44,
+    },
+    Paracord_Knife: {
+        def_index: 517,
+        paint_index: 44,
+    },
+    Shadow_Daggers: {
+        def_index: 516,
+        paint_index: 44,
+    },
+    Skeleton_Knife: {
+        def_index: 525,
+        paint_index: 44,
+    },
+    Stiletto_Knife: {
+        def_index: 522,
+        paint_index: 44,
+    },
+    Survival_Knife: {
+        def_index: 518,
+        paint_index: 44,
+    },
+    Talon_Knife: {
+        def_index: 523,
+        paint_index: 44,
+    },
+    Ursus_Knife: {
+        def_index: 519,
+        paint_index: 44,
+    },
+    Desert_Eagle: {
+        def_index: 1,
+        paint_index: 1054,
+    },
+    'Five-SeveN_Heat_Treated': {
+        def_index: 3,
+        paint_index: 831,
+    },
+};
 
 interface PatternData {
     [key: string]: unknown;
@@ -76,12 +156,17 @@ async function main() {
         }
     }
 
-    const combinedData: Record<string, PatternData | null> = {};
+    const combinedData: Record<number, Record<number, PatternData>> = {};
 
     // Fetch data for each knife type
-    for (const type of itemTypes) {
+    for (const [type, typeInfo] of Object.entries(itemTypes)) {
         const data = await fetchPatternData(type);
-        combinedData[type] = data;
+        if (data) {
+            if (!combinedData[typeInfo.def_index]) {
+                combinedData[typeInfo.def_index] = {};
+            }
+            combinedData[typeInfo.def_index][typeInfo.paint_index] = data;
+        }
         await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
