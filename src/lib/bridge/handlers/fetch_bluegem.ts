@@ -20,8 +20,8 @@ interface FetchBluegemRequest {
 }
 
 interface BluegemDataCache {
-    [paintindex: number]: {
-        [defindex: number]: {
+    [defindex: number]: {
+        [paintindex: number]: {
             [paintseed: number]: BluegemPatternData | undefined;
         }
     }
@@ -58,7 +58,7 @@ export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, FetchBluegemR
         const paintSeed = itemInfo.paintseed;
 
         // Be careful to check if the type exists
-        const patternData = bluegemCache[paintIndex]?.[defIndex]?.[paintSeed];
+        const patternData = bluegemCache[defIndex]?.[paintIndex]?.[paintSeed];
         if (!patternData) {
             return undefined;
         }

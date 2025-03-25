@@ -162,10 +162,10 @@ async function main() {
     for (const [type, typeInfo] of Object.entries(itemTypes)) {
         const data = await fetchPatternData(type);
         if (data) {
-            if (!combinedData[typeInfo.paint_index]) {
-                combinedData[typeInfo.paint_index] = {};
+            if (!combinedData[typeInfo.def_index]) {
+                combinedData[typeInfo.def_index] = {};
             }
-            combinedData[typeInfo.paint_index][typeInfo.def_index] = data;
+            combinedData[typeInfo.def_index][typeInfo.paint_index] = data;
         }
         await new Promise((resolve) => setTimeout(resolve, 500));
     }
