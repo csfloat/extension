@@ -23,8 +23,8 @@ interface BluegemDataCache {
     [defindex: number]: {
         [paintindex: number]: {
             [paintseed: number]: BluegemPatternData | undefined;
-        }
-    }
+        };
+    };
 }
 export type FetchBluegemResponse = BluegemPatternData & {placement: string};
 
@@ -62,7 +62,7 @@ export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, FetchBluegemR
         if (!patternData) {
             return undefined;
         }
-        
+
         // AK-47 skins are mirrored, hence we use different positions
         const placement = defIndex === 7 ? 'Top / Magazine' : 'Front / Back';
 

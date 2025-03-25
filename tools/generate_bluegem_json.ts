@@ -19,23 +19,23 @@ const itemTypes: Record<string, ItemType> = {
         def_index: 7,
         paint_index: 44,
     },
-    'Bayonet': {
+    Bayonet: {
         def_index: 500,
         paint_index: 44,
     },
-    'Bowie_Knife': {
+    Bowie_Knife: {
         def_index: 514,
         paint_index: 44,
     },
-    'Butterfly_Knife': {
+    Butterfly_Knife: {
         def_index: 515,
         paint_index: 44,
     },
-    'Classic_Knife': {
+    Classic_Knife: {
         def_index: 503,
         paint_index: 44,
     },
-    'Falchion_Knife': {
+    Falchion_Knife: {
         def_index: 512,
         paint_index: 44,
     },
@@ -43,27 +43,27 @@ const itemTypes: Record<string, ItemType> = {
         def_index: 3,
         paint_index: 44,
     },
-    'Flip_Knife': {
+    Flip_Knife: {
         def_index: 505,
         paint_index: 44,
     },
-    'Gut_Knife': {
+    Gut_Knife: {
         def_index: 506,
         paint_index: 44,
     },
-    'Huntsman_Knife': {
+    Huntsman_Knife: {
         def_index: 509,
         paint_index: 44,
     },
-    'Karambit': {
+    Karambit: {
         def_index: 507,
         paint_index: 44,
     },
-    'Kukri_Knife': {
+    Kukri_Knife: {
         def_index: 526,
         paint_index: 44,
     },
-    'M9_Bayonet': {
+    M9_Bayonet: {
         def_index: 508,
         paint_index: 44,
     },
@@ -71,43 +71,43 @@ const itemTypes: Record<string, ItemType> = {
         def_index: 17,
         paint_index: 44,
     },
-    'Navaja_Knife': {
+    Navaja_Knife: {
         def_index: 520,
         paint_index: 44,
     },
-    'Nomad_Knife': {
+    Nomad_Knife: {
         def_index: 521,
         paint_index: 44,
     },
-    'Paracord_Knife': {
+    Paracord_Knife: {
         def_index: 517,
         paint_index: 44,
     },
-    'Shadow_Daggers': {
+    Shadow_Daggers: {
         def_index: 516,
         paint_index: 44,
     },
-    'Skeleton_Knife': {
+    Skeleton_Knife: {
         def_index: 525,
         paint_index: 44,
     },
-    'Stiletto_Knife': {
+    Stiletto_Knife: {
         def_index: 522,
         paint_index: 44,
     },
-    'Survival_Knife': {
+    Survival_Knife: {
         def_index: 518,
         paint_index: 44,
     },
-    'Talon_Knife': {
+    Talon_Knife: {
         def_index: 523,
         paint_index: 44,
     },
-    'Ursus_Knife': {
+    Ursus_Knife: {
         def_index: 519,
         paint_index: 44,
     },
-    'Desert_Eagle': {
+    Desert_Eagle: {
         def_index: 1,
         paint_index: 1054,
     },
