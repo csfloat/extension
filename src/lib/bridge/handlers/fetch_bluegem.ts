@@ -62,8 +62,9 @@ export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, FetchBluegemR
         if (!patternData) {
             return undefined;
         }
-
-        const placement = itemInfo.weapon_type === 'AK-47' ? 'Top / Magazine' : 'Front / Back';
+        
+        // AK-47 skins are mirrored, hence we use different positions
+        const placement = defIndex === 7 ? 'Top / Magazine' : 'Front / Back';
 
         return {
             placement,
