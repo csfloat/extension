@@ -15,11 +15,11 @@ interface BluegemPatternData {
     backside_contour_purple?: number;
 }
 
-export interface FetchBluegemRequest {
+interface FetchBluegemRequest {
     iteminfo: ItemInfo;
 }
 
-export interface BluegemDataCache {
+interface BluegemDataCache {
     [defindex: number]: {
         [paintindex: number]: {
             [paintseed: number]: BluegemPatternData | undefined;
