@@ -129,7 +129,7 @@ export class SortListings extends FloatElement {
                     info,
                     listingId: listingId!,
                     converted_price: listingInfo?.converted_price || 0,
-                    fadePercentage: (asset && getFadePercentage(asset, info)) || 0,
+                    fadePercentage: (asset && getFadePercentage(asset, info)?.percentage) || 0,
                 };
             });
 
