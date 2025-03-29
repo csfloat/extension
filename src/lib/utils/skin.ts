@@ -163,9 +163,7 @@ export function isBlueSkin(itemInfo: ItemInfo): boolean {
     );
 }
 
-export function getFadeParams(
-    asset: rgAsset
-):
+export function getFadeParams(asset: rgAsset):
     | {
           calculator: typeof FadeCalculator | typeof AcidFadeCalculator | typeof AmberFadeCalculator;
           weaponName: string;
