@@ -6,7 +6,7 @@ import {state} from 'lit/decorators.js';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {getMarketInspectLink} from './helpers';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
-import {getFadeCalculatorAndSupportedWeapon, getFadePercentage} from '../../utils/skin';
+import {getFadeParams, getFadePercentage} from '../../utils/skin';
 import {AppId, ContextId} from '../../types/steam_constants';
 
 enum SortType {
@@ -39,7 +39,7 @@ export class SortListings extends FloatElement {
 
         const asset = g_rgAssets[AppId.CSGO][ContextId.PRIMARY][listingInfo.asset.id];
 
-        return getFadeCalculatorAndSupportedWeapon(asset) !== undefined;
+        return getFadeParams(asset) !== undefined;
     }
 
     computeButtonText(sortType: SortType): string {
@@ -129,7 +129,7 @@ export class SortListings extends FloatElement {
                     info,
                     listingId: listingId!,
                     converted_price: listingInfo?.converted_price || 0,
-                    fadePercentage: (asset && getFadePercentage(asset, info)) || 0,
+                    fadePercentage: (asset && getFadePercentage(asset, info)?.percentage) || 0,
                 };
             });
 
