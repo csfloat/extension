@@ -93,9 +93,8 @@ export abstract class ItemHolderMetadata extends FloatElement {
 
         if (isSkin(this.asset)) {
             const fadeDetails = this.asset && getFadePercentage(this.asset, this.itemInfo);
-            const {percentage: fadePercentage, fadeType} = fadeDetails ?? {};
 
-            if (fadePercentage === 100) {
+            if (fadeDetails?.percentage === 100) {
                 $J(this).parent().addClass('full-fade-border');
             }
 
@@ -106,10 +105,12 @@ export abstract class ItemHolderMetadata extends FloatElement {
                     <span class="float">${formatFloatWithRank(this.itemInfo, 6)}</span>
                     <span class="seed">
                         ${formatSeed(this.itemInfo)}
-                        ${fadeDetails !== undefined && fadePercentage !== undefined
+                        ${fadeDetails !== undefined
                             ? html`<span
-                                  class="fade-base ${fadeType} ${rank && rank <= 5 ? 'csfloat-shine-fade-text' : ''}"
-                                  >(${floor(fadePercentage, 1)}%)</span
+                                  class="fade-base ${fadeDetails.className} ${rank && rank <= 5
+                                      ? 'csfloat-shine-fade-text'
+                                      : ''}"
+                                  >(${floor(fadeDetails.percentage, 1)}%)</span
                               >`
                             : nothing}
                         ${this.bluegemData

@@ -192,7 +192,7 @@ export function getFadeParams(asset: rgAsset):
 export function getFadePercentage(
     asset: rgAsset,
     itemInfo: ItemInfo
-): {percentage: number; fadeType: string} | undefined {
+): {percentage: number; className: string} | undefined {
     const fadeInfo = getFadeParams(asset);
 
     if (fadeInfo !== undefined) {
@@ -200,7 +200,7 @@ export function getFadePercentage(
 
         return {
             percentage: calculator.getFadePercentage(weaponName, itemInfo.paintseed).percentage,
-            fadeType: className,
+            className,
         };
     }
 }
