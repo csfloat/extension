@@ -32,11 +32,22 @@ export abstract class ItemHolderMetadata extends FloatElement {
                 font-size: 12px;
             }
 
-            .fade {
-                background: -webkit-linear-gradient(0deg, #d9bba5 0%, #e5903b 33%, #db5977 66%, #6775e1 100%);
+            .fade-base {
                 -webkit-background-clip: text;
                 background-clip: text;
                 -webkit-text-fill-color: transparent;
+            }
+
+            .fade {
+                background-image: -webkit-linear-gradient(0deg, #d9bba5 0%, #e5903b 33%, #db5977 66%, #6775e1 100%);
+            }
+
+            .amber-fade {
+                background-image: -webkit-linear-gradient(0deg, #627d66 0%, #896944 50%, #7e4201 100%);
+            }
+
+            .acid-fade {
+                background-image: -webkit-linear-gradient(0deg, #2b441b 0%, #3e6b2f 11%, #82a64a 66%, #c1a16c 100%);
             }
 
             .csfloat-shine-fade-text {
@@ -81,9 +92,9 @@ export abstract class ItemHolderMetadata extends FloatElement {
         if (!this.itemInfo || !this.asset) return html``;
 
         if (isSkin(this.asset)) {
-            const fadePercentage = this.asset && getFadePercentage(this.asset, this.itemInfo);
+            const fadeDetails = this.asset && getFadePercentage(this.asset, this.itemInfo);
 
-            if (fadePercentage === 100) {
+            if (fadeDetails?.percentage === 100) {
                 $J(this).parent().addClass('full-fade-border');
             }
 
@@ -94,9 +105,12 @@ export abstract class ItemHolderMetadata extends FloatElement {
                     <span class="float">${formatFloatWithRank(this.itemInfo, 6)}</span>
                     <span class="seed">
                         ${formatSeed(this.itemInfo)}
-                        ${fadePercentage !== undefined
-                            ? html`<span class="fade ${rank && rank <= 5 ? 'csfloat-shine-fade-text' : ''}"
-                                  >(${floor(fadePercentage, 1)}%)</span
+                        ${fadeDetails !== undefined
+                            ? html`<span
+                                  class="fade-base ${fadeDetails.className} ${rank && rank <= 5
+                                      ? 'csfloat-shine-fade-text'
+                                      : ''}"
+                                  >(${floor(fadeDetails.percentage, 1)}%)</span
                               >`
                             : nothing}
                         ${this.bluegemData

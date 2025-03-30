@@ -163,9 +163,13 @@ export function isBlueSkin(itemInfo: ItemInfo): boolean {
     );
 }
 
-export function getFadeCalculatorAndSupportedWeapon(
-    asset: rgAsset
-): [typeof FadeCalculator | typeof AcidFadeCalculator | typeof AmberFadeCalculator, string] | undefined {
+export function getFadeParams(asset: rgAsset):
+    | {
+          calculator: typeof FadeCalculator | typeof AcidFadeCalculator | typeof AmberFadeCalculator;
+          weaponName: string;
+          className: string;
+      }
+    | undefined {
     const FADE_TYPE_TO_CALCULATOR = {
         Fade: FadeCalculator,
         'Acid Fade': AcidFadeCalculator,
@@ -175,19 +179,29 @@ export function getFadeCalculatorAndSupportedWeapon(
     for (const [fadeType, calculator] of Object.entries(FADE_TYPE_TO_CALCULATOR)) {
         for (const supportedWeapon of calculator.getSupportedWeapons()) {
             if (asset.market_hash_name.includes(`${supportedWeapon} | ${fadeType}`)) {
-                return [calculator, supportedWeapon.toString()];
+                return {
+                    calculator,
+                    weaponName: supportedWeapon.toString(),
+                    className: fadeType.replace(' ', '-').toLowerCase(),
+                };
             }
         }
     }
 }
 
-export function getFadePercentage(asset: rgAsset, itemInfo: ItemInfo): number | undefined {
-    const fadeCalculatorAndSupportedWeapon = getFadeCalculatorAndSupportedWeapon(asset);
+export function getFadePercentage(
+    asset: rgAsset,
+    itemInfo: ItemInfo
+): {percentage: number; className: string} | undefined {
+    const fadeInfo = getFadeParams(asset);
 
-    if (fadeCalculatorAndSupportedWeapon !== undefined) {
-        const [calculator, supportedWeapon] = fadeCalculatorAndSupportedWeapon;
+    if (fadeInfo !== undefined) {
+        const {calculator, weaponName, className} = fadeInfo;
 
-        return calculator.getFadePercentage(supportedWeapon, itemInfo.paintseed).percentage;
+        return {
+            percentage: calculator.getFadePercentage(weaponName, itemInfo.paintseed).percentage,
+            className,
+        };
     }
 }
 
