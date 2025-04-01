@@ -1,0 +1,38 @@
+name: "Submit to Web Store"
+on:
+    workflow_dispatch:
+
+jobs:
+    submit:
+      runs-on: "ubuntu-latest"
+  
+      strategy:
+        matrix:
+          node-version: [16.x]
+      
+      steps:
+        - uses: actions/checkout@v3
+  
+        - uses: actions/setup-node@v3
+          with:
+            node-version: ${{ matrix.node-version }}
+  
+        - name: Build and compress
+          run: |
+            TAG=${{ github.ref_name }}
+            zip -r extension-source.zip .
+            npm install
+            npm run build
+            (cd dist && zip -r ../extension-${TAG}-chrome.zip .)
+            rm -rf dist
+            npm run build_ff
+            (cd dist && zip -r ../extension-${TAG}-firefox.zip .)
+        - name: Browser Platform Publish
+          uses: PlasmoHQ/bpp@v3
+          with:
+            keys: ${{ secrets.SUBMIT_KEYS }}
+            chrome-file: "dist/extension-${{ env.EXT_VERSION }}-chrome.zip"
+            firefox-file: "dist/extension-${{ env.EXT_VERSION }}-firefox.zip"
+            version-file: "manifest.json"
+            source: "extension-source.zip"
+            verbose: true
