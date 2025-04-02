@@ -31,8 +31,8 @@ jobs:
           uses: PlasmoHQ/bpp@v3
           with:
             keys: ${{ secrets.SUBMIT_KEYS }}
-            chrome-file: "dist/extension-${{ env.EXT_VERSION }}-chrome.zip"
-            firefox-file: "dist/extension-${{ env.EXT_VERSION }}-firefox.zip"
+            chrome-file: "extension-{version}-chrome.zip"
+            firefox-file: "extension-{version}-firefox.zip"
             version-file: "manifest.json"
             source: "extension-source.zip"
             verbose: true
