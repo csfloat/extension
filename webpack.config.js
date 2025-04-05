@@ -12,7 +12,7 @@ function getPathEntries(path) {
     return glob.sync(path).reduce((acc, e) => {
         if (!e.includes('node_modules')) {
             // Remove extension
-            acc[e.replace(/\.[^/.]+$/, '')] = e;
+            acc[e.replace(/\.[^/.]+$/, '')] = './' + e;
         }
 
         return acc;
