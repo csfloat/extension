@@ -1,38 +1,55 @@
-name: "Submit to Web Store"
+name: "Submit to Web Stores"
 on:
-    workflow_dispatch:
+    workflow_run:
+        workflows: ["Extension Release"]
+        types:
+            - completed
 
 jobs:
     submit:
       runs-on: "ubuntu-latest"
   
-      strategy:
-        matrix:
-          node-version: [16.x]
-      
       steps:
         - uses: actions/checkout@v3
   
-        - uses: actions/setup-node@v3
-          with:
-            node-version: ${{ matrix.node-version }}
-  
-        - name: Build and compress
+        - name: Compress Repository
           run: |
-            TAG=${{ github.ref_name }}
             zip -r extension-source.zip .
-            npm install
-            npm run build
-            (cd dist && zip -r ../extension-${TAG}-chrome.zip .)
-            rm -rf dist
-            npm run build_ff
-            (cd dist && zip -r ../extension-${TAG}-firefox.zip .)
-        - name: Browser Platform Publish
-          uses: PlasmoHQ/bpp@v3
+
+        - name: Download Release Assets
+          uses: robinraju/release-downloader@v1
           with:
-            keys: ${{ secrets.SUBMIT_KEYS }}
-            chrome-file: "extension-{version}-chrome.zip"
-            firefox-file: "extension-{version}-firefox.zip"
-            version-file: "manifest.json"
-            source: "extension-source.zip"
-            verbose: true
+            latest: true # Download the latest release
+            out-file-path: "assets" # Output directory for downloaded assets
+            fileName: '*' # Download all assets
+            
+        - name: Find Extension Paths
+          id: find-path
+          # Find and output the paths to the Chrome and Firefox extension files
+          # Required as the release actions do not support glob patterns
+          run: |
+            CHROME_EXT_PATH=$(find assets -name "extension-*-chrome.zip" | head -n 1)
+            FIREFOX_EXT_PATH=$(find assets -name "extension-*-firefox.zip" | head -n 1)
+            echo "chrome_extension_path=$CHROME_EXT_PATH" >> $GITHUB_OUTPUT
+            echo "firefox_extension_path=$FIREFOX_EXT_PATH" >> $GITHUB_OUTPUT
+
+        - name: Chrome Web Store Publish
+          uses: browser-actions/release-chrome-extension@v0.2.1
+          with:
+            extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
+            extension-path: ${{ steps.find-path.outputs.chrome_extension_path }}
+            oauth-client-id: ${{ secrets.OAUTH_CLIENT_ID }}
+            oauth-client-secret: ${{ secrets.OAUTH_CLIENT_SECRET }}
+            oauth-refresh-token: ${{ secrets.OAUTH_REFRESH_TOKEN }}
+
+        - name: Firefox Web Store Publish
+          uses: browser-actions/release-firefox-addon@v0.2.1
+          with:
+            addon-id: ${{ secrets.FIREFOX_EXTENSION_ID }}
+            addon-path: ${{ steps.find-path.outputs.firefox_extension_path }}
+            source-path: "extension-source.zip"
+            approval-note: |
+              The source code and build instructions are available at 
+              https://github.com/csfloat/extension.
+            auth-api-issuer: ${{ secrets.AUTH_API_ISSUER }}
+            auth-api-secret: ${{ secrets.AUTH_API_SECRET }}
