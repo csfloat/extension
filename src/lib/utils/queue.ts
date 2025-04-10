@@ -141,7 +141,10 @@ export abstract class SimpleCachedQueue<Req, Resp> extends CachedQueue<Req, Resp
 export abstract class TTLCachedQueue<Req, Resp> extends CachedQueue<Req, Resp> {
     private readonly cache_: TTLCache<Resp>;
 
-    protected constructor(maxConcurrency: number, private ttlMs: number) {
+    protected constructor(
+        maxConcurrency: number,
+        private ttlMs: number
+    ) {
         super(maxConcurrency);
         this.cache_ = new TTLCache<Resp>(ttlMs);
     }

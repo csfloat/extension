@@ -7,10 +7,13 @@ export async function pingTradeHistory(pendingTrades: Trade[]) {
     const {history, type} = await getTradeHistory();
 
     // premature optimization in case it's 100 trades
-    const assetsToFind = pendingTrades.reduce((acc, e) => {
-        acc[e.contract.item.asset_id] = true;
-        return acc;
-    }, {} as {[key: string]: boolean});
+    const assetsToFind = pendingTrades.reduce(
+        (acc, e) => {
+            acc[e.contract.item.asset_id] = true;
+            return acc;
+        },
+        {} as {[key: string]: boolean}
+    );
 
     // We only want to send history that is relevant to verifying trades on CSFloat
     const historyForCSFloat = history.filter((e) => {

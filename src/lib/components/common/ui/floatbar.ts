@@ -74,9 +74,7 @@ export class FloatBar extends FloatElement {
             );
         };
         const formatFloat = (value: number) => Number(value.toFixed(4));
-        const tooltipText = `Represents the float range of this skin (${formatFloat(this.minFloat)}-${formatFloat(
-            this.maxFloat
-        )})`;
+        const tooltipText = `Represents the float range of this skin (${formatFloat(this.minFloat)}-${formatFloat(this.maxFloat)})`;
 
         return html`
             <div class="market-float-bar-container" style="left: ${left}%; width: ${dynamicWidth.toFixed(2)}%;">

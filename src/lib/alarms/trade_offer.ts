@@ -13,10 +13,13 @@ import {convertSteamID32To64} from '../utils/userinfo';
 export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     const {offers, type} = await getSentTradeOffers();
 
-    const offersToFind = pendingTrades.reduce((acc, e) => {
-        acc[e.steam_offer.id] = true;
-        return acc;
-    }, {} as {[key: string]: boolean});
+    const offersToFind = pendingTrades.reduce(
+        (acc, e) => {
+            acc[e.steam_offer.id] = true;
+            return acc;
+        },
+        {} as {[key: string]: boolean}
+    );
 
     // We only want to send offers that are relevant to verifying trades on CSFloat
     const offersForCSFloat = offers.filter((e) => {

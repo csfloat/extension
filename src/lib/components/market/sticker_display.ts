@@ -57,7 +57,9 @@ export class StickerDisplay extends FloatElement {
             }
 
             a img {
-                transition: transform 0.15s ease, filter 0.15s ease;
+                transition:
+                    transform 0.15s ease,
+                    filter 0.15s ease;
                 width: 64px;
                 height: 48px;
                 filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));

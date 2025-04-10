@@ -387,9 +387,8 @@ export class AutoFill extends FloatElement {
 
         const note = document.getElementById('trade_offer_note');
         if (note) {
-            (
-                note as HTMLTextAreaElement
-            ).value = `CSFloat Market Trade Offer #${trade.id} \n\nThanks for using CSFloat!`;
+            (note as HTMLTextAreaElement).value =
+                `CSFloat Market Trade Offer #${trade.id} \n\nThanks for using CSFloat!`;
         }
     }
 

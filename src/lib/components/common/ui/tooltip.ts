@@ -19,9 +19,7 @@ class TooltipDirective extends Directive {
             return;
         }
 
-        const newParentClass = `${this.parentNode.getAttribute('class') || ''} hint--top hint--rounded hint--no-arrow ${
-            this.extraClasses
-        }`;
+        const newParentClass = `${this.parentNode.getAttribute('class') || ''} hint--top hint--rounded hint--no-arrow ${this.extraClasses}`;
 
         this.parentNode.setAttribute('class', newParentClass);
         this.parentNode.setAttribute('aria-label', this.label);
