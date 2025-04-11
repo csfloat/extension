@@ -3,7 +3,10 @@ import MessageSender = chrome.runtime.MessageSender;
 import {RequestType} from './types';
 
 export class SimpleHandler<Req, Resp> implements RequestHandler<Req, Resp> {
-    constructor(private type: RequestType, private handler: (request: Req, sender: MessageSender) => Promise<Resp>) {}
+    constructor(
+        private type: RequestType,
+        private handler: (request: Req, sender: MessageSender) => Promise<Resp>
+    ) {}
 
     getType(): RequestType {
         return this.type;
@@ -17,7 +20,10 @@ export class SimpleHandler<Req, Resp> implements RequestHandler<Req, Resp> {
 export interface Empty {}
 
 export class EmptyRequestHandler<Resp> implements RequestHandler<Empty, Resp> {
-    constructor(private type: RequestType, private handler: (sender: MessageSender) => Promise<Resp>) {}
+    constructor(
+        private type: RequestType,
+        private handler: (sender: MessageSender) => Promise<Resp>
+    ) {}
 
     getType(): RequestType {
         return this.type;
@@ -29,7 +35,10 @@ export class EmptyRequestHandler<Resp> implements RequestHandler<Empty, Resp> {
 }
 
 export class EmptyResponseHandler<Req> implements RequestHandler<Req, void> {
-    constructor(private type: RequestType, private handler: (request: Req, sender: MessageSender) => Promise<void>) {}
+    constructor(
+        private type: RequestType,
+        private handler: (request: Req, sender: MessageSender) => Promise<void>
+    ) {}
 
     getType(): RequestType {
         return this.type;

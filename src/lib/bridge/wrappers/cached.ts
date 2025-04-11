@@ -10,7 +10,10 @@ interface WrappedRequest<Req> {
 }
 
 class HandlerJob<Req> extends Job<WrappedRequest<Req>> {
-    constructor(protected req: Req, private sender: MessageSender) {
+    constructor(
+        protected req: Req,
+        private sender: MessageSender
+    ) {
         super({data: req, sender});
     }
 
@@ -26,7 +29,11 @@ class HandlerJob<Req> extends Job<WrappedRequest<Req>> {
  * extra properties (ie. sender) in addition to the data.
  */
 class HandlerQueue<Req, Resp> extends TTLCachedQueue<WrappedRequest<Req>, Resp> {
-    constructor(maxConcurrency: number, ttlMs: number, private handler: RequestHandler<Req, Resp>) {
+    constructor(
+        maxConcurrency: number,
+        ttlMs: number,
+        private handler: RequestHandler<Req, Resp>
+    ) {
         super(maxConcurrency, ttlMs);
     }
 
@@ -52,7 +59,11 @@ class HandlerQueue<Req, Resp> extends TTLCachedQueue<WrappedRequest<Req>, Resp> 
 export class CachedHandler<Req, Resp> implements RequestHandler<Req, Resp> {
     private queue: HandlerQueue<Req, Resp>;
 
-    constructor(private handler: RequestHandler<Req, Resp>, maxConcurrency: number, ttlMs: number) {
+    constructor(
+        private handler: RequestHandler<Req, Resp>,
+        maxConcurrency: number,
+        ttlMs: number
+    ) {
         this.queue = new HandlerQueue<Req, Resp>(maxConcurrency, ttlMs, handler);
     }
 

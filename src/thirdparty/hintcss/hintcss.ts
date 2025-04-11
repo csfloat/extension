@@ -350,7 +350,10 @@ export const hintcss = css`
     }
     .hint--bounce:after,
     .hint--bounce:before {
-        transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s cubic-bezier(0.71, 1.7, 0.77, 1.24);
+        transition:
+            opacity 0.3s ease,
+            visibility 0.3s ease,
+            transform 0.3s cubic-bezier(0.71, 1.7, 0.77, 1.24);
     }
     @supports (transition-timing-function: linear(0, 1)) {
         .hint--bounce:after,
@@ -378,7 +381,10 @@ export const hintcss = css`
                 1.003 76.9%,
                 1
             );
-            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.5s var(--spring-easing);
+            transition:
+                opacity 0.3s ease,
+                visibility 0.3s ease,
+                transform 0.5s var(--spring-easing);
         }
     }
     .hint--no-shadow:after,

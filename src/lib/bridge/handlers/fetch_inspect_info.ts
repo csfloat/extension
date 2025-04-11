@@ -57,9 +57,7 @@ export interface FetchInspectInfoResponse {
 export const FetchInspectInfo = new SimpleHandler<FetchInspectInfoRequest, FetchInspectInfoResponse>(
     RequestType.FETCH_INSPECT_INFO,
     (req) => {
-        const apiUrl = `https://api.csfloat.com/?url=${req.link}&minimal=true${
-            req.listPrice ? '&listPrice=' + req.listPrice : ''
-        }`;
+        const apiUrl = `https://api.csfloat.com/?url=${req.link}&minimal=true${req.listPrice ? '&listPrice=' + req.listPrice : ''}`;
         return fetch(apiUrl).then((resp) => {
             return resp.json().then((json: FetchInspectInfoResponse) => {
                 if (resp.ok) {

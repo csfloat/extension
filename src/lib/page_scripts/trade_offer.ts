@@ -35,21 +35,27 @@ function convertKeyInventoryIntoTradeInventory(raw: KeyInventoryResponse): Trade
         asset.hide_in_china = 0;
     });
 
-    const rgInventory = raw.response.assets!.reduce((acc, v) => {
-        acc[v.id] = v;
-        return acc;
-    }, {} as {[k: string]: rgInventoryAsset});
+    const rgInventory = raw.response.assets!.reduce(
+        (acc, v) => {
+            acc[v.id] = v;
+            return acc;
+        },
+        {} as {[k: string]: rgInventoryAsset}
+    );
 
-    const rgDescriptions = raw.response.descriptions?.reduce((acc, v) => {
-        (v.tags || []).forEach((tag) => {
-            // # Valve consistency, this field was renamed
-            tag.name = tag.localized_tag_name;
-        });
+    const rgDescriptions = raw.response.descriptions?.reduce(
+        (acc, v) => {
+            (v.tags || []).forEach((tag) => {
+                // # Valve consistency, this field was renamed
+                tag.name = tag.localized_tag_name;
+            });
 
-        acc[`${v.classid}_${v.instanceid}` as ClassIdAndInstanceId] = v;
+            acc[`${v.classid}_${v.instanceid}` as ClassIdAndInstanceId] = v;
 
-        return acc;
-    }, {} as {[k: ClassIdAndInstanceId]: rgDescription});
+            return acc;
+        },
+        {} as {[k: ClassIdAndInstanceId]: rgDescription}
+    );
 
     return {
         more: false,

@@ -18,7 +18,6 @@ export type DynamicStorageKey = string;
 /**
  * Encapsulates a key/value pair, each key has a value associated
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface StorageRow<T> {
     key: StorageKey | DynamicStorageKey;
 }
