@@ -50,6 +50,6 @@ jobs:
             source-path: "extension-source.zip"
             approval-note: |
               The source code and build instructions are available at 
-              https://github.com/csfloat/extension.
+              https://github.com/csfloat/extension?tab=readme-ov-file#how-to-build-release.
             auth-api-issuer: ${{ secrets.AUTH_API_ISSUER }}
             auth-api-secret: ${{ secrets.AUTH_API_SECRET }}
