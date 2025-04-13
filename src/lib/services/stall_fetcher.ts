@@ -3,9 +3,9 @@ import {FetchStall, FetchStallRequest, FetchStallResponse} from '../bridge/handl
 import {ClientSend} from '../bridge/client';
 
 class StallFetcher extends SimpleCachedQueue<FetchStallRequest, FetchStallResponse> {
-    fetch(req: FetchStallRequest, force_refresh: boolean = false): Promise<FetchStallResponse> {
+    fetch(req: FetchStallRequest, forceRefresh: boolean = false): Promise<FetchStallResponse> {
         // If force_refresh is true, clear the cache for this request before adding a new job
-        if (force_refresh) {
+        if (forceRefresh) {
             this.clearAllCache();
         }
 
