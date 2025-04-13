@@ -98,6 +98,7 @@ class PriceFetcher {
         } catch (error) {
             // If we have no stored cache, bubble up the error
             if (!storedCache) {
+                console.error('Failed to fetch prices and no cached data available');
                 throw new Error('Failed to fetch prices and no cached data available');
             }
 
