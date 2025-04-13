@@ -9,6 +9,7 @@ import {ListItem} from '../../bridge/handlers/list_item';
 import {FetchRecommendedPrice} from '../../bridge/handlers/fetch_recommended_price';
 import {listItemModalStyles} from './list_item_modal_styles';
 import {isLoggedIntoCSFloat} from '../../utils/auth';
+import {CSFError, CSFErrorCode} from '../../utils/errors';
 
 @CustomElement()
 export class ListItemModal extends FloatElement {
@@ -89,7 +90,7 @@ export class ListItemModal extends FloatElement {
 
             const isLoggedIn = await isLoggedIntoCSFloat();
             if (!isLoggedIn) {
-                throw new Error('Not authenticated');
+                throw new CSFError(CSFErrorCode.NOT_AUTHENTICATED);
             }
 
             // Will also throw if not logged in
@@ -97,7 +98,7 @@ export class ListItemModal extends FloatElement {
         } catch (error) {
             console.error('Failed to initialize listing modal:', error);
 
-            if (error instanceof Error && error.message === 'Not authenticated') {
+            if (error instanceof CSFError && error.code === CSFErrorCode.NOT_AUTHENTICATED) {
                 this.error = {
                     message: 'You must be logged into CSFloat to list items.',
                     cta: 'Log into CSFloat',
@@ -537,8 +538,8 @@ export class ListItemModal extends FloatElement {
                                   ${this.isLoading
                                       ? 'Listing...'
                                       : this.listingType === 'buy_now'
-                                      ? 'List for Sale'
-                                      : 'Start Auction'}
+                                        ? 'List for Sale'
+                                        : 'Start Auction'}
                               </button> `}
                 </div>
                 ${this.showConfirmationModal

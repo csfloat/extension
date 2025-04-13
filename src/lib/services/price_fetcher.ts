@@ -1,6 +1,7 @@
 import {environment} from '../../environment';
 import {gStore} from '../storage/store';
 import {PRICE_CACHE} from '../storage/keys';
+import {CSFError, CSFErrorCode} from '../utils/errors';
 
 const DEFAULT_CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 hours
 
@@ -64,10 +65,9 @@ class PriceFetcher {
 
             if (!regularResponse.ok || !dopplerResponse.ok) {
                 console.error(`Failed to fetch prices: ${regularResponse.status}, ${dopplerResponse.status}`);
-                if (regularResponse.status === 401) {
-                    throw new Error('Not authenticated');
-                }
-                throw new Error('Failed to fetch prices');
+                throw new CSFError(
+                    regularResponse.status === 401 ? CSFErrorCode.NOT_AUTHENTICATED : CSFErrorCode.FAILED_TO_FETCH
+                );
             }
 
             const regularData = (await regularResponse.json()) as PriceListResponse[];
@@ -96,13 +96,25 @@ class PriceFetcher {
 
             return {prices, dopplerPrices};
         } catch (error) {
+            // Log the specific error for debugging
+            console.error('Error in price fetcher:', error);
+
             // If we have no stored cache, bubble up the error
             if (!storedCache) {
-                console.error('Failed to fetch prices and no cached data available');
-                throw new Error('Failed to fetch prices and no cached data available');
+                if (error instanceof CSFError) {
+                    // Pass through existing CSFError with the same code
+                    throw error;
+                } else if (error instanceof Error) {
+                    // Convert regular Error to CSFError with original message
+                    throw new CSFError(CSFErrorCode.FAILED_TO_FETCH, `Failed to fetch prices: ${error.message}`);
+                } else {
+                    // Handle unknown error types
+                    throw new CSFError(CSFErrorCode.FAILED_TO_FETCH);
+                }
             }
 
-            // On error with existing cache, return existing cache regardless of age
+            // With existing cache, return cache despite fetch error
+            console.log('Using cached prices despite fetch error');
             return {
                 prices: storedCache.prices || {},
                 dopplerPrices: storedCache.dopplerPrices || {},

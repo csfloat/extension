@@ -1,6 +1,7 @@
 import {SimpleHandler} from './main';
 import {RequestType} from './types';
 import {environment} from '../../../environment';
+import {CSFError, CSFErrorCode} from '../../utils/errors';
 
 type ListingType = 'buy_now' | 'auction';
 
@@ -46,7 +47,7 @@ export const ListItem = new SimpleHandler<ListItemRequest, ListItemResponse>(Req
         const error = await response.json();
         if (response.status === 401) {
             // This is here for normalized auth errors across all handlers
-            throw new Error('Not authenticated');
+            throw new CSFError(CSFErrorCode.NOT_AUTHENTICATED);
         }
 
         throw new Error(`Failed to List Item: ${error.message} - ${error.code}`);
