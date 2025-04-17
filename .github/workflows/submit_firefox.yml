@@ -42,5 +42,7 @@ jobs:
             approval-note: |
               The source code and build instructions are available at 
               https://github.com/csfloat/extension?tab=readme-ov-file#how-to-build-release.
+            release-note: |
+              Learn more about this release and its changes from the latest [Github release](https://github.com/csfloat/extension/releases).
             auth-api-issuer: ${{ secrets.AUTH_API_ISSUER }}
             auth-api-secret: ${{ secrets.AUTH_API_SECRET }}
