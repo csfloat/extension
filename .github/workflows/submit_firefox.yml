@@ -19,6 +19,7 @@ jobs:
             zip -r extension-source.zip .
 
         - name: Download Release Assets
+          id: download-release
           uses: robinraju/release-downloader@v1
           with:
             latest: true # Download the latest release
@@ -43,6 +44,6 @@ jobs:
               The source code and build instructions are available at 
               https://github.com/csfloat/extension?tab=readme-ov-file#how-to-build-release.
             release-note: |
-              Learn more about this release and its changes from the latest [Github release](https://github.com/csfloat/extension/releases).
+              Learn more about release ${{ steps.download-release.outputs.release_name }} by visiting the [GitHub Release](https://github.com/csfloat/extension/releases/tag/${{ steps.download-release.outputs.tag_name }}).
             auth-api-issuer: ${{ secrets.AUTH_API_ISSUER }}
             auth-api-secret: ${{ secrets.AUTH_API_SECRET }}
