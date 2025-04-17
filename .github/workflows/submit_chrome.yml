@@ -4,6 +4,8 @@ on:
         workflows: ["Extension Release"]
         types:
             - completed
+    # Allow manual triggering from the GitHub Actions UI
+    workflow_dispatch:
 
 jobs:
     submit:
