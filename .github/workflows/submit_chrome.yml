@@ -1,0 +1,37 @@
+name: "Submit to Chrome Web Store"
+on:
+    workflow_run:
+        workflows: ["Extension Release"]
+        types:
+            - completed
+
+jobs:
+    submit:
+      runs-on: "ubuntu-latest"
+  
+      steps:
+        - uses: actions/checkout@v3
+
+        - name: Download Release Assets
+          uses: robinraju/release-downloader@v1
+          with:
+            latest: true # Download the latest release
+            out-file-path: "assets" # Output directory for downloaded assets
+            fileName: '*' # Download all assets
+            
+        - name: Find Extension Path
+          id: find-path
+          # Find and output the path to the extension zip
+          # Required as the release action does not support glob patterns
+          run: |
+            CHROME_EXT_PATH=$(find assets -name "extension-*-chrome.zip" | head -n 1)
+            echo "chrome_extension_path=$CHROME_EXT_PATH" >> $GITHUB_OUTPUT
+
+        - name: Chrome Web Store Publish
+          uses: browser-actions/release-chrome-extension@v0.2.1
+          with:
+            extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
+            extension-path: ${{ steps.find-path.outputs.chrome_extension_path }}
+            oauth-client-id: ${{ secrets.OAUTH_CLIENT_ID }}
+            oauth-client-secret: ${{ secrets.OAUTH_CLIENT_SECRET }}
+            oauth-refresh-token: ${{ secrets.OAUTH_REFRESH_TOKEN }}
