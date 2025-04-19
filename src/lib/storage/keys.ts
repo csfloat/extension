@@ -11,6 +11,7 @@ export enum StorageKey {
     ACCESS_TOKEN = 'access_token',
     LAST_TRADE_PING_ATTEMPT = 'last_trade_ping_attempt',
     LAST_TRADE_BLOCKED_PING_ATTEMPT = 'last_trade_blocked_ping_attempt',
+    PRICE_CACHE = 'price_cache', // Stores market hash name -> price mapping (~0.86MB)
 }
 
 export type DynamicStorageKey = string;
@@ -47,3 +48,8 @@ export const PAGE_SIZE = newRow<number>(StorageKey.PAGE_SIZE);
 // Dynamic prefixes should be the market hash name of the item
 export const DYNAMIC_ITEM_FILTERS = newDynamicRow<SerializedFilter[]>(StorageKey.ITEM_FILTERS);
 export const GLOBAL_FILTERS = newRow<SerializedFilter[]>(StorageKey.GLOBAL_FILTERS);
+export const PRICE_CACHE = newRow<{
+    lastUpdated: number;
+    prices: Record<string, number>;
+    dopplerPrices?: Record<string, Record<number, number>>;
+}>(StorageKey.PRICE_CACHE);

@@ -26,4 +26,6 @@ export enum RequestType {
     FETCH_BLOCKED_USERS = 24,
     PING_BLOCKED_USERS = 25,
     FETCH_BLUEGEM = 26,
+    LIST_ITEM = 27,
+    FETCH_RECOMMENDED_PRICE = 28,
 }
