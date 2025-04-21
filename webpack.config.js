@@ -160,9 +160,5 @@ module.exports = (env) => {
         optimization: {
             usedExports: true,
         },
-        experiments: {
-            asyncWebAssembly: true,
-            syncWebAssembly: true,
-        },
     };
 };
