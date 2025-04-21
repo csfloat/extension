@@ -99,7 +99,7 @@ module.exports = (env) => {
             new CopyPlugin({
                 patterns: [
                     {from: 'icons', to: 'icons', context: '.'},
-                    {from: 'data', to: 'data', context: '.', globOptions: { ignore: ['bluegem.json'] }},
+                    {from: 'data', to: 'data', context: '.', globOptions: { ignore: ['bluegem.json'] } },
                     {from: 'src/global.css', to: 'src/', context: '.'},
                     {from: 'src/background_ff.html', to: 'src/', context: '.'},
                     {from: 'src/steamcommunity_ruleset.json', to: 'src/', context: '.'},
@@ -151,9 +151,7 @@ module.exports = (env) => {
                 filename: "[path][base].gz", // Change extension to .gz
                 algorithm: "gzip", // Use gzip algorithm
                 test: /bluegem\.json$/,
-                threshold: 0, // Compress all files regardless of size
-                minRatio: Infinity, // Compress regardless of the compression ratio achieved
-                deleteOriginalAssets: false, 
+                deleteOriginalAssets: true, 
             }),
         ],
         stats: {
