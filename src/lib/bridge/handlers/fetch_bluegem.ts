@@ -1,6 +1,7 @@
 import {ItemInfo} from './fetch_inspect_info';
 import {SimpleHandler} from './main';
 import {RequestType} from './types';
+import { ungzip } from 'pako';
 
 interface BluegemPatternData {
     playside_blue: number;
@@ -39,16 +40,27 @@ export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, FetchBluegemR
         }
 
         if (Object.keys(bluegemCache).length === 0) {
-            const url = chrome.runtime.getURL('data/bluegem.json');
+            // Fetch the compressed data
+            const url = chrome.runtime.getURL('data/bluegem.json.gz');
             try {
                 const resp = await fetch(url);
-                const json = await resp.json();
+                if (!resp.ok) {
+                    throw new Error(`Failed to fetch bluegem data: ${resp.statusText}`);
+                }
+                
+                // Get the response as ArrayBuffer
+                const compressedData = await resp.arrayBuffer();
+                // Decompress the data using pako
+                const decompressedData = ungzip(new Uint8Array(compressedData));
+                // Parse the JSON from the decompressed buffer using TextDecoder
+                const jsonString = new TextDecoder('utf-8').decode(decompressedData);
+                const json = JSON.parse(jsonString);
                 if (!json) {
-                    throw Error('Failed to fetch bluegem data');
+                    throw Error('Failed to parse bluegem data');
                 }
                 Object.assign(bluegemCache, json);
             } catch (e) {
-                console.error('Failed to fetch bluegem data', e);
+                console.error('Failed to fetch and process bluegem data', e);
                 return undefined;
             }
         }
