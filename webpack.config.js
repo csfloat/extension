@@ -149,7 +149,7 @@ module.exports = (env) => {
             // Add Gzip compression for bluegem.json
             new CompressionPlugin({
                 filename: "[path][base].gz", // Change extension to .gz
-                algorithm: "gzip", // Use gzip algorithm
+                algorithm: "gzip",
                 test: /bluegem\.json$/,
                 deleteOriginalAssets: true, 
             }),
