@@ -1,7 +1,7 @@
 import {ItemInfo} from './fetch_inspect_info';
 import {SimpleHandler} from './main';
 import {RequestType} from './types';
-import { ungzip } from 'pako';
+import {ungzip} from 'pako';
 
 interface BluegemPatternData {
     playside_blue: number;
@@ -47,7 +47,7 @@ export const FetchBluegem = new SimpleHandler<FetchBluegemRequest, FetchBluegemR
                 if (!resp.ok) {
                     throw new Error(`Failed to fetch bluegem data: ${resp.statusText}`);
                 }
-                
+
                 // Get the response as ArrayBuffer
                 const compressedData = await resp.arrayBuffer();
                 // Decompress the data using pako
