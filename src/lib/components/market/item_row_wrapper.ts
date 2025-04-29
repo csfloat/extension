@@ -23,7 +23,8 @@ import {ConflictingExtension, ConflictingMode, HideConflictingElement, StyleConf
 @InjectAppend('#searchResultsRows .market_listing_row .market_listing_item_name_block', InjectionMode.CONTINUOUS)
 @HideConflictingElement(
     ConflictingExtension.CS2_TRADER,
-    '#searchResultsRows .market_listing_row .stickerHolderMarket, #searchResultsRows .market_listing_row .stickersTotal, #searchResultsRows .market_listing_row .floatBarMarket'
+    '#searchResultsRows .market_listing_row .stickerHolderMarket, #searchResultsRows .market_listing_row .stickersTotal, #searchResultsRows .market_listing_row .floatBarMarket',
+    ConflictingMode.CONTINUOUS
 )
 @HideConflictingElement(
     ConflictingExtension.SIH,
