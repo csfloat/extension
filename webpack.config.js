@@ -2,6 +2,7 @@ const path = require('path');
 const glob = require('glob');
 const CopyPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CompressionPlugin = require("compression-webpack-plugin");
 const webpack = require('webpack');
 const resolve = require('path').resolve;
 
@@ -98,7 +99,7 @@ module.exports = (env) => {
             new CopyPlugin({
                 patterns: [
                     {from: 'icons', to: 'icons', context: '.'},
-                    {from: 'data', to: 'data', context: '.'},
+                    {from: 'data', to: 'data', context: '.', globOptions: { ignore: ['bluegem.json'] } },
                     {from: 'src/global.css', to: 'src/', context: '.'},
                     {from: 'src/background_ff.html', to: 'src/', context: '.'},
                     {from: 'src/steamcommunity_ruleset.json', to: 'src/', context: '.'},
@@ -144,6 +145,13 @@ module.exports = (env) => {
                         },
                     },
                 ],
+            }),
+            // Add Gzip compression for bluegem.json
+            new CompressionPlugin({
+                filename: "[path][base].gz", // Change extension to .gz
+                algorithm: "gzip",
+                test: /bluegem\.json$/,
+                deleteOriginalAssets: true, 
             }),
         ],
         stats: {
