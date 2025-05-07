@@ -40,6 +40,7 @@ jobs:
             addon-id: ${{ secrets.FIREFOX_EXTENSION_ID }}
             addon-path: ${{ steps.find-path.outputs.firefox_extension_path }}
             source-path: "extension-source.zip"
+            license: "MIT"
             approval-note: |
               The source code and build instructions are available at 
               https://github.com/csfloat/extension?tab=readme-ov-file#how-to-build-release.
