@@ -29,6 +29,7 @@ import {PingBlockedUsers} from './ping_blocked_users';
 import {FetchBluegem} from './fetch_bluegem';
 import {ListItem} from './list_item';
 import {FetchRecommendedPrice} from './fetch_recommended_price';
+import {FetchCSFloatMe} from './fetch_csfloat_me';
 
 export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.EXECUTE_SCRIPT_ON_PAGE]: ExecuteScriptOnPage,
@@ -60,4 +61,5 @@ export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.FETCH_BLUEGEM]: FetchBluegem,
     [RequestType.LIST_ITEM]: ListItem,
     [RequestType.FETCH_RECOMMENDED_PRICE]: FetchRecommendedPrice,
+    [RequestType.FETCH_CSFLOAT_ME]: FetchCSFloatMe,
 };

@@ -28,4 +28,5 @@ export enum RequestType {
     FETCH_BLUEGEM = 26,
     LIST_ITEM = 27,
     FETCH_RECOMMENDED_PRICE = 28,
+    FETCH_CSFLOAT_ME = 29,
 }
