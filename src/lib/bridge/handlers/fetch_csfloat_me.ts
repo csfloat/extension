@@ -28,8 +28,10 @@ export interface FetchCSFloatMeError {
 export const FetchCSFloatMe = new SimpleHandler<FetchCSFloatMeRequest, FetchCSFloatMeResponse>(
     RequestType.FETCH_CSFLOAT_ME,
     async (req) => {
-        return fetch(`${environment.csfloat_base_api_url}/v1/me`).then((resp) => {
-            return resp.json().then((json: FetchCSFloatMeRequest | FetchCSFloatMeError) => {
+        return fetch(`${environment.csfloat_base_api_url}/v1/me`, {
+            credentials: 'include',
+        }).then((resp) => {
+            return resp.json().then((json: FetchCSFloatMeResponse | FetchCSFloatMeError) => {
                 if (resp.ok) {
                     return json;
                 } else {
