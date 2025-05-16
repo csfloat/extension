@@ -27,6 +27,8 @@ import {FetchSteamTrades} from './fetch_steam_trades';
 import {FetchBlockedUsers} from './fetch_blocked_users';
 import {PingBlockedUsers} from './ping_blocked_users';
 import {FetchBluegem} from './fetch_bluegem';
+import {ListItem} from './list_item';
+import {FetchRecommendedPrice} from './fetch_recommended_price';
 
 export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.EXECUTE_SCRIPT_ON_PAGE]: ExecuteScriptOnPage,
@@ -56,4 +58,6 @@ export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.FETCH_BLOCKED_USERS]: FetchBlockedUsers,
     [RequestType.PING_BLOCKED_USERS]: PingBlockedUsers,
     [RequestType.FETCH_BLUEGEM]: FetchBluegem,
+    [RequestType.LIST_ITEM]: ListItem,
+    [RequestType.FETCH_RECOMMENDED_PRICE]: FetchRecommendedPrice,
 };

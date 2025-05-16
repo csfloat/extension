@@ -22,6 +22,7 @@ import {Contract} from '../../types/float_market';
 import '../common/ui/floatbar';
 import {ClientSend} from '../../bridge/client';
 import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
+import './list_item_modal';
 
 /**
  * Why do we bind to iteminfo0 AND iteminfo1?
@@ -65,7 +66,11 @@ export class SelectedItemInfo extends FloatElement {
     @state()
     private loading: boolean = false;
 
+    @state()
     private stall: FetchStallResponse | undefined;
+
+    @state()
+    private showListModal: boolean = false;
 
     private bluegemData: FetchBluegemResponse | undefined;
 
@@ -203,13 +208,25 @@ export class SelectedItemInfo extends FloatElement {
             return html``;
         }
 
+        if (!this.asset?.description?.tradable) {
+            // Don't show if item isn't tradable
+            return html``;
+        }
+
         return html`
             <div class="market-btn-container">
-                <a class="market-btn" href="https://csfloat.com/sell" target="_blank">
+                <a class="market-btn" @click="${() => (this.showListModal = true)}">
                     <span>List on </span>
                     <img src="https://csfloat.com/assets/n_full_logo.png" height="21" style="margin-left: 5px;" />
                 </a>
             </div>
+            ${this.showListModal && this.asset && (this.itemInfo || !isSkin(this.asset.description))
+                ? html`<csfloat-list-item-modal
+                      .asset="${this.asset}"
+                      .itemInfo="${this.itemInfo}"
+                      @close="${this.handleModalClose}"
+                  ></csfloat-list-item-modal>`
+                : ''}
         `;
     }
 
@@ -261,17 +278,34 @@ export class SelectedItemInfo extends FloatElement {
             }
         );
 
-        if (g_ActiveInventory?.m_owner?.strSteamId) {
-            // Ignore errors
-            gStallFetcher
-                .fetch({steam_id64: g_ActiveInventory?.m_owner.strSteamId})
-                .then((stall) => (this.stall = stall));
-        }
+        this.refreshStallData();
 
         // Make sure the parent container can overflow
         const parentContainer = this.closest<HTMLElement>('.item_desc_content');
         if (parentContainer) {
             parentContainer.style.overflow = 'visible';
+        }
+    }
+
+    private handleModalClose(e: CustomEvent) {
+        this.showListModal = false;
+
+        // If an item was listed, refresh the stall data
+        if (e.detail?.listingId) {
+            this.refreshStallData();
+        }
+    }
+
+    private refreshStallData() {
+        if (g_ActiveInventory?.m_owner?.strSteamId) {
+            gStallFetcher
+                .fetch({steam_id64: g_ActiveInventory.m_owner.strSteamId}, true)
+                .then((stall) => (this.stall = stall))
+                .catch((error) => {
+                    console.error('Failed to refresh stall data:', error);
+                });
+        } else {
+            console.error('Failed to refresh stall data: No steam ID found');
         }
     }
 }
