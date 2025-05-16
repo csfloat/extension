@@ -10,6 +10,8 @@ import {FetchRecommendedPrice} from '../../bridge/handlers/fetch_recommended_pri
 import {listItemModalStyles} from './list_item_modal_styles';
 import {isLoggedIntoCSFloat} from '../../utils/auth';
 import {CSFError, CSFErrorCode} from '../../utils/errors';
+import {FetchPendingTrades} from '../../bridge/handlers/fetch_pending_trades';
+import {FetchCSFloatMe} from '../../bridge/handlers/fetch_csfloat_me';
 
 @CustomElement()
 export class ListItemModal extends FloatElement {
@@ -61,7 +63,8 @@ export class ListItemModal extends FloatElement {
 
     private readonly MIN_PRICE_CENTS = 3; // $0.03
 
-    private readonly SALES_FEE_PERCENTAGE = 0.02;
+    // Default to 100% until we fetch it from their CSFloat profile in initializer
+    private SALES_FEE_PERCENTAGE: number = 1;
 
     private readonly DURATION_OPTIONS = [
         {value: 1, label: '1 Day'},
@@ -88,8 +91,10 @@ export class ListItemModal extends FloatElement {
         try {
             this.isInitialLoading = true;
 
-            const isLoggedIn = await isLoggedIntoCSFloat();
-            if (!isLoggedIn) {
+            try {
+                const floatUser = await ClientSend(FetchCSFloatMe, {});
+                this.SALES_FEE_PERCENTAGE = floatUser.user.fee;
+            } catch (e) {
                 throw new CSFError(CSFErrorCode.NOT_AUTHENTICATED);
             }
 

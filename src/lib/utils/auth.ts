@@ -1,5 +1,5 @@
 import {ClientSend} from '../bridge/client';
-import {FetchPendingTrades} from '../bridge/handlers/fetch_pending_trades';
+import {FetchCSFloatMe} from '../bridge/handlers/fetch_csfloat_me';
 
 /**
  * Checks if the user is currently logged into CSFloat by making a test API call
@@ -7,7 +7,7 @@ import {FetchPendingTrades} from '../bridge/handlers/fetch_pending_trades';
  */
 export async function isLoggedIntoCSFloat(): Promise<boolean> {
     try {
-        await ClientSend(FetchPendingTrades, {limit: 1});
+        await ClientSend(FetchCSFloatMe, {});
         return true;
     } catch (e) {
         return false;
