@@ -96,7 +96,7 @@ export const listItemModalStyles = [
             padding: 20px;
             width: 500px;
             max-width: 90%;
-            font-family: Roboto, "Helvetica Neue", sans-serif;
+            font-family: Roboto, 'Helvetica Neue', sans-serif;
             border-width: 2px;
             border-style: solid;
             border-color: rgba(193, 206, 255, 0.07);
@@ -210,7 +210,7 @@ export const listItemModalStyles = [
             background: rgba(193, 206, 255, 0.04);
             border: none;
             border-radius: 10px;
-            color: #FFFFFF;
+            color: #ffffff;
             font-size: 20px;
             font-weight: 500;
             transition: background 0.2s ease;
@@ -231,7 +231,7 @@ export const listItemModalStyles = [
         }
 
         .price-input[type='text'] {
-            color: #FFFFFF;
+            color: #ffffff;
             border: none;
             border-radius: 10px;
             background: rgba(193, 206, 255, 0.04);
@@ -311,12 +311,12 @@ export const listItemModalStyles = [
         }
 
         .error-message {
-            color: #FFFFFF;
+            color: #ffffff;
             width: 100%;
             padding-left: 10px;
             padding-top: 10px;
             padding-bottom: 10px;
-            background: #FF4444;
+            background: #ff4444;
             margin-top: 16px;
             border-radius: 6px;
             box-sizing: border-box;
@@ -339,7 +339,7 @@ export const listItemModalStyles = [
             margin-bottom: 0;
             padding-top: 8px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            color: #FFFFFF;
+            color: #ffffff;
             font-size: 20px;
         }
 
@@ -636,46 +636,50 @@ export const listItemModalStyles = [
             color: #fff;
         }
 
-        /* Auction Info Banner */
         .auction-info-banner {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            background: rgba(35, 123, 255, 0.15);
+            background: rgba(193, 206, 255, 0.04);
             color: #9ea7b1;
             border-radius: 8px;
             padding: 8px 14px;
             margin-bottom: 16px;
             margin-top: -16px;
-        }
-        .auction-info-icon {
-            display: flex;
-            align-items: center;
-        }
-        .auction-info-link {
-            text-decoration: none;
-            font-weight: bold;
-            transition: color 0.2s;
-        }
-        .auction-info-link:hover {
-            color: white;
+
+            .auction-info-icon {
+                display: flex;
+                align-items: center;
+            }
+
+            .auction-info-link {
+                text-decoration: none;
+                font-weight: bold;
+                transition: color 0.2s;
+
+                &:hover {
+                    color: white;
+                }
+            }
         }
 
-        /* Visibility */
         .visibility-selector {
             display: flex;
             justify-content: space-between;
             gap: 12px;
             margin-top: 12px;
-        }
-        .visibility-button {
-            flex: 1;
-        }
-        .visibility-button.active {
-            background: rgb(35, 123, 255);
-            color: white;
-            box-shadow: 0 4px 12px rgba(35, 123, 255, 0.3);
+
+            .visibility-button {
+                flex: 1;
+                transition: all 0.2s ease;
+
+                &.active {
+                    background: rgb(35, 123, 255);
+                    color: white;
+                    box-shadow: 0 4px 12px rgba(35, 123, 255, 0.3);
+                }
+            }
         }
     `,
 ];
