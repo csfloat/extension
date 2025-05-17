@@ -394,22 +394,18 @@ export class ListItemModal extends FloatElement {
                                 <a
                                     href="https://csfloat.com/item/${this.listingId}"
                                     target="_blank"
-                                    class="base-button secondary-button success-link"
+                                    class="base-button secondary-button"
                                 >
                                     View ${this.listingType === 'buy_now' ? 'Listing' : 'Auction'}
                                 </a>
                                 <a
                                     href="https://csfloat.com/stall/me"
                                     target="_blank"
-                                    class="base-button secondary-button success-link"
+                                    class="base-button secondary-button"
                                 >
                                     View Your Stall on CSFloat
                                 </a>
-                                <a
-                                    href="${this.searchUrl}"
-                                    target="_blank"
-                                    class="base-button secondary-button success-link"
-                                >
+                                <a href="${this.searchUrl}" target="_blank" class="base-button secondary-button">
                                     Search Similar Items
                                 </a>
                             </div>
@@ -443,7 +439,9 @@ export class ListItemModal extends FloatElement {
                                 <h2 class="modal-title">List Item on CSFloat</h2>
                                 <span class="modal-subtitle">
                                     Prefer the website? Visit it
-                                    <a href="https://csfloat.com/sell" target="_blank" rel="noopener noreferrer"> here</a>
+                                    <a href="https://csfloat.com/sell" target="_blank" rel="noopener noreferrer">
+                                        here</a
+                                    >
                                 </span>
                             </div>
                         </div>
