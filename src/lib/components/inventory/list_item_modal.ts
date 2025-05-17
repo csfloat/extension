@@ -182,18 +182,6 @@ export class ListItemModal extends FloatElement {
         return {isValid: true};
     }
 
-    private updatePrice(price: number) {
-        const validation = this.validatePrice(price);
-        if (!validation.isValid) {
-            this.error = validation.error;
-            this.customPrice = undefined;
-            return;
-        }
-
-        this.error = undefined;
-        this.customPrice = price;
-    }
-
     private getSaleFee(cents: number): number {
         return Math.max(1, cents * this.SALES_FEE_PERCENTAGE);
     }
