@@ -79,6 +79,10 @@ export class ListItemModal extends FloatElement {
         {value: 14, label: '14 Days'},
     ] as const;
 
+    get searchUrl(): string {
+        return `https://csfloat.com/search?market_hash_name=${this.asset.description.market_hash_name}`;
+    }
+
     static styles = [...listItemModalStyles];
 
     async connectedCallback() {
@@ -400,6 +404,13 @@ export class ListItemModal extends FloatElement {
                                     class="base-button secondary-button success-link"
                                 >
                                     View Your Stall on CSFloat
+                                </a>
+                                <a
+                                    href="${this.searchUrl}"
+                                    target="_blank"
+                                    class="base-button secondary-button success-link"
+                                >
+                                    Search Similar Items
                                 </a>
                             </div>
                             <button class="base-button primary-button success-button" @click="${this.handleClose}">
