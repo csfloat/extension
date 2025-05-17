@@ -301,23 +301,21 @@ export class ListItemModal extends FloatElement {
             this.isLoading = true;
             this.error = undefined;
 
-            const request: Record<string, any> =
+            const request =
                 this.listingType === 'buy_now'
                     ? {
                           type: 'buy_now' as const,
                           asset_id: this.asset.assetid,
                           price: this.customPrice,
+                          private: this.isPrivate,
                       }
                     : {
                           type: 'auction' as const,
                           asset_id: this.asset.assetid,
                           reserve_price: this.customPrice,
                           duration_days: this.auctionDuration,
+                          private: this.isPrivate,
                       };
-
-            if (this.isPrivate) {
-                request.private = true;
-            }
 
             const response = await ClientSend(ListItem, request);
 
