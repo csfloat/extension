@@ -8,11 +8,14 @@ import {ClientSend} from '../../bridge/client';
 import {ListItem} from '../../bridge/handlers/list_item';
 import {FetchRecommendedPrice} from '../../bridge/handlers/fetch_recommended_price';
 import {listItemModalStyles} from './list_item_modal_styles';
-import {isLoggedIntoCSFloat} from '../../utils/auth';
 import {CSFError, CSFErrorCode} from '../../utils/errors';
-import {FetchPendingTrades} from '../../bridge/handlers/fetch_pending_trades';
 import {FetchCSFloatMe} from '../../bridge/handlers/fetch_csfloat_me';
 
+// SVG icons for percentage assessment
+const STEAL_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h14q.825 0 1.413.588T21 5h-8q-1.775 0-2.887 1.113T9 9v6q0 1.775 1.113 2.888T13 19h8q0 .825-.587 1.413T19 21zm8-4q-.825 0-1.412-.587T11 15V9q0-.825.588-1.412T13 7h7q.825 0 1.413.588T22 9v6q0 .825-.587 1.413T20 17zm3-3.5q.65 0 1.075-.425T17.5 12t-.425-1.075T16 10.5t-1.075.425T14.5 12t.425 1.075T16 13.5"/></svg>`;
+const CHEAP_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M15 16h3q.425 0 .713-.288T19 15V9q0-.425-.288-.712T18 8h-3q-.425 0-.712.288T14 9v6q0 .425.288.713T15 16m1-2v-4h1v4zm-7 2h3q.425 0 .713-.288T13 15V9q0-.425-.288-.712T12 8H9q-.425 0-.712.288T8 9v6q0 .425.288.713T9 16m1-2v-4h1v4zm-5 2h2V8H5zm-3 4V4h20v16z"/></svg>`;
+const RECOMMENDED_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 38 38" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M18.9974 6.33464C12.0018 6.33464 6.33073 12.0057 6.33073 19.0013C6.33073 25.9969 12.0018 31.668 18.9974 31.668C25.993 31.668 31.6641 25.9969 31.6641 19.0013C31.6641 12.0057 25.993 6.33464 18.9974 6.33464ZM3.16406 19.0013C3.16406 10.2568 10.2529 3.16797 18.9974 3.16797C27.7418 3.16797 34.8307 10.2568 34.8307 19.0013C34.8307 27.7457 27.7418 34.8346 18.9974 34.8346C10.2529 34.8346 3.16406 27.7457 3.16406 19.0013Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M24.867 14.7137C25.4853 15.3321 25.4853 16.3346 24.867 16.9529L18.5336 23.2862C17.9153 23.9045 16.9128 23.9045 16.2945 23.2862L13.1278 20.1196C12.5095 19.5013 12.5095 18.4987 13.1278 17.8804C13.7461 17.2621 14.7486 17.2621 15.367 17.8804L17.4141 19.9275L22.6278 14.7137C23.2461 14.0954 24.2487 14.0954 24.867 14.7137Z" fill="currentColor"/></svg>`;
+const EXPENSIVE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 25" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 4.5C7.58172 4.5 4 8.08172 4 12.5C4 16.9183 7.58172 20.5 12 20.5C16.4183 20.5 20 16.9183 20 12.5C20 8.08172 16.4183 4.5 12 4.5ZM2 12.5C2 6.97715 6.47715 2.5 12 2.5C17.5228 2.5 22 6.97715 22 12.5C22 18.0228 17.5228 22.5 12 22.5C6.47715 22.5 2 18.0228 2 12.5Z" fill="#EB4B4C"/><path d="M13 8.5C13 7.94772 12.5523 7.5 12 7.5C11.4477 7.5 11 7.94772 11 8.5V12.5C11 13.0523 11.4477 13.5 12 13.5C12.5523 13.5 13 13.0523 13 12.5V8.5Z" fill="#EB4B4C"/><path d="M12 15.5C11.4477 15.5 11 15.9477 11 16.5C11 17.0523 11.4477 17.5 12 17.5C12.5523 17.5 13 17.0523 13 16.5C13 15.9477 12.5523 15.5 12 15.5Z" fill="#EB4B4C"/></svg>`;
 @CustomElement()
 export class ListItemModal extends FloatElement {
     @property()
@@ -342,6 +345,34 @@ export class ListItemModal extends FloatElement {
         this.isConfirmationClosing = false;
     }
 
+    private getPercentageAssessment(percentage: number): {label: string; color: string; icon: string} {
+        if (percentage < 60) {
+            return {
+                label: 'Steal',
+                color: '#27ff00',
+                icon: STEAL_ICON
+            };
+        } else if (percentage < 95) {
+            return {
+                label: 'Cheap',
+                color: '#e9e20f',
+                icon: CHEAP_ICON
+            };
+        } else if (percentage < 104) {
+            return {
+                label: 'Recommended',
+                color: '#64EC42',
+                icon: RECOMMENDED_ICON
+            };
+        } else {
+            return {
+                label: 'Expensive',
+                color: '#f74712',
+                icon: EXPENSIVE_ICON
+            };
+        }
+    }
+
     render(): HTMLTemplateResult {
         if (this.listingId) {
             return html`
@@ -374,6 +405,12 @@ export class ListItemModal extends FloatElement {
                 </div>
             `;
         }
+
+        const pricePercentage =
+            this.recommendedPrice && this.customPrice
+                ? Math.round((this.customPrice / this.recommendedPrice) * 100)
+                : 100;
+        const percentageAssessment = this.getPercentageAssessment(pricePercentage);
 
         return html`
             <div
@@ -468,15 +505,21 @@ export class ListItemModal extends FloatElement {
                                       min="80"
                                       max="120"
                                       step="0.1"
-                                      .value="${this.pricePercentage}"
+                                      .value="${this.pricePercentage.toString()}"
                                       @input="${this.handlePercentageChange}"
                                       class="percentage-slider"
                                   />
-                                  <div>
-                                      Percentage of recommended price:
-                                      ${this.recommendedPrice && this.customPrice
-                                          ? Math.round((this.customPrice / this.recommendedPrice) * 100)
-                                          : 100}%
+                                  <div class="percentage-assessment-row">
+                                      <div
+                                          class="percentage-assessment-label"
+                                          style="color: ${percentageAssessment.color};"
+                                      >
+                                          <div class="percentage-assessment-icon" .innerHTML="${percentageAssessment.icon}"></div>
+                                          ${percentageAssessment.label}
+                                      </div>
+                                      <span class="percentage-assessment-value">
+                                          ${pricePercentage}%
+                                      </span>
                                   </div>
 
                                   ${this.listingType === 'auction'

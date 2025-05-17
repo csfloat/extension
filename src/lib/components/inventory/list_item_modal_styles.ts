@@ -304,7 +304,7 @@ export const listItemModalStyles = [
             justify-content: space-between;
             align-items: center;
             margin-bottom: 8px;
-            color: rgb(158, 167, 177)
+            color: rgb(158, 167, 177);
             font-size: 16px;
         }
 
@@ -582,6 +582,27 @@ export const listItemModalStyles = [
             width: 100%;
             text-align: center;
             box-sizing: border-box;
+        }
+
+        .percentage-assessment-row {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .percentage-assessment-label {
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .percentage-assessment-icon {
+            display: flex;
+            align-items: center;
+            margin-right: 6px;
+        }
+        .percentage-assessment-value {
+            font-size: 15px;
+            color: #fff;
         }
     `,
 ];
