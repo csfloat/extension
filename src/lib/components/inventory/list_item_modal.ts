@@ -350,25 +350,25 @@ export class ListItemModal extends FloatElement {
             return {
                 label: 'Steal',
                 color: '#27ff00',
-                icon: STEAL_ICON
+                icon: STEAL_ICON,
             };
         } else if (percentage < 95) {
             return {
                 label: 'Cheap',
                 color: '#e9e20f',
-                icon: CHEAP_ICON
+                icon: CHEAP_ICON,
             };
         } else if (percentage < 104) {
             return {
                 label: 'Recommended',
                 color: '#64EC42',
-                icon: RECOMMENDED_ICON
+                icon: RECOMMENDED_ICON,
             };
         } else {
             return {
                 label: 'Expensive',
                 color: '#f74712',
-                icon: EXPENSIVE_ICON
+                icon: EXPENSIVE_ICON,
             };
         }
     }
@@ -482,6 +482,37 @@ export class ListItemModal extends FloatElement {
                                   </button>
                               </div>
 
+                              ${this.listingType === 'auction'
+                                  ? html`
+                                        <div class="auction-info-banner">
+                                            <span class="auction-info-icon" aria-hidden="true">
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="18"
+                                                    height="18"
+                                                    viewBox="0 0 24 24"
+                                                    style="vertical-align:middle;"
+                                                >
+                                                    <path
+                                                        fill="#237bff"
+                                                        d="M11 17h2v-6h-2zm1-8q.425 0 .713-.288T13 8t-.288-.712T12 7t-.712.288T11 8t.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"
+                                                    />
+                                                </svg>
+                                            </span>
+                                            <span>
+                                                See details about auctions
+                                                <a
+                                                    class="auction-info-link"
+                                                    href="https://blog.csfloat.com/introducing-auctions-and-watchlists/"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    here
+                                                </a>
+                                            </span>
+                                        </div>
+                                    `
+                                  : ''}
                               <div class="price-section">
                                   <label>
                                       Recommended Price in USD:
@@ -514,12 +545,13 @@ export class ListItemModal extends FloatElement {
                                           class="percentage-assessment-label"
                                           style="color: ${percentageAssessment.color};"
                                       >
-                                          <div class="percentage-assessment-icon" .innerHTML="${percentageAssessment.icon}"></div>
+                                          <div
+                                              class="percentage-assessment-icon"
+                                              .innerHTML="${percentageAssessment.icon}"
+                                          ></div>
                                           ${percentageAssessment.label}
                                       </div>
-                                      <span class="percentage-assessment-value">
-                                          ${pricePercentage}%
-                                      </span>
+                                      <span class="percentage-assessment-value"> ${pricePercentage}% </span>
                                   </div>
 
                                   ${this.listingType === 'auction'

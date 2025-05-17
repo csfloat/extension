@@ -604,5 +604,30 @@ export const listItemModalStyles = [
             font-size: 15px;
             color: #fff;
         }
+
+        .auction-info-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(35, 123, 255, 0.15);
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 8px 14px;
+            margin-bottom: 16px;
+            margin-top: -16px;
+        }
+        .auction-info-icon {
+            display: flex;
+            align-items: center;
+        }
+        .auction-info-link {
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.2s;
+        }
+        .auction-info-link:hover {
+            color: white;
+        }
     `,
 ];
