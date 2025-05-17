@@ -430,7 +430,13 @@ export class ListItemModal extends FloatElement {
                     <div class="modal-header">
                         <div class="modal-header-left">
                             <img class="modal-icon" src="https://csfloat.com/assets/karambit-icon.png" />
-                            <h2 class="modal-title">List Item on CSFloat</h2>
+                            <div class="modal-header-text">
+                                <h2 class="modal-title">List Item on CSFloat</h2>
+                                <span class="modal-subtitle">
+                                    Prefer the website? Visit it
+                                    <a href="https://csfloat.com/sell" target="_blank"> here</a>
+                                </span>
+                            </div>
                         </div>
                         <button class="close-button" @click="${this.handleClose}">×</button>
                     </div>

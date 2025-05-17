@@ -122,41 +122,68 @@ export const listItemModalStyles = [
             justify-content: space-between;
             align-items: start;
             margin-bottom: 20px;
-        }
 
-        .modal-header-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
+            .modal-header-left {
+                display: flex;
+                align-items: center;
+                gap: 16px;
 
-        .modal-icon {
-            display: block;
-            width: 40px;
-            height: 40px;
-            padding: 10px;
-            background-color: rgba(35, 123, 255, 0.15);
-            border-radius: 10px;
-            object-fit: contain;
-        }
+                .modal-icon {
+                    display: block;
+                    width: 40px;
+                    height: 40px;
+                    padding: 10px;
+                    background-color: rgba(35, 123, 255, 0.15);
+                    border-radius: 10px;
+                    object-fit: contain;
+                }
 
-        .modal-title {
-            margin: 0;
-            font-size: 28px;
-            color: #ffffff;
-        }
+                .modal-header-text {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 5px;
 
-        .close-button {
-            background: none;
-            border: none;
-            color: #ffffff;
-            font-size: 28px;
-            cursor: pointer;
+                    .modal-title {
+                        margin: 0;
+                        font-size: 28px;
+                        font-weight: 500;
+                        color: white;
+                    }
+
+                    .modal-subtitle {
+                        font-size: 0.8rem;
+                        color: #9ea7b1;
+
+                        a {
+                            color: #237bff;
+                            text-decoration: none;
+                            transition: color 0.2s ease;
+
+                            &:hover {
+                                color: #0056b3;
+                            }
+                        }
+                    }
+                }
+            }
+
+            .close-button {
+                background: none;
+                border: none;
+                color: #ffffff;
+                font-size: 28px;
+                cursor: pointer;
+                transition: color 0.2s ease;
+
+                &:hover {
+                    color: rgba(255, 255, 255, 0.8);
+                }
+            }
         }
 
         .price-section {
             margin-bottom: 20px;
-            color: rgba(255, 255, 255, 0.8);
+            color: #9ea7b1;
             font-size: 14px;
         }
 
@@ -170,7 +197,7 @@ export const listItemModalStyles = [
             left: 18px;
             top: 50%;
             transform: translateY(-50%);
-            color: rgba(255, 255, 255, 0.8);
+            color: #9ea7b1;
             font-size: 20px;
             pointer-events: none;
         }
@@ -180,7 +207,7 @@ export const listItemModalStyles = [
             box-sizing: border-box;
             padding: 12px;
             padding-left: 40px;
-            background: rgba(193, 206, 255, .04);
+            background: rgba(193, 206, 255, 0.04);
             border: none;
             border-radius: 10px;
             color: #FFFFFF;
@@ -207,12 +234,12 @@ export const listItemModalStyles = [
             color: #FFFFFF;
             border: none;
             border-radius: 10px;
-            background: rgba(193, 206, 255, .04);
+            background: rgba(193, 206, 255, 0.04);
         }
 
         .price-input[type='text']:focus {
             outline: none;
-            background: rgba(193, 206, 255, .07);
+            background: rgba(193, 206, 255, 0.07);
         }
 
         .percentage-slider {
@@ -313,7 +340,7 @@ export const listItemModalStyles = [
             padding-top: 8px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             color: #FFFFFF;
-            font-size: 20px
+            font-size: 20px;
         }
 
         .price-breakdown-row.fee {
@@ -363,7 +390,7 @@ export const listItemModalStyles = [
             background: rgba(35, 123, 255, 0.1);
             border: none;
             border-radius: 8px;
-            color: rgba(255, 255, 255, 0.8);
+            color: #9ea7b1;
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
@@ -520,7 +547,7 @@ export const listItemModalStyles = [
 
         .secondary-button {
             background: rgba(35, 123, 255, 0.1);
-            color: rgba(255, 255, 255, 0.8);
+            color: #9ea7b1;
         }
 
         .secondary-button:hover:not(:disabled) {
@@ -616,7 +643,7 @@ export const listItemModalStyles = [
             justify-content: center;
             gap: 8px;
             background: rgba(35, 123, 255, 0.15);
-            color: rgba(255, 255, 255, 0.8);
+            color: #9ea7b1;
             border-radius: 8px;
             padding: 8px 14px;
             margin-bottom: 16px;
