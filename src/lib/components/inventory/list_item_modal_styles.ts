@@ -343,7 +343,7 @@ export const listItemModalStyles = [
         }
 
         .auction-settings {
-            margin-top: 24px;
+            margin-top: 16px;
         }
 
         .duration-selector {
@@ -524,8 +524,11 @@ export const listItemModalStyles = [
         }
 
         .secondary-button:hover:not(:disabled) {
-            background: rgba(35, 123, 255, 0.15);
             transform: translateY(-1px);
+
+            &:not(.active) {
+                background: rgba(35, 123, 255, 0.15);
+            }
         }
 
         .danger-button {
@@ -584,8 +587,9 @@ export const listItemModalStyles = [
             box-sizing: border-box;
         }
 
+        /* Percentage Assessment */
         .percentage-assessment-row {
-            margin-bottom: 8px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -605,6 +609,7 @@ export const listItemModalStyles = [
             color: #fff;
         }
 
+        /* Auction Info Banner */
         .auction-info-banner {
             display: flex;
             align-items: center;
@@ -628,6 +633,22 @@ export const listItemModalStyles = [
         }
         .auction-info-link:hover {
             color: white;
+        }
+
+        /* Visibility */
+        .visibility-selector {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .visibility-button {
+            flex: 1;
+        }
+        .visibility-button.active {
+            background: rgb(35, 123, 255);
+            color: white;
+            box-shadow: 0 4px 12px rgba(35, 123, 255, 0.3);
         }
     `,
 ];

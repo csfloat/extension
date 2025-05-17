@@ -31,6 +31,9 @@ export class ListItemModal extends FloatElement {
     private listingType: 'buy_now' | 'auction' = 'buy_now';
 
     @state()
+    private isPrivate: boolean = false;
+
+    @state()
     private customPrice: number | undefined;
 
     @state()
@@ -298,7 +301,7 @@ export class ListItemModal extends FloatElement {
             this.isLoading = true;
             this.error = undefined;
 
-            const request =
+            const request: Record<string, any> =
                 this.listingType === 'buy_now'
                     ? {
                           type: 'buy_now' as const,
@@ -311,6 +314,10 @@ export class ListItemModal extends FloatElement {
                           reserve_price: this.customPrice,
                           duration_days: this.auctionDuration,
                       };
+
+            if (this.isPrivate) {
+                request.private = true;
+            }
 
             const response = await ClientSend(ListItem, request);
 
@@ -552,6 +559,29 @@ export class ListItemModal extends FloatElement {
                                           ${percentageAssessment.label}
                                       </div>
                                       <span class="percentage-assessment-value"> ${pricePercentage}% </span>
+                                  </div>
+
+                                  <!-- Visibility Selector -->
+                                  <div class="visibility-settings">
+                                      <label>Visibility</label>
+                                      <div class="visibility-selector">
+                                          <button
+                                              class="base-button secondary-button visibility-button ${!this.isPrivate
+                                                  ? 'active'
+                                                  : ''}"
+                                              @click="${() => (this.isPrivate = false)}"
+                                          >
+                                              Public
+                                          </button>
+                                          <button
+                                              class="base-button secondary-button visibility-button ${this.isPrivate
+                                                  ? 'active'
+                                                  : ''}"
+                                              @click="${() => (this.isPrivate = true)}"
+                                          >
+                                              Private
+                                          </button>
+                                      </div>
                                   </div>
 
                                   ${this.listingType === 'auction'
