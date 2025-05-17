@@ -80,7 +80,7 @@ export class ListItemModal extends FloatElement {
     ] as const;
 
     get searchUrl(): string {
-        return `https://csfloat.com/search?market_hash_name=${this.asset.description.market_hash_name}`;
+        return `https://csfloat.com/search?market_hash_name=${encodeURIComponent(this.asset.description.market_hash_name)}`;
     }
 
     static styles = [...listItemModalStyles];
@@ -443,7 +443,7 @@ export class ListItemModal extends FloatElement {
                                 <h2 class="modal-title">List Item on CSFloat</h2>
                                 <span class="modal-subtitle">
                                     Prefer the website? Visit it
-                                    <a href="https://csfloat.com/sell" target="_blank"> here</a>
+                                    <a href="https://csfloat.com/sell" target="_blank" rel="noopener noreferrer"> here</a>
                                 </span>
                             </div>
                         </div>
