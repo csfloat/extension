@@ -558,7 +558,7 @@ export class ListItemModal extends FloatElement {
                                       <span class="percentage-assessment-value"> ${pricePercentage}% </span>
                                   </div>
 
-                                  <div>
+                                  <div class="visibility-row">
                                       <label>Visibility</label>
                                       <div class="visibility-selector">
                                           <button

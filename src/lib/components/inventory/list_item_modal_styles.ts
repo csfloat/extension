@@ -664,20 +664,28 @@ export const listItemModalStyles = [
             }
         }
 
-        .visibility-selector {
+        .visibility-row {
             display: flex;
             justify-content: space-between;
-            gap: 12px;
-            margin-top: 12px;
+            align-items: center;
+            margin-top: 16px;
+            
+            .visibility-selector {
+                display: flex;
+                gap: 6px;
+                margin-top: 0;
 
-            .visibility-button {
-                flex: 1;
-                transition: all 0.2s ease;
+                .visibility-button {
+                    flex: none;
+                    padding: 6px 12px;
+                    font-size: 13px;
+                    transition: all 0.2s ease;
 
-                &.active {
-                    background: rgb(35, 123, 255);
-                    color: white;
-                    box-shadow: 0 4px 12px rgba(35, 123, 255, 0.3);
+                    &.active {
+                        background: rgb(35, 123, 255);
+                        color: white;
+                        box-shadow: 0 4px 12px rgba(35, 123, 255, 0.3);
+                    }
                 }
             }
         }
