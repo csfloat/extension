@@ -117,6 +117,16 @@ export const listItemModalStyles = [
             animation: modalOut 0.2s ease forwards;
         }
 
+        a.text-link {
+            color: #237bff;
+            text-decoration: none;
+            transition: color 0.2s ease;
+
+            &:hover {
+                color: #0056b3;
+            }
+        }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -153,16 +163,6 @@ export const listItemModalStyles = [
                     .modal-subtitle {
                         font-size: 0.8rem;
                         color: #9ea7b1;
-
-                        a {
-                            color: #237bff;
-                            text-decoration: none;
-                            transition: color 0.2s ease;
-
-                            &:hover {
-                                color: #0056b3;
-                            }
-                        }
                     }
                 }
             }
@@ -185,6 +185,13 @@ export const listItemModalStyles = [
             margin-bottom: 20px;
             color: #9ea7b1;
             font-size: 14px;
+        }
+
+        .price-section-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
         }
 
         .price-input-container {
@@ -669,7 +676,7 @@ export const listItemModalStyles = [
             justify-content: space-between;
             align-items: center;
             margin-top: 16px;
-            
+
             .visibility-selector {
                 display: flex;
                 gap: 6px;

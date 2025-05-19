@@ -423,7 +423,12 @@ export class ListItemModal extends FloatElement {
                                 <h2 class="modal-title">List Item on CSFloat</h2>
                                 <span class="modal-subtitle">
                                     Prefer the website? Visit it
-                                    <a href="https://csfloat.com/sell" target="_blank" rel="noopener noreferrer">
+                                    <a
+                                        class="text-link"
+                                        href="https://csfloat.com/sell"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
                                         here</a
                                     >
                                 </span>
@@ -518,10 +523,17 @@ export class ListItemModal extends FloatElement {
                                     `
                                   : ''}
                               <div class="price-section">
-                                  <label>
-                                      Recommended Price in USD:
-                                      ${this.recommendedPrice ? `$${(this.recommendedPrice / 100).toFixed(2)}` : 'N/A'}
-                                  </label>
+                                  <div class="price-section-row">
+                                      <label>
+                                          Recommended Price in USD:
+                                          ${this.recommendedPrice
+                                              ? `$${(this.recommendedPrice / 100).toFixed(2)}`
+                                              : 'N/A'}
+                                      </label>
+                                      <a href="${this.searchUrl}" target="_blank" class="text-link">
+                                          Search Similar Items
+                                      </a>
+                                  </div>
                                   <div class="price-input-container">
                                       <span class="price-input-prefix">$</span>
                                       <input
