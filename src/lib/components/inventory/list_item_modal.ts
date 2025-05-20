@@ -30,6 +30,9 @@ export class ListItemModal extends FloatElement {
     private isPrivate: boolean = false;
 
     @state()
+    private description: string = '';
+
+    @state()
     private customPrice: number | undefined;
 
     @state()
@@ -74,6 +77,8 @@ export class ListItemModal extends FloatElement {
         {value: 7, label: '7 Days'},
         {value: 14, label: '14 Days'},
     ] as const;
+
+    private readonly MAX_DESCRIPTION_LENGTH = 32;
 
     get searchUrl(): string {
         return `https://csfloat.com/search?market_hash_name=${encodeURIComponent(this.asset.description.market_hash_name)}`;
@@ -296,6 +301,7 @@ export class ListItemModal extends FloatElement {
                           asset_id: this.asset.assetid,
                           price: this.customPrice,
                           private: this.isPrivate,
+                          description: this.description || undefined,
                       }
                     : {
                           type: 'auction' as const,
@@ -303,6 +309,7 @@ export class ListItemModal extends FloatElement {
                           reserve_price: this.customPrice,
                           duration_days: this.auctionDuration,
                           private: this.isPrivate,
+                          description: this.description || undefined,
                       };
 
             const response = await ClientSend(ListItem, request);
@@ -589,6 +596,32 @@ export class ListItemModal extends FloatElement {
                                           >
                                               Private
                                           </button>
+                                      </div>
+                                  </div>
+
+                                  <div class="description-row">
+                                      <label>Description (Optional)</label>
+                                      <div class="description-input-container">
+                                          <input
+                                              type="text"
+                                              class="description-input"
+                                              .value="${this.description}"
+                                              @input="${(e: Event) => {
+                                                  const input = e.target as HTMLInputElement;
+                                                  if (input.value.length <= this.MAX_DESCRIPTION_LENGTH) {
+                                                      this.description = input.value;
+                                                  } else {
+                                                      input.value = this.description;
+                                                  }
+                                              }}"
+                                              placeholder="Item Description"
+                                              maxlength="${this.MAX_DESCRIPTION_LENGTH}"
+                                          />
+                                          <div
+                                              class="character-counter ${this.description.length === this.MAX_DESCRIPTION_LENGTH ? 'limit-reached' : ''}"
+                                          >
+                                              ${this.description.length}/${this.MAX_DESCRIPTION_LENGTH}
+                                          </div>
                                       </div>
                                   </div>
 

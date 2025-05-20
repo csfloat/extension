@@ -415,17 +415,6 @@ export const listItemModalStyles = [
             box-shadow: 0 4px 12px rgba(35, 123, 255, 0.3);
         }
 
-        .description-input {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            background: #2a475e;
-            border: 1px solid #000000;
-            color: #ffffff;
-            resize: vertical;
-            min-height: 60px;
-        }
-
         .checkbox-container {
             margin-top: 10px;
             display: flex;
@@ -695,6 +684,55 @@ export const listItemModalStyles = [
                     }
                 }
             }
+        }
+
+        .description-row {
+            margin-top: 16px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .description-row > label {
+            white-space: nowrap;
+        }
+
+        .description-input-container {
+            width: 60%;
+            position: relative;
+            display: flex;
+        }
+
+        .description-input {
+            flex-grow: 1;
+            padding: 8px 12px;
+            border: 1px solid #000000;
+            border-radius: 4px;
+            background: #2a475e;
+            color: #ffffff;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        .description-input:focus {
+            outline: none;
+            border-color: rgb(35, 123, 255);
+        }
+
+        .character-counter {
+            position: absolute;
+            bottom: 4px;
+            right: 8px;
+            font-size: 12px;
+            color: #9ea7b1;
+            pointer-events: none;
+        }
+
+        .character-counter.limit-reached {
+            color: #ff4444; /* Red color for limit reached */
         }
     `,
 ];
