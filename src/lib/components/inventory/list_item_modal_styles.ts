@@ -705,21 +705,25 @@ export const listItemModalStyles = [
             display: flex;
         }
 
-        .description-input {
+        .description-input[type='text'] {
             flex-grow: 1;
             padding: 8px 12px;
-            border: 1px solid #000000;
-            border-radius: 4px;
-            background: #2a475e;
+            background: rgba(193, 206, 255, 0.04);
+            border: none;
+            border-radius: 10px;
             color: #ffffff;
             font-size: 14px;
             resize: vertical;
-            transition: border-color 0.2s;
+            transition: background 0.2s ease;
+        }
+
+        .description-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
         }
 
         .description-input:focus {
             outline: none;
-            border-color: rgb(35, 123, 255);
+            background: rgba(193, 206, 255, 0.07);
         }
 
         .character-counter {
