@@ -134,7 +134,7 @@ export class ListItemModal extends FloatElement {
 
             // Set initial slider progress after initial loading is done
             requestAnimationFrame(() => {
-                const slider = this.shadowRoot?.querySelector('.percentage-slider') as HTMLInputElement;
+                const slider = this.shadowRoot?.querySelector<HTMLInputElement>('.percentage-slider');
                 if (slider) {
                     slider.style.setProperty('--slider-percentage', '50');
                 }
@@ -239,6 +239,21 @@ export class ListItemModal extends FloatElement {
         } else {
             this.error = undefined;
             this.customPrice = cents;
+
+            // Update the price percentage
+            if (this.recommendedPrice) {
+                this.pricePercentage = Math.round((cents / this.recommendedPrice) * 100);
+
+                const rangePercentage = Math.max(80, Math.min(120, (cents / this.recommendedPrice) * 100));
+                // Update the slider progress - normalize to 0-100 based on min-max range
+                requestAnimationFrame(() => {
+                    const normalizedValue = ((rangePercentage - 80) / (120 - 80)) * 100;
+                    const slider = this.shadowRoot?.querySelector<HTMLInputElement>('.percentage-slider');
+                    if (slider) {
+                        slider.style.setProperty('--slider-percentage', normalizedValue.toString());
+                    }
+                });
+            }
         }
     }
 
