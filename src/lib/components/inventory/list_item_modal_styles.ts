@@ -732,7 +732,12 @@ export const listItemModalStyles = [
         }
 
         .character-counter.limit-reached {
-            color: #ff4444; /* Red color for limit reached */
+            color: #ff4444;
+        }
+
+        .add-description-button {
+            padding: 6px;
+            display: flex;
         }
     `,
 ];

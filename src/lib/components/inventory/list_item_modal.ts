@@ -30,6 +30,9 @@ export class ListItemModal extends FloatElement {
     private isPrivate: boolean = false;
 
     @state()
+    private showDescriptionInput: boolean = false;
+
+    @state()
     private description: string = '';
 
     @state()
@@ -600,29 +603,56 @@ export class ListItemModal extends FloatElement {
                                   </div>
 
                                   <div class="description-row">
-                                      <label>Description (Optional)</label>
-                                      <div class="description-input-container">
-                                          <input
-                                              type="text"
-                                              class="description-input"
-                                              .value="${this.description}"
-                                              @input="${(e: Event) => {
-                                                  const input = e.target as HTMLInputElement;
-                                                  if (input.value.length <= this.MAX_DESCRIPTION_LENGTH) {
-                                                      this.description = input.value;
-                                                  } else {
-                                                      input.value = this.description;
-                                                  }
-                                              }}"
-                                              placeholder="Item Description"
-                                              maxlength="${this.MAX_DESCRIPTION_LENGTH}"
-                                          />
-                                          <div
-                                              class="character-counter ${this.description.length === this.MAX_DESCRIPTION_LENGTH ? 'limit-reached' : ''}"
-                                          >
-                                              ${this.description.length}/${this.MAX_DESCRIPTION_LENGTH}
-                                          </div>
-                                      </div>
+                                      <label>Description</label>
+                                      ${this.showDescriptionInput
+                                          ? html`
+                                                <div class="description-input-container">
+                                                    <input
+                                                        type="text"
+                                                        class="description-input"
+                                                        .value="${this.description}"
+                                                        @input="${(e: Event) => {
+                                                            const input = e.target as HTMLInputElement;
+                                                            if (input.value.length <= this.MAX_DESCRIPTION_LENGTH) {
+                                                                this.description = input.value;
+                                                            } else {
+                                                                input.value = this.description;
+                                                            }
+                                                        }}"
+                                                        placeholder="Item Description"
+                                                        maxlength="${this.MAX_DESCRIPTION_LENGTH}"
+                                                    />
+                                                    <div
+                                                        class="character-counter ${this.description.length ===
+                                                        this.MAX_DESCRIPTION_LENGTH
+                                                            ? 'limit-reached'
+                                                            : ''}"
+                                                    >
+                                                        ${this.description.length}/${this.MAX_DESCRIPTION_LENGTH}
+                                                    </div>
+                                                </div>
+                                            `
+                                          : html`
+                                                <button
+                                                    class="base-button secondary-button add-description-button"
+                                                    @click="${() => (this.showDescriptionInput = true)}"
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        width="16"
+                                                        height="16"
+                                                        viewBox="0 0 24 24"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        stroke-width="2"
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                    >
+                                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                                    </svg>
+                                                </button>
+                                            `}
                                   </div>
 
                                   ${this.listingType === 'auction'
