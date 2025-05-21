@@ -45,8 +45,8 @@ export class SelectedItemInfo extends FloatElement {
                 margin: 10px 0 10px 0;
                 padding: 5px;
                 width: fit-content;
-                border: 1px #5a5a5a solid;
-                background-color: #383838;
+                border: solid 1px rgb(56 64 77);
+                background-color: rgb(43 48 57);
                 border-radius: 3px;
             }
 
