@@ -105,9 +105,17 @@ export function renderClickableRank(info: ItemInfo): TemplateResult<1> {
 }
 
 export function isSellableOnCSFloat(asset: rgAsset): boolean {
-    return isSkin(asset) || isCharm(asset) || isAgent(asset) || isSticker(asset) || isPatch(asset) || isCase(asset);
+    return (
+        isSkin(asset) ||
+        isCharm(asset) ||
+        isAgent(asset) ||
+        isSticker(asset) ||
+        isPatch(asset) ||
+        isCase(asset) ||
+        isMusicKit(asset) ||
+        isPin(asset)
+    );
 }
-
 export function isSkin(asset: rgAsset): boolean {
     return asset.tags
         ? asset.tags.some((a) => a.category === 'Weapon' || (a.category === 'Type' && a.internal_name === 'Type_Hands'))
@@ -117,7 +125,7 @@ export function isSkin(asset: rgAsset): boolean {
 }
 
 export function isCharm(asset: rgAsset): boolean {
-    return isAbstractType(asset, 'Charm', 'CSGO_Type_Charm');
+    return isAbstractType(asset, 'Charm', 'CSGO_Tool_Keychain');
 }
 
 export function isAgent(asset: rgAsset): boolean {
@@ -134,6 +142,14 @@ export function isPatch(asset: rgAsset): boolean {
 
 export function isCase(asset: rgAsset): boolean {
     return isAbstractType(asset, 'Container', 'CSGO_Type_WeaponCase');
+}
+
+export function isMusicKit(asset: rgAsset): boolean {
+    return isAbstractType(asset, 'Music Kit', 'CSGO_Type_MusicKit');
+}
+
+export function isPin(asset: rgAsset): boolean {
+    return isAbstractType(asset, 'Pin', 'CSGO_Type_Collectible');
 }
 
 function isAbstractType(asset: rgAsset, type: string, internalName: string): boolean {
