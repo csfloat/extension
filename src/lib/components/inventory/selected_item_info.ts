@@ -45,8 +45,8 @@ export class SelectedItemInfo extends FloatElement {
                 margin: 10px 0 10px 0;
                 padding: 5px;
                 width: fit-content;
-                border: 1px #5a5a5a solid;
-                background-color: #383838;
+                border: solid 1px rgb(56 64 77);
+                background-color: rgb(43 48 57);
                 border-radius: 3px;
             }
 
@@ -187,7 +187,7 @@ export class SelectedItemInfo extends FloatElement {
         return html`
             <div class="market-btn-container">
                 <a class="market-btn" href="https://csfloat.com/item/${this.stallListing.id}" target="_blank">
-                    <img src="https://csfloat.com/assets/n_full_logo.png" height="21" style="margin-right: 5px;" />
+                    <img src="https://csfloat.com/assets/logo/full_white.png" height="21" style="margin-right: 5px;" />
                     <span>
                         Listed for
                         <b>$${(this.stallListing.price / 100).toFixed(2)}</b>
@@ -217,7 +217,7 @@ export class SelectedItemInfo extends FloatElement {
             <div class="market-btn-container">
                 <a class="market-btn" @click="${() => (this.showListModal = true)}">
                     <span>List on </span>
-                    <img src="https://csfloat.com/assets/n_full_logo.png" height="21" style="margin-left: 5px;" />
+                    <img src="https://csfloat.com/assets/logo/full_white.png" height="21" style="margin-left: 5px;" />
                 </a>
             </div>
             ${this.showListModal && this.asset && (this.itemInfo || !isSkin(this.asset.description))
