@@ -8,10 +8,9 @@ import {ClientSend} from '../../bridge/client';
 import {ListItem} from '../../bridge/handlers/list_item';
 import {FetchRecommendedPrice} from '../../bridge/handlers/fetch_recommended_price';
 import {listItemModalStyles} from './list_item_modal_styles';
-import {isLoggedIntoCSFloat} from '../../utils/auth';
 import {CSFError, CSFErrorCode} from '../../utils/errors';
-import {FetchPendingTrades} from '../../bridge/handlers/fetch_pending_trades';
 import {FetchCSFloatMe} from '../../bridge/handlers/fetch_csfloat_me';
+import {STEAL_ICON, CHEAP_ICON, RECOMMENDED_ICON, EXPENSIVE_ICON} from '../../utils/icons';
 
 @CustomElement()
 export class ListItemModal extends FloatElement {
@@ -26,6 +25,15 @@ export class ListItemModal extends FloatElement {
 
     @state()
     private listingType: 'buy_now' | 'auction' = 'buy_now';
+
+    @state()
+    private isPrivate: boolean = false;
+
+    @state()
+    private showDescriptionInput: boolean = false;
+
+    @state()
+    private description: string = '';
 
     @state()
     private customPrice: number | undefined;
@@ -72,6 +80,12 @@ export class ListItemModal extends FloatElement {
         {value: 7, label: '7 Days'},
         {value: 14, label: '14 Days'},
     ] as const;
+
+    private readonly MAX_DESCRIPTION_LENGTH = 32;
+
+    get searchUrl(): string {
+        return `https://csfloat.com/search?market_hash_name=${encodeURIComponent(this.asset.description.market_hash_name)}`;
+    }
 
     static styles = [...listItemModalStyles];
 
@@ -120,7 +134,7 @@ export class ListItemModal extends FloatElement {
 
             // Set initial slider progress after initial loading is done
             requestAnimationFrame(() => {
-                const slider = this.shadowRoot?.querySelector('.percentage-slider') as HTMLInputElement;
+                const slider = this.shadowRoot?.querySelector<HTMLInputElement>('.percentage-slider');
                 if (slider) {
                     slider.style.setProperty('--slider-percentage', '50');
                 }
@@ -170,18 +184,6 @@ export class ListItemModal extends FloatElement {
         }
 
         return {isValid: true};
-    }
-
-    private updatePrice(price: number) {
-        const validation = this.validatePrice(price);
-        if (!validation.isValid) {
-            this.error = validation.error;
-            this.customPrice = undefined;
-            return;
-        }
-
-        this.error = undefined;
-        this.customPrice = price;
     }
 
     private getSaleFee(cents: number): number {
@@ -237,6 +239,21 @@ export class ListItemModal extends FloatElement {
         } else {
             this.error = undefined;
             this.customPrice = cents;
+
+            // Update the price percentage
+            if (this.recommendedPrice) {
+                this.pricePercentage = Math.round((cents / this.recommendedPrice) * 100);
+
+                const rangePercentage = Math.max(80, Math.min(120, (cents / this.recommendedPrice) * 100));
+                // Update the slider progress - normalize to 0-100 based on min-max range
+                requestAnimationFrame(() => {
+                    const normalizedValue = ((rangePercentage - 80) / (120 - 80)) * 100;
+                    const slider = this.shadowRoot?.querySelector<HTMLInputElement>('.percentage-slider');
+                    if (slider) {
+                        slider.style.setProperty('--slider-percentage', normalizedValue.toString());
+                    }
+                });
+            }
         }
     }
 
@@ -301,12 +318,16 @@ export class ListItemModal extends FloatElement {
                           type: 'buy_now' as const,
                           asset_id: this.asset.assetid,
                           price: this.customPrice,
+                          private: this.isPrivate,
+                          description: this.description || undefined,
                       }
                     : {
                           type: 'auction' as const,
                           asset_id: this.asset.assetid,
                           reserve_price: this.customPrice,
                           duration_days: this.auctionDuration,
+                          private: this.isPrivate,
+                          description: this.description || undefined,
                       };
 
             const response = await ClientSend(ListItem, request);
@@ -342,6 +363,34 @@ export class ListItemModal extends FloatElement {
         this.isConfirmationClosing = false;
     }
 
+    private getPercentageAssessment(percentage: number): {label: string; color: string; icon: string} {
+        if (percentage < 60) {
+            return {
+                label: 'Steal',
+                color: '#27ff00',
+                icon: STEAL_ICON,
+            };
+        } else if (percentage < 95) {
+            return {
+                label: 'Cheap',
+                color: '#e9e20f',
+                icon: CHEAP_ICON,
+            };
+        } else if (percentage < 104) {
+            return {
+                label: 'Recommended',
+                color: '#64EC42',
+                icon: RECOMMENDED_ICON,
+            };
+        } else {
+            return {
+                label: 'Expensive',
+                color: '#f74712',
+                icon: EXPENSIVE_ICON,
+            };
+        }
+    }
+
     render(): HTMLTemplateResult {
         if (this.listingId) {
             return html`
@@ -354,16 +403,19 @@ export class ListItemModal extends FloatElement {
                                 <a
                                     href="https://csfloat.com/item/${this.listingId}"
                                     target="_blank"
-                                    class="base-button secondary-button success-link"
+                                    class="base-button secondary-button"
                                 >
                                     View ${this.listingType === 'buy_now' ? 'Listing' : 'Auction'}
                                 </a>
                                 <a
                                     href="https://csfloat.com/stall/me"
                                     target="_blank"
-                                    class="base-button secondary-button success-link"
+                                    class="base-button secondary-button"
                                 >
                                     View Your Stall on CSFloat
+                                </a>
+                                <a href="${this.searchUrl}" target="_blank" class="base-button secondary-button">
+                                    Search Similar Items
                                 </a>
                             </div>
                             <button class="base-button primary-button success-button" @click="${this.handleClose}">
@@ -374,6 +426,12 @@ export class ListItemModal extends FloatElement {
                 </div>
             `;
         }
+
+        const pricePercentage =
+            this.recommendedPrice && this.customPrice
+                ? Math.round((this.customPrice / this.recommendedPrice) * 100)
+                : 100;
+        const percentageAssessment = this.getPercentageAssessment(pricePercentage);
 
         return html`
             <div
@@ -386,7 +444,20 @@ export class ListItemModal extends FloatElement {
                     <div class="modal-header">
                         <div class="modal-header-left">
                             <img class="modal-icon" src="https://csfloat.com/assets/karambit-icon.png" />
-                            <h2 class="modal-title">List Item on CSFloat</h2>
+                            <div class="modal-header-text">
+                                <h2 class="modal-title">List Item on CSFloat</h2>
+                                <span class="modal-subtitle">
+                                    Prefer the website? Visit it
+                                    <a
+                                        class="text-link"
+                                        href="https://csfloat.com/sell"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        here</a
+                                    >
+                                </span>
+                            </div>
                         </div>
                         <button class="close-button" @click="${this.handleClose}">×</button>
                     </div>
@@ -445,11 +516,49 @@ export class ListItemModal extends FloatElement {
                                   </button>
                               </div>
 
+                              ${this.listingType === 'auction'
+                                  ? html`
+                                        <div class="auction-info-banner">
+                                            <span class="auction-info-icon" aria-hidden="true">
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="18"
+                                                    height="18"
+                                                    viewBox="0 0 24 24"
+                                                    style="vertical-align:middle;"
+                                                >
+                                                    <path
+                                                        fill="#237bff"
+                                                        d="M11 17h2v-6h-2zm1-8q.425 0 .713-.288T13 8t-.288-.712T12 7t-.712.288T11 8t.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"
+                                                    />
+                                                </svg>
+                                            </span>
+                                            <span>
+                                                See details about auctions
+                                                <a
+                                                    class="auction-info-link"
+                                                    href="https://blog.csfloat.com/introducing-auctions-and-watchlists/"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    here
+                                                </a>
+                                            </span>
+                                        </div>
+                                    `
+                                  : ''}
                               <div class="price-section">
-                                  <label>
-                                      Recommended Price in USD:
-                                      ${this.recommendedPrice ? `$${(this.recommendedPrice / 100).toFixed(2)}` : 'N/A'}
-                                  </label>
+                                  <div class="price-section-row">
+                                      <label>
+                                          Recommended Price in USD:
+                                          ${this.recommendedPrice
+                                              ? `$${(this.recommendedPrice / 100).toFixed(2)}`
+                                              : 'N/A'}
+                                      </label>
+                                      <a href="${this.searchUrl}" target="_blank" class="text-link">
+                                          Search Similar Items
+                                      </a>
+                                  </div>
                                   <div class="price-input-container">
                                       <span class="price-input-prefix">$</span>
                                       <input
@@ -468,15 +577,97 @@ export class ListItemModal extends FloatElement {
                                       min="80"
                                       max="120"
                                       step="0.1"
-                                      .value="${this.pricePercentage}"
+                                      .value="${this.pricePercentage.toString()}"
                                       @input="${this.handlePercentageChange}"
                                       class="percentage-slider"
                                   />
-                                  <div>
-                                      Percentage of recommended price:
-                                      ${this.recommendedPrice && this.customPrice
-                                          ? Math.round((this.customPrice / this.recommendedPrice) * 100)
-                                          : 100}%
+                                  <div class="percentage-assessment-row">
+                                      <div
+                                          class="percentage-assessment-label"
+                                          style="color: ${percentageAssessment.color};"
+                                      >
+                                          <div
+                                              class="percentage-assessment-icon"
+                                              .innerHTML="${percentageAssessment.icon}"
+                                          ></div>
+                                          ${percentageAssessment.label}
+                                      </div>
+                                      <span class="percentage-assessment-value"> ${pricePercentage}% </span>
+                                  </div>
+
+                                  <div class="visibility-row">
+                                      <label>Visibility</label>
+                                      <div class="visibility-selector">
+                                          <button
+                                              class="base-button secondary-button visibility-button ${!this.isPrivate
+                                                  ? 'active'
+                                                  : ''}"
+                                              @click="${() => (this.isPrivate = false)}"
+                                          >
+                                              Public
+                                          </button>
+                                          <button
+                                              class="base-button secondary-button visibility-button ${this.isPrivate
+                                                  ? 'active'
+                                                  : ''}"
+                                              @click="${() => (this.isPrivate = true)}"
+                                          >
+                                              Private
+                                          </button>
+                                      </div>
+                                  </div>
+
+                                  <div class="description-row">
+                                      <label>Description</label>
+                                      ${this.showDescriptionInput
+                                          ? html`
+                                                <div class="description-input-container">
+                                                    <input
+                                                        type="text"
+                                                        class="description-input"
+                                                        .value="${this.description}"
+                                                        @input="${(e: Event) => {
+                                                            const input = e.target as HTMLInputElement;
+                                                            if (input.value.length <= this.MAX_DESCRIPTION_LENGTH) {
+                                                                this.description = input.value;
+                                                            } else {
+                                                                input.value = this.description;
+                                                            }
+                                                        }}"
+                                                        placeholder="Item Description"
+                                                        maxlength="${this.MAX_DESCRIPTION_LENGTH}"
+                                                    />
+                                                    <div
+                                                        class="character-counter ${this.description.length ===
+                                                        this.MAX_DESCRIPTION_LENGTH
+                                                            ? 'limit-reached'
+                                                            : ''}"
+                                                    >
+                                                        ${this.description.length}/${this.MAX_DESCRIPTION_LENGTH}
+                                                    </div>
+                                                </div>
+                                            `
+                                          : html`
+                                                <button
+                                                    class="base-button secondary-button add-description-button"
+                                                    @click="${() => (this.showDescriptionInput = true)}"
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        width="16"
+                                                        height="16"
+                                                        viewBox="0 0 24 24"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        stroke-width="2"
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                    >
+                                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                                    </svg>
+                                                </button>
+                                            `}
                                   </div>
 
                                   ${this.listingType === 'auction'
