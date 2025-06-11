@@ -21,6 +21,12 @@ enum SortDirection {
     DESC,
 }
 
+// Describes a function that has been decorated with a lodash debounce decorator,
+// which adds a .cancel() method to it.
+type CancellableDebounced = {
+    cancel(): void;
+};
+
 @CustomElement()
 export class SortListings extends FloatElement {
     @state()
@@ -66,6 +72,10 @@ export class SortListings extends FloatElement {
         if (this.observer) {
             this.observer.disconnect();
         }
+
+        // Workaround to avoid using @ts-ignore:
+        // type assertion to inform ts about the .cancel() added from the lodash debounce
+        (this.onMutation as unknown as CancellableDebounced).cancel();
     }
 
     /**
