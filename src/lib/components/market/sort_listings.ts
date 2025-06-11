@@ -8,6 +8,7 @@ import {getMarketInspectLink} from './helpers';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {getFadeParams, getFadePercentage} from '../../utils/skin';
 import {AppId, ContextId} from '../../types/steam_constants';
+import {debounce} from 'lodash-decorators';
 
 enum SortType {
     FLOAT = 'Float',
@@ -27,6 +28,8 @@ export class SortListings extends FloatElement {
     @state()
     private direction: SortDirection = SortDirection.NONE;
 
+    private observer: MutationObserver | null = null;
+
     @state()
     get isFadeSkin() {
         const firstRow = document.querySelector('#searchResultsRows .market_listing_row.market_recent_listing_row');
@@ -40,6 +43,97 @@ export class SortListings extends FloatElement {
         const asset = g_rgAssets[AppId.CSGO][ContextId.PRIMARY][listingInfo.asset.id];
 
         return getFadeParams(asset) !== undefined;
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+
+        // Find the container of listings that we need to watch.
+        const targetNode = document.getElementById('searchResultsRows');
+        if (!targetNode) return;
+
+        const config = {childList: true};
+
+        // Create a MutationObserver to detect when the page's items are dynamically replaced.
+        this.observer = new MutationObserver(() => this.onMutation());
+
+        // Start observing the target node for additions or removals of child elements.
+        this.observer.observe(targetNode, config);
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        if (this.observer) {
+            this.observer.disconnect();
+        }
+    }
+
+    /**
+     * This decorated method is called when the item list changes.
+     * The @debounce decorator ensures it only runs once after a series of rapid changes.
+     */
+    @debounce(500)
+    private onMutation() {
+        // Only re-sort if a sort is currently active.
+        if (this.direction === SortDirection.NONE) return;
+
+        const targetNode = document.getElementById('searchResultsRows');
+        const config = {childList: true};
+
+        // Disconnect the observer temporarily to prevent sortListings() from causing this mutation
+        // handler to re-trigger, causing a loop.
+        this.observer?.disconnect();
+
+        this.sortListings(this.type, this.direction)
+            .catch((err) => console.error('CSFloat: Failed to re-sort list', err))
+            .finally(() => {
+                // Reconnect the observer to watch for the next page change.
+                if (targetNode) {
+                    this.observer?.observe(targetNode, config);
+                }
+            });
+    }
+
+    private async sortListings(sortType: SortType, direction: SortDirection) {
+        const rows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
+        if (rows.length === 0) return;
+
+        const infoPromises = [...rows]
+            .map((e) => e.id.replace('listing_', ''))
+            .map(async (listingId) => {
+                const link = getMarketInspectLink(listingId);
+                const info = await gFloatFetcher.fetch({link: link!});
+                const listingInfo = g_rgListingInfo[listingId];
+                const asset = g_rgAssets[AppId.CSGO][ContextId.PRIMARY][listingInfo.asset.id];
+                return {
+                    info,
+                    listingId: listingId!,
+                    converted_price: listingInfo?.converted_price || 0,
+                    fadePercentage: (asset && getFadePercentage(asset, info)?.percentage) || 0,
+                };
+            });
+
+        const infos = await Promise.all(infoPromises);
+        const sortedInfos = SortListings.sort(infos, sortType, direction);
+
+        let lastItem = document.querySelector('#searchResultsRows .market_listing_table_header');
+
+        for (const info of sortedInfos) {
+            const itemElement = document.querySelector(`#listing_${info.listingId}`);
+            if (itemElement && itemElement.parentNode && lastItem) {
+                lastItem = itemElement.parentNode.insertBefore(itemElement, lastItem.nextSibling);
+            }
+        }
+    }
+
+    async onClick(sortType: SortType) {
+        const newDirection =
+            sortType === this.type ? SortListings.getNextSortDirection(this.direction) : SortDirection.ASC;
+
+        await this.sortListings(sortType, newDirection);
+
+        this.type = sortType;
+        this.direction = newDirection;
     }
 
     computeButtonText(sortType: SortType): string {
@@ -106,44 +200,5 @@ export class SortListings extends FloatElement {
                         floatOrFade(a.info.floatvalue, a.fadePercentage)
                 );
         }
-    }
-
-    async onClick(sortType: SortType) {
-        const newDirection =
-            sortType == this.type ? SortListings.getNextSortDirection(this.direction) : SortDirection.ASC;
-
-        const rows = document.querySelectorAll('#searchResultsRows .market_listing_row.market_recent_listing_row');
-
-        const infoPromises = [...rows]
-            .map((e) => e.id.replace('listing_', ''))
-            .map(async (listingId) => {
-                const link = getMarketInspectLink(listingId);
-
-                const info = await gFloatFetcher.fetch({link: link!});
-
-                const listingInfo = g_rgListingInfo[listingId];
-
-                const asset = g_rgAssets[AppId.CSGO][ContextId.PRIMARY][listingInfo.asset.id];
-
-                return {
-                    info,
-                    listingId: listingId!,
-                    converted_price: listingInfo?.converted_price || 0,
-                    fadePercentage: (asset && getFadePercentage(asset, info)?.percentage) || 0,
-                };
-            });
-
-        const infos = await Promise.all(infoPromises);
-        const sortedInfos = SortListings.sort(infos, sortType, newDirection);
-
-        let lastItem = document.querySelector('#searchResultsRows .market_listing_table_header');
-
-        for (const info of sortedInfos) {
-            const itemElement = document.querySelector(`#listing_${info.listingId}`);
-            lastItem = itemElement!.parentNode!.insertBefore(itemElement!, lastItem!.nextSibling);
-        }
-
-        this.type = sortType;
-        this.direction = newDirection;
     }
 }
