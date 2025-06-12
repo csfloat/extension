@@ -9,6 +9,7 @@ import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {getFadeParams, getFadePercentage} from '../../utils/skin';
 import {AppId, ContextId} from '../../types/steam_constants';
 import {debounce} from 'lodash-decorators';
+import { DebouncedFunc } from 'lodash';
 
 enum SortType {
     FLOAT = 'Float',
@@ -20,12 +21,6 @@ enum SortDirection {
     ASC,
     DESC,
 }
-
-// Describes a function that has been decorated with a lodash debounce decorator,
-// which adds a .cancel() method to it.
-type CancellableDebounced = {
-    cancel(): void;
-};
 
 @CustomElement()
 export class SortListings extends FloatElement {
@@ -75,7 +70,7 @@ export class SortListings extends FloatElement {
 
         // Workaround to avoid using @ts-ignore:
         // type assertion to inform ts about the .cancel() added from the lodash debounce
-        (this.onMutation as unknown as CancellableDebounced).cancel();
+        (this.onMutation as DebouncedFunc<() => void>).cancel();
     }
 
     /**
