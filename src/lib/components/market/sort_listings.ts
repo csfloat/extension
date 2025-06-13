@@ -9,7 +9,7 @@ import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {getFadeParams, getFadePercentage} from '../../utils/skin';
 import {AppId, ContextId} from '../../types/steam_constants';
 import {debounce} from 'lodash-decorators';
-import { DebouncedFunc } from 'lodash';
+import {DebouncedFunc} from 'lodash';
 
 enum SortType {
     FLOAT = 'Float',
