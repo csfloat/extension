@@ -22,6 +22,22 @@ enum SortDirection {
     DESC,
 }
 
+// Union type for fetched item info: successful and failed.
+type SortableItem =
+    | {
+          failed: false;
+          listingId: string;
+          info: ItemInfo;
+          converted_price: number;
+          fadePercentage: number;
+      }
+    | {
+          failed: true;
+          listingId: string;
+      };
+
+type SuccessfulSortableItem = Extract<SortableItem, {failed: false}>;
+
 @CustomElement()
 export class SortListings extends FloatElement {
     @state()
@@ -102,21 +118,36 @@ export class SortListings extends FloatElement {
 
         const infoPromises = [...rows]
             .map((e) => e.id.replace('listing_', ''))
-            .map(async (listingId) => {
-                const link = getMarketInspectLink(listingId);
-                const info = await gFloatFetcher.fetch({link: link!});
-                const listingInfo = g_rgListingInfo[listingId];
-                const asset = g_rgAssets[AppId.CSGO][ContextId.PRIMARY][listingInfo.asset.id];
-                return {
-                    info,
-                    listingId: listingId!,
-                    converted_price: listingInfo?.converted_price || 0,
-                    fadePercentage: (asset && getFadePercentage(asset, info)?.percentage) || 0,
-                };
+            .map(async (listingId): Promise<SortableItem> => {
+                // Catch error to prevent one failure from stopping the Promise.all() later
+                try {
+                    const link = getMarketInspectLink(listingId);
+                    const info = await gFloatFetcher.fetch({link: link!});
+                    const listingInfo = g_rgListingInfo[listingId];
+                    const asset = g_rgAssets[AppId.CSGO][ContextId.PRIMARY][listingInfo.asset.id];
+                    return {
+                        failed: false,
+                        info,
+                        listingId: listingId!,
+                        converted_price: listingInfo?.converted_price || 0,
+                        fadePercentage: (asset && getFadePercentage(asset, info)?.percentage) || 0,
+                    };
+                } catch (error) {
+                    console.error(`CSFloat: Failed to fetch float for listing ${listingId}:`, error);
+                    return {failed: true, listingId: listingId!};
+                }
             });
 
         const infos = await Promise.all(infoPromises);
-        const sortedInfos = SortListings.sort(infos, sortType, direction);
+
+        // Type Guard that checks if an item was successfully fetched.
+        function isSuccessfulItem(item: SortableItem): item is SuccessfulSortableItem {
+            return !item.failed;
+        }
+
+        const successfulItems = infos.filter(isSuccessfulItem);
+        const failedItems = infos.filter((r) => r.failed);
+        const sortedInfos = [...SortListings.sort(successfulItems, sortType, direction), ...failedItems];
 
         let lastItem = document.querySelector('#searchResultsRows .market_listing_table_header');
 
