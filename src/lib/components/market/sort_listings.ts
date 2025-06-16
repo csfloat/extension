@@ -53,13 +53,11 @@ export class SortListings extends FloatElement {
         const targetNode = document.getElementById('searchResultsRows');
         if (!targetNode) return;
 
-        const config = {childList: true};
-
         // Create a MutationObserver to detect when the page's items are dynamically replaced.
         this.observer = new MutationObserver(() => this.onMutation());
 
         // Start observing the target node for additions or removals of child elements.
-        this.observer.observe(targetNode, config);
+        this.observer.observe(targetNode, {childList: true});
     }
 
     disconnectedCallback() {
@@ -83,7 +81,6 @@ export class SortListings extends FloatElement {
         if (this.direction === SortDirection.NONE) return;
 
         const targetNode = document.getElementById('searchResultsRows');
-        const config = {childList: true};
 
         // Disconnect the observer temporarily to prevent sortListings() from causing this mutation
         // handler to re-trigger, causing a loop.
@@ -94,7 +91,7 @@ export class SortListings extends FloatElement {
             .finally(() => {
                 // Reconnect the observer to watch for the next page change.
                 if (targetNode) {
-                    this.observer?.observe(targetNode, config);
+                    this.observer?.observe(targetNode, {childList: true});
                 }
             });
     }
