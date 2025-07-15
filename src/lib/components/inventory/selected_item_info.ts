@@ -31,8 +31,8 @@ import './list_item_modal';
  * item click.
  */
 @CustomElement()
-@InjectAfter('div#iteminfo0_content .item_desc_description div.item_desc_game_info', InjectionMode.CONTINUOUS)
-@InjectAfter('div#iteminfo1_content .item_desc_description div.item_desc_game_info', InjectionMode.CONTINUOUS)
+@InjectAfter('div.app730#iteminfo0_content .item_desc_description div.item_desc_game_info', InjectionMode.CONTINUOUS)
+@InjectAfter('div.app730#iteminfo1_content .item_desc_description div.item_desc_game_info', InjectionMode.CONTINUOUS)
 export class SelectedItemInfo extends FloatElement {
     static styles = [
         ...FloatElement.styles,
