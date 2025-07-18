@@ -8,7 +8,16 @@ import {rgAsset, ListingData} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {getMarketInspectLink, inlineEasyInspect} from './helpers';
-import {formatSeed, getFadePercentage, isSkin, renderClickableRank, floor, isCharm, isBlueSkin, isHighlightCharm} from '../../utils/skin';
+import {
+    formatSeed,
+    getFadePercentage,
+    isSkin,
+    renderClickableRank,
+    floor,
+    isCharm,
+    isBlueSkin,
+    isHighlightCharm,
+} from '../../utils/skin';
 import {gFilterService} from '../../services/filter';
 import {AppId, ContextId, Currency} from '../../types/steam_constants';
 import {defined} from '../../utils/checkers';

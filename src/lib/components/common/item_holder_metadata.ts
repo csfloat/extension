@@ -4,7 +4,15 @@ import {state} from 'lit/decorators.js';
 import {rgAsset} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
-import {formatFloatWithRank, formatSeed, getFadePercentage, getLowestRank, isBlueSkin, isCharm, isHighlightCharm} from '../../utils/skin';
+import {
+    formatFloatWithRank,
+    formatSeed,
+    getFadePercentage,
+    getLowestRank,
+    isBlueSkin,
+    isCharm,
+    isHighlightCharm,
+} from '../../utils/skin';
 import {isSkin, floor} from '../../utils/skin';
 import {getRankColour} from '../../utils/ranks';
 import {Observe} from '../../utils/observers';
