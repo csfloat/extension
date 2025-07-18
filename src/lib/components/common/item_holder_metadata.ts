@@ -4,7 +4,7 @@ import {state} from 'lit/decorators.js';
 import {rgAsset} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
-import {formatFloatWithRank, formatSeed, getFadePercentage, getLowestRank, isBlueSkin, isCharm} from '../../utils/skin';
+import {formatFloatWithRank, formatSeed, getFadePercentage, getLowestRank, isBlueSkin, isCharm, isHighlightCharm} from '../../utils/skin';
 import {isSkin, floor} from '../../utils/skin';
 import {getRankColour} from '../../utils/ranks';
 import {Observe} from '../../utils/observers';
@@ -119,7 +119,7 @@ export abstract class ItemHolderMetadata extends FloatElement {
                     </span>
                 </span>
             `;
-        } else if (isCharm(this.asset)) {
+        } else if (isCharm(this.asset) && !isHighlightCharm(this.asset)) {
             return html`
                 <span>
                     <span class="seed"
