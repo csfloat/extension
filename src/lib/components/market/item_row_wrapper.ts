@@ -8,7 +8,16 @@ import {rgAsset, ListingData} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {getMarketInspectLink, inlineEasyInspect} from './helpers';
-import {formatSeed, getFadePercentage, isSkin, renderClickableRank, floor, isCharm, isBlueSkin} from '../../utils/skin';
+import {
+    formatSeed,
+    getFadePercentage,
+    isSkin,
+    renderClickableRank,
+    floor,
+    isCharm,
+    isBlueSkin,
+    isHighlightCharm,
+} from '../../utils/skin';
 import {gFilterService} from '../../services/filter';
 import {AppId, ContextId, Currency} from '../../types/steam_constants';
 import {defined} from '../../utils/checkers';
@@ -127,6 +136,11 @@ export class ItemRowWrapper extends FloatElement {
         // Only add if they don't have Steam Inventory Helper
         if (!$J(this).parent().parent().find('.sih-inspect-magnifier').length) {
             inlineEasyInspect($J(this).parent().parent().find('.market_listing_item_img_container'), this.inspectLink);
+        }
+
+        // If the item is a highlight charm, we're done here
+        if (this.asset && isHighlightCharm(this.asset)) {
+            return;
         }
 
         try {

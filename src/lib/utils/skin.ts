@@ -107,7 +107,7 @@ export function renderClickableRank(info: ItemInfo): TemplateResult<1> {
 export function isSellableOnCSFloat(asset: rgAsset): boolean {
     return (
         isSkin(asset) ||
-        isCharm(asset) ||
+        (isCharm(asset) && !isHighlightCharm(asset)) ||
         isAgent(asset) ||
         isSticker(asset) ||
         isPatch(asset) ||
@@ -126,6 +126,10 @@ export function isSkin(asset: rgAsset): boolean {
 
 export function isCharm(asset: rgAsset): boolean {
     return isAbstractType(asset, 'Charm', 'CSGO_Tool_Keychain');
+}
+
+export function isHighlightCharm(asset: rgAsset): boolean {
+    return isCharm(asset) && !!asset.tags && asset.tags.some((a) => a.internal_name === 'highlight');
 }
 
 export function isAgent(asset: rgAsset): boolean {

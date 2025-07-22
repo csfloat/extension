@@ -14,6 +14,7 @@ import {
     isCharm,
     isSellableOnCSFloat,
     isBlueSkin,
+    isHighlightCharm,
 } from '../../utils/skin';
 import {Observe} from '../../utils/observers';
 import {FetchStallResponse} from '../../bridge/handlers/fetch_stall';
@@ -129,7 +130,7 @@ export class SelectedItemInfo extends FloatElement {
             if (isBlueSkin(this.itemInfo)) {
                 containerChildren.push(this.renderBluegem());
             }
-        } else if (isCharm(this.asset.description) && this.itemInfo) {
+        } else if (isCharm(this.asset.description) && this.itemInfo && !isHighlightCharm(this.asset.description)) {
             containerChildren.push(
                 html`<div>
                     Pattern: #${this.itemInfo.keychains?.length > 0 ? this.itemInfo.keychains[0].pattern : 'Unknown'}
@@ -239,7 +240,11 @@ export class SelectedItemInfo extends FloatElement {
         // Guarantees a re-render for items without inspect links
         this.loading = true;
 
-        if (this.inspectLink && (isSkin(this.asset.description) || isCharm(this.asset.description))) {
+        if (
+            this.inspectLink &&
+            (isSkin(this.asset.description) ||
+                (isCharm(this.asset.description) && !isHighlightCharm(this.asset.description)))
+        ) {
             try {
                 this.itemInfo = await gFloatFetcher.fetch({
                     link: this.inspectLink,
