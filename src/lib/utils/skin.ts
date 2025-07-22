@@ -129,7 +129,7 @@ export function isCharm(asset: rgAsset): boolean {
 }
 
 export function isHighlightCharm(asset: rgAsset): boolean {
-    return isCharm(asset) && asset.tags!.some((a) => a.internal_name === 'highlight');
+    return isCharm(asset) && !!asset.tags && asset.tags.some((a) => a.internal_name === 'highlight');
 }
 
 export function isAgent(asset: rgAsset): boolean {
