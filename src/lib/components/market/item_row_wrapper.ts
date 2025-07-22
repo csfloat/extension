@@ -138,6 +138,11 @@ export class ItemRowWrapper extends FloatElement {
             inlineEasyInspect($J(this).parent().parent().find('.market_listing_item_img_container'), this.inspectLink);
         }
 
+        // If the item is a highlight charm, we're done here
+        if (this.asset && isHighlightCharm(this.asset)) {
+            return;
+        }
+
         try {
             this.itemInfo = await this.fetchFloat();
         } catch (e: any) {
@@ -248,7 +253,7 @@ export class ItemRowWrapper extends FloatElement {
                     ${this.renderBluegem()}
                 </div>
             `;
-        } else if (this.itemInfo && isCharm(this.asset) && !isHighlightCharm(this.asset)) {
+        } else if (this.itemInfo && isCharm(this.asset)) {
             return html`
                 <div class="float-row-wrapper">
                     Pattern: #${this.itemInfo.keychains?.length > 0 ? this.itemInfo.keychains[0].pattern : 'Unknown'}

@@ -240,7 +240,11 @@ export class SelectedItemInfo extends FloatElement {
         // Guarantees a re-render for items without inspect links
         this.loading = true;
 
-        if (this.inspectLink && (isSkin(this.asset.description) || isCharm(this.asset.description))) {
+        if (
+            this.inspectLink &&
+            (isSkin(this.asset.description) ||
+                (isCharm(this.asset.description) && !isHighlightCharm(this.asset.description)))
+        ) {
             try {
                 this.itemInfo = await gFloatFetcher.fetch({
                     link: this.inspectLink,
