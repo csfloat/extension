@@ -115,7 +115,7 @@ async function pingUpdates(pendingTrades: Trade[]): Promise<UpdateErrors> {
     try {
         await pingRollbackTrades(pendingTrades, tradeHistory);
     } catch (e) {
-        console.error('failed to ping cancel ping trade offers', e);
+        console.error('failed to ping rollback trades', e);
         errors.rollback_trades_error = (e as any).toString();
     }
 
