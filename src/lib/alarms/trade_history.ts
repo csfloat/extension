@@ -1,6 +1,6 @@
 import {Trade} from '../types/float_market';
 import {TradeHistoryStatus, TradeHistoryType} from '../bridge/handlers/trade_history_status';
-import {AppId} from '../types/steam_constants';
+import {AppId, TradeStatus} from '../types/steam_constants';
 import {clearAccessTokenFromStorage, getAccessToken} from './access_token';
 
 export async function pingTradeHistory(pendingTrades: Trade[]): Promise<TradeHistoryStatus[]> {
@@ -88,7 +88,7 @@ export async function getTradeHistoryFromAPI(maxTrades: number): Promise<TradeHi
 
     const data = (await resp.json()) as TradeHistoryAPIResponse;
     return (data.response?.trades || [])
-        .filter((e) => e.status === 3 || e.status === 12) // Ensure we only count _complete_ trades (k_ETradeStatus_Complete) or rolled back (for reporting)
+        .filter((e) => e.status === TradeStatus.Complete || e.status === TradeStatus.TradeProtectionRollback) // Ensure we only count _complete_ trades (k_ETradeStatus_Complete) or rolled back (for reporting)
         .filter((e) => !e.time_escrow_end || new Date(parseInt(e.time_escrow_end) * 1000).getTime() < Date.now())
         .map((e) => {
             return {
