@@ -30,7 +30,7 @@ export async function pingTradeStatus(expectedSteamID?: string) {
 
     let pendingTrades: Trade[];
     try {
-        const resp = await FetchPendingTrades.handleRequest({limit: 3000}, {});
+        const resp = await FetchPendingTrades.handleRequest({limit: 3000, exclude_wait_for_settlement: true}, {});
         pendingTrades = resp.trades;
     } catch (e) {
         console.error(e);
