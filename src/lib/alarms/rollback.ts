@@ -1,6 +1,7 @@
 import {Trade, TradeState} from '../types/float_market';
 import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 import {PingRollbackTrade} from '../bridge/handlers/ping_rollback_trade';
+import {TradeStatus} from '../types/steam_constants';
 
 export async function pingRollbackTrades(pendingTrades: Trade[], tradeHistory: TradeHistoryStatus[]) {
     if (!pendingTrades || pendingTrades.length === 0) {
@@ -15,7 +16,7 @@ export async function pingRollbackTrades(pendingTrades: Trade[], tradeHistory: T
         // Status 12 corresponds to a rollback via trade protection (undocumented)
         // The original trade gets updated to this status once a rollback occurs
         // (and creates a new complete trade for sending the items back)
-        if (trade.status !== 12) {
+        if (trade.status !== TradeStatus.TradeProtectionRollback) {
             continue;
         }
 
