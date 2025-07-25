@@ -29,4 +29,6 @@ export enum RequestType {
     LIST_ITEM = 27,
     FETCH_RECOMMENDED_PRICE = 28,
     FETCH_CSFLOAT_ME = 29,
+    PING_ROLLBACK_TRADE = 30,
+    FETCH_TRADE_HISTORY = 31,
 }

@@ -1,9 +1,9 @@
 import {Trade} from '../types/float_market';
 import {TradeHistoryStatus, TradeHistoryType} from '../bridge/handlers/trade_history_status';
-import {AppId} from '../types/steam_constants';
+import {AppId, TradeStatus} from '../types/steam_constants';
 import {clearAccessTokenFromStorage, getAccessToken} from './access_token';
 
-export async function pingTradeHistory(pendingTrades: Trade[]) {
+export async function pingTradeHistory(pendingTrades: Trade[]): Promise<TradeHistoryStatus[]> {
     const {history, type} = await getTradeHistory();
 
     // premature optimization in case it's 100 trades
@@ -25,15 +25,17 @@ export async function pingTradeHistory(pendingTrades: Trade[]) {
     });
 
     if (historyForCSFloat.length === 0) {
-        return;
+        return history;
     }
 
     await TradeHistoryStatus.handleRequest({history: historyForCSFloat, type}, {});
+
+    return history;
 }
 
 async function getTradeHistory(): Promise<{history: TradeHistoryStatus[]; type: TradeHistoryType}> {
     try {
-        const history = await getTradeHistoryFromAPI();
+        const history = await getTradeHistoryFromAPI(250);
         if (history.length > 0) {
             // Hedge in case this endpoint gets killed, only return if there are results, fallback to HTML parser
             return {history, type: TradeHistoryType.API};
@@ -63,16 +65,18 @@ interface TradeHistoryAPIResponse {
             assets_given?: HistoryAsset[];
             assets_received?: HistoryAsset[];
             time_escrow_end?: string;
+            time_settlement?: number;
+            rollback_trade?: string;
         }[];
     };
 }
 
-async function getTradeHistoryFromAPI(): Promise<TradeHistoryStatus[]> {
+export async function getTradeHistoryFromAPI(maxTrades: number): Promise<TradeHistoryStatus[]> {
     const access = await getAccessToken();
 
     // This only works if they have granted permission for https://api.steampowered.com
     const resp = await fetch(
-        `https://api.steampowered.com/IEconService/GetTradeHistory/v1/?access_token=${access.token}&max_trades=200`,
+        `https://api.steampowered.com/IEconService/GetTradeHistory/v1/?access_token=${access.token}&max_trades=${maxTrades}`,
         {
             credentials: 'include',
         }
@@ -84,7 +88,7 @@ async function getTradeHistoryFromAPI(): Promise<TradeHistoryStatus[]> {
 
     const data = (await resp.json()) as TradeHistoryAPIResponse;
     return (data.response?.trades || [])
-        .filter((e) => e.status === 3) // Ensure we only count _complete_ trades (k_ETradeStatus_Complete)
+        .filter((e) => e.status === TradeStatus.Complete || e.status === TradeStatus.TradeProtectionRollback) // Ensure we only count _complete_ trades (k_ETradeStatus_Complete) or rolled back (for reporting)
         .filter((e) => !e.time_escrow_end || new Date(parseInt(e.time_escrow_end) * 1000).getTime() < Date.now())
         .map((e) => {
             return {
@@ -99,6 +103,10 @@ async function getTradeHistoryFromAPI(): Promise<TradeHistoryStatus[]> {
                     .map((e) => {
                         return {asset_id: e.assetid, new_asset_id: e.new_assetid};
                     }),
+                trade_id: e.tradeid,
+                time_settlement: e.time_settlement,
+                status: e.status,
+                rollback_trade: e.rollback_trade,
             } as TradeHistoryStatus;
         })
         .filter((e) => {
@@ -132,6 +140,10 @@ function parseTradeHistoryHTML(body: string): TradeHistoryStatus[] {
             other_party_url: `https://steamcommunity.com/${e[1]}`,
             received_assets: [],
             given_assets: [],
+            trade_id: '',
+            time_settlement: 0,
+            status: 0,
+            rollback_trade: '',
         } as TradeHistoryStatus;
     });
 

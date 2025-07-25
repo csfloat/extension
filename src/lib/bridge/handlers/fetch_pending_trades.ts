@@ -6,6 +6,7 @@ import {environment} from '../../../environment';
 export interface FetchPendingTradesRequest {
     state?: string;
     limit?: number;
+    exclude_wait_for_settlement?: boolean;
 }
 
 export interface FetchPendingTradesResponse {
@@ -19,7 +20,7 @@ export const FetchPendingTrades = new SimpleHandler<FetchPendingTradesRequest, F
         const state = req.state ? req.state : 'pending';
         const limit = req.limit ? req.limit : 100;
         const resp = await fetch(
-            `${environment.csfloat_base_api_url}/v1/me/trades?state=${state}&limit=${limit}&page=0`,
+            `${environment.csfloat_base_api_url}/v1/me/trades?state=${state}&limit=${limit}&exclude_wait_for_settlement=${req.exclude_wait_for_settlement || false}&page=0`,
             {
                 credentials: 'include',
             }

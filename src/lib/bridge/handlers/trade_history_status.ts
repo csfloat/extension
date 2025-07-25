@@ -8,9 +8,13 @@ export interface TradeHistoryAsset {
 }
 
 export interface TradeHistoryStatus {
+    trade_id: string;
+    status: number;
     other_party_url: string;
     received_assets: TradeHistoryAsset[];
     given_assets: TradeHistoryAsset[];
+    time_settlement?: number;
+    rollback_trade?: string;
 }
 
 export enum TradeHistoryType {

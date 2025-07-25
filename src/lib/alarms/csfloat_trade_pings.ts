@@ -8,6 +8,8 @@ import {AccessToken, getAccessToken} from './access_token';
 import {gStore} from '../storage/store';
 import {StorageKey} from '../storage/keys';
 import {reportBlockedBuyers} from './blocked_users';
+import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
+import {pingRollbackTrades} from './rollback';
 
 export const PING_CSFLOAT_TRADE_STATUS_ALARM_NAME = 'ping_csfloat_trade_status_alarm';
 
@@ -28,7 +30,7 @@ export async function pingTradeStatus(expectedSteamID?: string) {
 
     let pendingTrades: Trade[];
     try {
-        const resp = await FetchPendingTrades.handleRequest({limit: 1000}, {});
+        const resp = await FetchPendingTrades.handleRequest({limit: 3000, exclude_wait_for_settlement: true}, {});
         pendingTrades = resp.trades;
     } catch (e) {
         console.error(e);
@@ -70,6 +72,7 @@ interface UpdateErrors {
     history_error?: string;
     trade_offer_error?: string;
     blocked_buyers_error?: string;
+    rollback_trades_error?: string;
 }
 
 async function pingUpdates(pendingTrades: Trade[]): Promise<UpdateErrors> {
@@ -88,8 +91,9 @@ async function pingUpdates(pendingTrades: Trade[]): Promise<UpdateErrors> {
         console.error(`failed to cancel unconfirmed trade offers`, e);
     }
 
+    let tradeHistory: TradeHistoryStatus[] = [];
     try {
-        await pingTradeHistory(pendingTrades);
+        tradeHistory = await pingTradeHistory(pendingTrades);
     } catch (e) {
         console.error('failed to ping trade history', e);
         errors.history_error = (e as any).toString();
@@ -106,6 +110,13 @@ async function pingUpdates(pendingTrades: Trade[]): Promise<UpdateErrors> {
         await pingCancelTrades(pendingTrades);
     } catch (e) {
         console.error('failed to ping cancel ping trade offers', e);
+    }
+
+    try {
+        await pingRollbackTrades(pendingTrades, tradeHistory);
+    } catch (e) {
+        console.error('failed to ping rollback trades', e);
+        errors.rollback_trades_error = (e as any).toString();
     }
 
     return errors;
