@@ -107,7 +107,7 @@ async function pingUpdates(pendingTrades: Trade[]): Promise<UpdateErrors> {
     }
 
     try {
-        await pingCancelTrades(pendingTrades);
+        await pingCancelTrades(pendingTrades, tradeHistory);
     } catch (e) {
         console.error('failed to ping cancel ping trade offers', e);
     }

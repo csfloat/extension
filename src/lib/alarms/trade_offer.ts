@@ -1,4 +1,4 @@
-import {TradeOfferState} from '../types/steam_constants';
+import {TradeOfferState, TradeStatus} from '../types/steam_constants';
 import {Trade, TradeState} from '../types/float_market';
 import {OfferStatus, TradeOfferStatus, TradeOffersType} from '../bridge/handlers/trade_offer_status';
 import {clearAccessTokenFromStorage, getAccessToken} from './access_token';
@@ -9,6 +9,7 @@ import {FetchSteamUser} from '../bridge/handlers/fetch_steam_user';
 import {rgDescription} from '../types/steam';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
 import {convertSteamID32To64} from '../utils/userinfo';
+import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 
 export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     const {offers, type} = await getSentTradeOffers();
@@ -67,7 +68,7 @@ export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     }
 }
 
-export async function pingCancelTrades(pendingTrades: Trade[]) {
+export async function pingCancelTrades(pendingTrades: Trade[], tradeHistory: TradeHistoryStatus[]) {
     const hasWaitForCancelPing = pendingTrades.find((e) => e.state === TradeState.PENDING && e.wait_for_cancel_ping);
     if (!hasWaitForCancelPing) {
         // Nothing to process/ping, exit
@@ -88,13 +89,25 @@ export async function pingCancelTrades(pendingTrades: Trade[]) {
         }
 
         const tradeOffer = allTradeOffers.find((e) => e.offer_id === trade.steam_offer.id);
-        if (
-            tradeOffer &&
-            (tradeOffer.state === TradeOfferState.Active || tradeOffer.state === TradeOfferState.Accepted)
-        ) {
-            // We don't want to send a cancel ping if the offer is active or valid
+        if (tradeOffer?.state === TradeOfferState.Active) {
+            // We don't want to send a cancel ping if the offer is active since it can still become accepted
             continue;
         }
+
+        if (tradeOffer?.state === TradeOfferState.Accepted) {
+            // We want to check whether the trade was rolled back from the buyer's perspective -- if so, we still want to ping
+            const rolledBackTrade = (tradeHistory || []).find(
+                (e) =>
+                    e.status === TradeStatus.TradeProtectionRollback &&
+                    !!e.received_assets.find((a) => a.asset_id === trade.contract?.item?.asset_id)
+            );
+            if (!rolledBackTrade) {
+                // no rollback, trade offer was accepted, shouldn't cancel
+                continue;
+            }
+        }
+
+        // No active/accepted offer, or it was rolled back
 
         try {
             await PingCancelTrade.handleRequest({trade_id: trade.id, steam_id: tradeOffers.steam_id}, {});
