@@ -25,8 +25,14 @@ export function match(str: string, regex: string) {
 
 export function seedInList(seed: string, seeds: string) {
     if (typeof seeds !== "string") {
-        throw new TypeError(`seedGroup must be a string, got ${typeof seeds}`);
+        throw new TypeError(`seeds must be a string, got ${typeof seeds}`);
     }
+    
+    if (typeof seed !== "string" && typeof seed !== "number") {
+        throw new TypeError(`seed must be a string or number, got ${typeof seed}`);
+    }
+
+    const seedStr = seed.toString();
 
     const seedList = seeds
         .replace(/,/g, ' ')
@@ -34,5 +40,5 @@ export function seedInList(seed: string, seeds: string) {
         .map(s => s.trim())
         .filter(s => s.length);
     
-    return seedList.includes(seed);
+    return seedList.includes(seedStr);
 }
