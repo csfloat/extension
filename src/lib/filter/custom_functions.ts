@@ -23,17 +23,14 @@ export function match(str: string, regex: string) {
     else return 0;
 }
 
-export function seedInList(seed: string | number, seedList: (string | number)[]) {
-    if (!Array.isArray(seedList)) {
-        throw new TypeError(`seedList must be an array, got ${typeof seedList}`);
+export function seedInList(seed: string, seeds: string) {
+    if (typeof seeds !== "string") {
+        throw new TypeError(`seedGroup must be a string, got ${typeof seeds}`);
     }
 
-    const numericSeed = Number(seed);
-    if (Number.isNaN(numericSeed)) return false;
-
-    const numericList = seedList
-        .map(Number)
-        .filter(n => !Number.isNaN(n));
+    const seedList = seeds
+        .split(/\s+/)
+        .filter(s => s.length);
     
-    return numericList.includes(numericSeed);
+    return seedList.includes(seed);
 }
