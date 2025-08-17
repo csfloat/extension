@@ -23,6 +23,9 @@ export function match(str: string, regex: string) {
     else return 0;
 }
 
-export function seedInList(seed: number, seedList: number[]) {
-    return seedList.includes(seed);
+export function seedInList(seed: string | number, seedList: (string | number)[]) {
+    const numericSeed = Number(seed);
+    const numericList = seedList.map(Number);
+
+    return numericList.includes(numericSeed);
 }
