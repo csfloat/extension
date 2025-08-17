@@ -1,5 +1,5 @@
 import {InternalInputVars, SerializedFilter} from './types';
-import {match, percentile, percentileRange} from './custom_functions';
+import {match, percentile, percentileRange, seedInList} from './custom_functions';
 import {compileExpression} from 'filtrex';
 
 type ExpressionRunner = (data: InternalInputVars) => boolean;
@@ -66,6 +66,7 @@ export class Filter {
             match: match,
             percentile: (rank: number) => percentile(this.currentVars!, rank),
             percentileRange: (minRank: number, maxRank: number) => percentileRange(this.currentVars!, minRank, maxRank),
+            seedInList: seedInList,
         };
     }
 

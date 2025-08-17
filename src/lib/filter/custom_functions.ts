@@ -22,3 +22,7 @@ export function match(str: string, regex: string) {
     if (thisMatch !== null) return thisMatch.length;
     else return 0;
 }
+
+export function seedInList(seed: number, seedList: number[]) {
+    return seedList.includes(seed);
+}
