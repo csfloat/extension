@@ -29,7 +29,9 @@ export function seedInList(seed: string, seeds: string) {
     }
 
     const seedList = seeds
+        .replace(/,/g, ' ')
         .split(/\s+/)
+        .map(s => s.trim())
         .filter(s => s.length);
     
     return seedList.includes(seed);
