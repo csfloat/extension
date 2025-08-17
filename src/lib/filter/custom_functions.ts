@@ -24,8 +24,16 @@ export function match(str: string, regex: string) {
 }
 
 export function seedInList(seed: string | number, seedList: (string | number)[]) {
-    const numericSeed = Number(seed);
-    const numericList = seedList.map(Number);
+    if (!Array.isArray(seedList)) {
+        throw new TypeError(`seedList must be an array, got ${typeof seedList}`);
+    }
 
+    const numericSeed = Number(seed);
+    if (Number.isNaN(numericSeed)) return false;
+
+    const numericList = seedList
+        .map(Number)
+        .filter(n => !Number.isNaN(n));
+    
     return numericList.includes(numericSeed);
 }
