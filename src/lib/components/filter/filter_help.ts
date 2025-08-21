@@ -50,6 +50,11 @@ export class FilterHelp extends FloatElement {
                     <li>Matches items with floats that contain at least one match of the CS bomb code</li>
                     <li>Example Match: 0.234327355608454</li>
                 </ul>
+                <li> seed in (939, 1023, 1, 5)</li>
+                    <ul>
+                        <li>The "in" keyword matches items satisfying a collection of values (patterns, paint seeds, etc.)</li>
+                    </ul>
+                </li>
                 <li>percentile(90)</li>
                 <ul>
                     <li>Matches items with a float better than 90% of items of this type</li>
@@ -71,12 +76,6 @@ export class FilterHelp extends FloatElement {
                 <ul>
                     <li>The paint seed of the item</li>
                 </ul>
-                <li>in
-                    <ul>
-                        <li>Keyword that allows you to check if a variable matches one of several values. Useful for searching multiple patterns/paint seeds</li>
-                        <li>Example Usage: seed in (939, 1023, 1, 5)</li>
-                    </ul>
-                </li>
                 <li>low_rank</li>
                 <ul>
                     <li>If the item is in the top 1000 lowest float for this skin and category (normal, stattrak, souvenir), this is the FloatDB rank</li>
