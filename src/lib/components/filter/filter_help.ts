@@ -51,10 +51,9 @@ export class FilterHelp extends FloatElement {
                     <li>Example Match: 0.234327355608454</li>
                 </ul>
                 <li> seed in (939, 1023, 1, 5)</li>
-                    <ul>
-                        <li>The "in" keyword matches items satisfying a collection of values (patterns, paint seeds, etc.)</li>
-                    </ul>
-                </li>
+                <ul>
+                    <li>Matches items satisfying a collection of values (patterns, paint seeds, etc.)</li>
+                </ul>
                 <li>percentile(90)</li>
                 <ul>
                     <li>Matches items with a float better than 90% of items of this type</li>
