@@ -50,9 +50,9 @@ export class FilterHelp extends FloatElement {
                     <li>Matches items with floats that contain at least one match of the CS bomb code</li>
                     <li>Example Match: 0.234327355608454</li>
                 </ul>
-                <li> seed in (939, 1023, 1, 5)</li>
+                <li>seed in (939, 1023, 1, 5)</li>
                 <ul>
-                    <li>Matches items satisfying a collection of values (patterns, paint seeds, etc.)</li>
+                    <li>Matches items satisfying a paint seed in the collection of values</li>
                 </ul>
                 <li>percentile(90)</li>
                 <ul>
