@@ -7,7 +7,6 @@ export interface FetchSlimTradesRequest {
     state?: string;
     limit?: number;
     page?: number;
-    exclude_wait_for_settlement?: boolean;
 }
 
 export interface FetchSlimTradesResponse {
@@ -21,7 +20,7 @@ export const FetchSlimTrades = new SimpleHandler<FetchSlimTradesRequest, FetchSl
         const state = req.state ? req.state : 'pending';
         const limit = req.limit ? req.limit : 100;
         const resp = await fetch(
-            `${environment.csfloat_base_api_url}/v1/me/trades/slim?state=${state}&limit=${limit}&exclude_wait_for_settlement=${req.exclude_wait_for_settlement || false}&page=${req.page || 0}`,
+            `${environment.csfloat_base_api_url}/v1/me/trades/slim?state=${state}&limit=${limit}&page=${req.page || 0}`,
             {
                 credentials: 'include',
             }
