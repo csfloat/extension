@@ -1,5 +1,5 @@
 import {TradeOfferState, TradeStatus} from '../types/steam_constants';
-import {Trade, TradeState} from '../types/float_market';
+import {SlimTrade, TradeState} from '../types/float_market';
 import {OfferStatus, TradeOfferStatus, TradeOffersType} from '../bridge/handlers/trade_offer_status';
 import {clearAccessTokenFromStorage, getAccessToken} from './access_token';
 import {AnnotateOffer} from '../bridge/handlers/annotate_offer';
@@ -11,7 +11,7 @@ import {HasPermissions} from '../bridge/handlers/has_permissions';
 import {convertSteamID32To64} from '../utils/userinfo';
 import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 
-export async function pingSentTradeOffers(pendingTrades: Trade[]) {
+export async function pingSentTradeOffers(pendingTrades: SlimTrade[]) {
     const {offers, type} = await getSentTradeOffers();
 
     const offersToFind = pendingTrades.reduce(
@@ -68,7 +68,7 @@ export async function pingSentTradeOffers(pendingTrades: Trade[]) {
     }
 }
 
-export async function pingCancelTrades(pendingTrades: Trade[], tradeHistory: TradeHistoryStatus[]) {
+export async function pingCancelTrades(pendingTrades: SlimTrade[], tradeHistory: TradeHistoryStatus[]) {
     const hasWaitForCancelPing = pendingTrades.find((e) => e.state === TradeState.PENDING && e.wait_for_cancel_ping);
     if (!hasWaitForCancelPing) {
         // Nothing to process/ping, exit
@@ -119,7 +119,7 @@ export async function pingCancelTrades(pendingTrades: Trade[], tradeHistory: Tra
 
 // cancelUnconfirmedTradeOffers related to sales on CSFloat that haven't been confirmed for a while
 // Helps prevent the user from sending a trade offer _way after_ the sale has already failed
-export async function cancelUnconfirmedTradeOffers(pendingTrades: Trade[]) {
+export async function cancelUnconfirmedTradeOffers(pendingTrades: SlimTrade[]) {
     const offerIDsToCancel = [
         ...new Set(
             pendingTrades

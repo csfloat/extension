@@ -32,6 +32,7 @@ import {FetchRecommendedPrice} from './fetch_recommended_price';
 import {FetchCSFloatMe} from './fetch_csfloat_me';
 import {PingRollbackTrade} from './ping_rollback_trade';
 import {FetchTradeHistory} from './fetch_trade_history';
+import {FetchSlimTrades} from './fetch_slim_trades';
 
 export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.EXECUTE_SCRIPT_ON_PAGE]: ExecuteScriptOnPage,
@@ -66,4 +67,5 @@ export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.FETCH_CSFLOAT_ME]: FetchCSFloatMe,
     [RequestType.PING_ROLLBACK_TRADE]: PingRollbackTrade,
     [RequestType.FETCH_TRADE_HISTORY]: FetchTradeHistory,
+    [RequestType.FETCH_SLIM_TRADES]: FetchSlimTrades,
 };

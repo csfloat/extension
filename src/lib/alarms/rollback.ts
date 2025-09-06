@@ -1,9 +1,9 @@
-import {Trade, TradeState} from '../types/float_market';
+import {SlimTrade, TradeState} from '../types/float_market';
 import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 import {PingRollbackTrade} from '../bridge/handlers/ping_rollback_trade';
 import {TradeStatus} from '../types/steam_constants';
 
-export async function pingRollbackTrades(pendingTrades: Trade[], tradeHistory: TradeHistoryStatus[]) {
+export async function pingRollbackTrades(pendingTrades: SlimTrade[], tradeHistory: TradeHistoryStatus[]) {
     if (!pendingTrades || pendingTrades.length === 0) {
         return;
     }

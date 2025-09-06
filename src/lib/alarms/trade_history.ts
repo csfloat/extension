@@ -1,9 +1,9 @@
-import {Trade} from '../types/float_market';
+import {SlimTrade, Trade} from '../types/float_market';
 import {TradeHistoryStatus, TradeHistoryType} from '../bridge/handlers/trade_history_status';
 import {AppId, TradeStatus} from '../types/steam_constants';
 import {clearAccessTokenFromStorage, getAccessToken} from './access_token';
 
-export async function pingTradeHistory(pendingTrades: Trade[]): Promise<TradeHistoryStatus[]> {
+export async function pingTradeHistory(pendingTrades: SlimTrade[]): Promise<TradeHistoryStatus[]> {
     const {history, type} = await getTradeHistory();
 
     // premature optimization in case it's 100 trades
