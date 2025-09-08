@@ -107,12 +107,10 @@ export interface Trade {
     wait_for_cancel_ping?: boolean;
     seller_blocked_buyer_at?: string;
     buyer_blocked_seller_at?: string;
+    is_settlement_period?: boolean;
 }
 
-export interface SlimItem {
-    asset_id: string;
-    market_hash_name: string;
-}
+export interface SlimItem extends Pick<Item, 'asset_id' | 'market_hash_name'> {}
 
 export interface SlimContract {
     item: SlimItem;
