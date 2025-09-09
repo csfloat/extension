@@ -1,27 +1,41 @@
-import {SlimTrade, Trade} from '../types/float_market';
+import {SlimTrade} from '../types/float_market';
 import {TradeHistoryStatus, TradeHistoryType} from '../bridge/handlers/trade_history_status';
-import {AppId, TradeStatus} from '../types/steam_constants';
+import {AppId, TradeOfferState, TradeStatus} from '../types/steam_constants';
 import {clearAccessTokenFromStorage, getAccessToken} from './access_token';
 
-export async function pingTradeHistory(pendingTrades: SlimTrade[]): Promise<TradeHistoryStatus[]> {
+export async function pingTradeHistory(
+    pendingTrades: SlimTrade[],
+    steamID?: string | null
+): Promise<TradeHistoryStatus[]> {
     const {history, type} = await getTradeHistory();
 
     // premature optimization in case it's 100 trades
     const assetsToFind = pendingTrades.reduce(
         (acc, e) => {
-            acc[e.contract.item.asset_id] = true;
+            acc[e.contract.item.asset_id] = e;
             return acc;
         },
-        {} as {[key: string]: boolean}
+        {} as {[key: string]: SlimTrade}
     );
 
     // We only want to send history that is relevant to verifying trades on CSFloat
     const historyForCSFloat = history.filter((e) => {
         const received_ids = e.received_assets.map((e) => e.asset_id);
         const given_ids = e.given_assets.map((e) => e.asset_id);
-        return !![...received_ids, ...given_ids].find((e) => {
-            return assetsToFind[e];
-        });
+
+        const foundSlimTrades = [...received_ids, ...given_ids].map((e) => assetsToFind[e]).filter((e) => !!e);
+        if (!foundSlimTrades || foundSlimTrades.length === 0) {
+            return false;
+        }
+
+        // Have we already reported this status as a seller? If so, we can skip doing it again
+        if (
+            foundSlimTrades.every((t) => t.steam_offer?.state === TradeOfferState.Accepted && t.seller_id === steamID)
+        ) {
+            return false;
+        }
+
+        return true;
     });
 
     if (historyForCSFloat.length === 0) {

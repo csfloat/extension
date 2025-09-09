@@ -11,20 +11,33 @@ import {HasPermissions} from '../bridge/handlers/has_permissions';
 import {convertSteamID32To64} from '../utils/userinfo';
 import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 
-export async function pingSentTradeOffers(pendingTrades: SlimTrade[]) {
+export async function pingSentTradeOffers(pendingTrades: SlimTrade[], steamID?: string | null) {
     const {offers, type} = await getSentTradeOffers();
 
     const offersToFind = pendingTrades.reduce(
         (acc, e) => {
-            acc[e.steam_offer.id] = true;
+            if (!acc[e.steam_offer.id]) {
+                acc[e.steam_offer.id] = [];
+            }
+            acc[e.steam_offer.id].push(e);
             return acc;
         },
-        {} as {[key: string]: boolean}
+        {} as {[key: string]: SlimTrade[]}
     );
 
     // We only want to send offers that are relevant to verifying trades on CSFloat
     const offersForCSFloat = offers.filter((e) => {
-        return !!offersToFind[e.offer_id];
+        const slimTrades = offersToFind[e.offer_id];
+        if (!slimTrades || slimTrades.length === 0) {
+            return false;
+        }
+
+        if (slimTrades.every((t) => t.steam_offer?.state === e.state && t.seller_id === steamID)) {
+            // We're pushing the same trade offer state update as a seller, this has no effect server-side, skip
+            return false;
+        }
+
+        return true;
     });
 
     if (offersForCSFloat.length > 0) {
