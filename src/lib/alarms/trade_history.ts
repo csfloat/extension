@@ -23,11 +23,7 @@ export async function pingTradeHistory(
         const received_ids = e.received_assets.map((e) => e.asset_id);
         const given_ids = e.given_assets.map((e) => e.asset_id);
 
-        const foundSlimTrades = [...received_ids, ...given_ids]
-            .map((e) => {
-                return assetsToFind[e];
-            })
-            .filter((e) => !!e);
+        const foundSlimTrades = [...received_ids, ...given_ids].map((e) => assetsToFind[e]).filter((e) => !!e);
         if (!foundSlimTrades || foundSlimTrades.length === 0) {
             return false;
         }
