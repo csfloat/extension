@@ -49,7 +49,7 @@ export async function pingTradeStatus(expectedSteamID?: string) {
     let errors;
 
     if (pendingTrades.length > 0) {
-        errors = await pingUpdates(pendingTrades);
+        errors = await pingUpdates(pendingTrades, access?.steam_id);
     }
 
     // Ping status of ext + permissions
@@ -75,7 +75,7 @@ interface UpdateErrors {
     rollback_trades_error?: string;
 }
 
-async function pingUpdates(pendingTrades: SlimTrade[]): Promise<UpdateErrors> {
+async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string|null): Promise<UpdateErrors> {
     const errors: UpdateErrors = {};
 
     try {
@@ -93,14 +93,14 @@ async function pingUpdates(pendingTrades: SlimTrade[]): Promise<UpdateErrors> {
 
     let tradeHistory: TradeHistoryStatus[] = [];
     try {
-        tradeHistory = await pingTradeHistory(pendingTrades);
+        tradeHistory = await pingTradeHistory(pendingTrades, steamID);
     } catch (e) {
         console.error('failed to ping trade history', e);
         errors.history_error = (e as any).toString();
     }
 
     try {
-        await pingSentTradeOffers(pendingTrades);
+        await pingSentTradeOffers(pendingTrades, steamID);
     } catch (e) {
         console.error('failed to ping sent trade offer state', e);
         errors.trade_offer_error = (e as any).toString();
