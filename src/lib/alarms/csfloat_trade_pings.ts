@@ -75,7 +75,7 @@ interface UpdateErrors {
     rollback_trades_error?: string;
 }
 
-async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string|null): Promise<UpdateErrors> {
+async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null): Promise<UpdateErrors> {
     const errors: UpdateErrors = {};
 
     try {

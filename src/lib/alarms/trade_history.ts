@@ -3,7 +3,10 @@ import {TradeHistoryStatus, TradeHistoryType} from '../bridge/handlers/trade_his
 import {AppId, TradeOfferState, TradeStatus} from '../types/steam_constants';
 import {clearAccessTokenFromStorage, getAccessToken} from './access_token';
 
-export async function pingTradeHistory(pendingTrades: SlimTrade[], steamID?: string|null): Promise<TradeHistoryStatus[]> {
+export async function pingTradeHistory(
+    pendingTrades: SlimTrade[],
+    steamID?: string | null
+): Promise<TradeHistoryStatus[]> {
     const {history, type} = await getTradeHistory();
 
     // premature optimization in case it's 100 trades
@@ -20,15 +23,19 @@ export async function pingTradeHistory(pendingTrades: SlimTrade[], steamID?: str
         const received_ids = e.received_assets.map((e) => e.asset_id);
         const given_ids = e.given_assets.map((e) => e.asset_id);
 
-        const foundSlimTrades = [...received_ids, ...given_ids].map((e) => {
-            return assetsToFind[e];
-        }).filter(e => !!e);
+        const foundSlimTrades = [...received_ids, ...given_ids]
+            .map((e) => {
+                return assetsToFind[e];
+            })
+            .filter((e) => !!e);
         if (!foundSlimTrades || foundSlimTrades.length === 0) {
             return false;
         }
 
         // Have we already reported this status as a seller? If so, we can skip doing it again
-        if (foundSlimTrades.every((t) => t.steam_offer?.state === TradeOfferState.Accepted && t.seller_id === steamID)) {
+        if (
+            foundSlimTrades.every((t) => t.steam_offer?.state === TradeOfferState.Accepted && t.seller_id === steamID)
+        ) {
             return false;
         }
 

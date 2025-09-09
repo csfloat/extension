@@ -11,7 +11,7 @@ import {HasPermissions} from '../bridge/handlers/has_permissions';
 import {convertSteamID32To64} from '../utils/userinfo';
 import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 
-export async function pingSentTradeOffers(pendingTrades: SlimTrade[], steamID?: string|null) {
+export async function pingSentTradeOffers(pendingTrades: SlimTrade[], steamID?: string | null) {
     const {offers, type} = await getSentTradeOffers();
 
     const offersToFind = pendingTrades.reduce(
@@ -32,7 +32,7 @@ export async function pingSentTradeOffers(pendingTrades: SlimTrade[], steamID?: 
             return false;
         }
 
-        if (slimTrades.every(t => t.steam_offer?.state === e.state && t.seller_id === steamID)) {
+        if (slimTrades.every((t) => t.steam_offer?.state === e.state && t.seller_id === steamID)) {
             // We're pushing the same trade offer state update as a seller, this has no effect server-side, skip
             return false;
         }
