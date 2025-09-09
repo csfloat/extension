@@ -31,4 +31,5 @@ export enum RequestType {
     FETCH_CSFLOAT_ME = 29,
     PING_ROLLBACK_TRADE = 30,
     FETCH_TRADE_HISTORY = 31,
+    FETCH_SLIM_TRADES = 32,
 }

@@ -91,6 +91,7 @@ export interface Trade {
     id: string;
     accepted_at?: string;
     buyer: User;
+    seller: User;
     buyer_id: string;
     contract: Contract;
     contract_id: string;
@@ -106,4 +107,15 @@ export interface Trade {
     wait_for_cancel_ping?: boolean;
     seller_blocked_buyer_at?: string;
     buyer_blocked_seller_at?: string;
+    is_settlement_period?: boolean;
+}
+
+export interface SlimItem extends Pick<Item, 'asset_id' | 'market_hash_name'> {}
+
+export interface SlimContract {
+    item: SlimItem;
+}
+
+export interface SlimTrade extends Omit<Trade, 'buyer' | 'seller' | 'contract' | 'trade_url'> {
+    contract: SlimContract;
 }

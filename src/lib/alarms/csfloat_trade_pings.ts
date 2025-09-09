@@ -1,5 +1,4 @@
-import {Trade} from '../types/float_market';
-import {FetchPendingTrades} from '../bridge/handlers/fetch_pending_trades';
+import {SlimTrade} from '../types/float_market';
 import {pingTradeHistory} from './trade_history';
 import {cancelUnconfirmedTradeOffers, pingCancelTrades, pingSentTradeOffers} from './trade_offer';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
@@ -10,6 +9,7 @@ import {StorageKey} from '../storage/keys';
 import {reportBlockedBuyers} from './blocked_users';
 import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 import {pingRollbackTrades} from './rollback';
+import {FetchSlimTrades} from '../bridge/handlers/fetch_slim_trades';
 
 export const PING_CSFLOAT_TRADE_STATUS_ALARM_NAME = 'ping_csfloat_trade_status_alarm';
 
@@ -28,9 +28,9 @@ export async function pingTradeStatus(expectedSteamID?: string) {
         return;
     }
 
-    let pendingTrades: Trade[];
+    let pendingTrades: SlimTrade[];
     try {
-        const resp = await FetchPendingTrades.handleRequest({limit: 3000, exclude_wait_for_settlement: true}, {});
+        const resp = await FetchSlimTrades.handleRequest({limit: 3000}, {});
         pendingTrades = resp.trades;
     } catch (e) {
         console.error(e);
@@ -75,7 +75,7 @@ interface UpdateErrors {
     rollback_trades_error?: string;
 }
 
-async function pingUpdates(pendingTrades: Trade[]): Promise<UpdateErrors> {
+async function pingUpdates(pendingTrades: SlimTrade[]): Promise<UpdateErrors> {
     const errors: UpdateErrors = {};
 
     try {

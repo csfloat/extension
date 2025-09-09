@@ -1,11 +1,11 @@
-import {Trade} from '../types/float_market';
+import {SlimTrade} from '../types/float_market';
 import {gStore} from '../storage/store';
 import {StorageKey} from '../storage/keys';
 import {FetchSteamUser} from '../bridge/handlers/fetch_steam_user';
 import {FetchBlockedUsers} from '../bridge/handlers/fetch_blocked_users';
 import {PingBlockedUsers} from '../bridge/handlers/ping_blocked_users';
 
-export async function reportBlockedBuyers(pendingTrades: Trade[]) {
+export async function reportBlockedBuyers(pendingTrades: SlimTrade[]) {
     const lastPing = await gStore.getWithStorage<number>(
         chrome.storage.local,
         StorageKey.LAST_TRADE_BLOCKED_PING_ATTEMPT
