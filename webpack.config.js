@@ -52,6 +52,7 @@ module.exports = (env) => {
         mode: 'none',
         entry: Object.assign(
             getPathEntries('./src/lib/page_scripts/*.ts'),
+            getPathEntries('./src/lib/offscreen/offscreen.ts'),
             getPathEntries('./src/lib/types/*.d.ts'),
             getPathEntries('./src/background.ts'),
             getPathEntries('./src/popup/popup.ts'),
@@ -106,6 +107,7 @@ module.exports = (env) => {
                     {from: 'src', to: 'raw/', context: '.'},
                     {from: 'README.md', to: '', context: '.'},
                     {from: 'src/popup/popup.html', to: 'src/', context: '.'},
+                    {from: 'src/lib/offscreen/offscreen.html', to: 'src/offscreen/', context: '.'},
                     {
                         from: 'manifest.json',
                         to: 'manifest.json',

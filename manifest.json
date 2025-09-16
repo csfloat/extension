@@ -48,7 +48,7 @@
         "service_worker": "src/background.js",
         "type": "module"
     },
-    "permissions": ["storage", "scripting", "alarms", "declarativeNetRequestWithHostAccess"],
+    "permissions": ["storage", "scripting", "alarms", "declarativeNetRequestWithHostAccess", "offscreen"],
     "host_permissions": [
         "*://*.steamcommunity.com/market/listings/730/*",
         "*://*.steamcommunity.com/id/*/inventory*",
