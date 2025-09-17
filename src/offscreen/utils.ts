@@ -1,6 +1,6 @@
 import ContextType = chrome.runtime.ContextType;
 
-const OFFSCREEN_DOCUMENT_PATH = '/src/offscreen/offscreen.html';
+const OFFSCREEN_DOCUMENT_PATH = '/src/offscreen.html';
 
 let creating: Promise<void> | null;
 

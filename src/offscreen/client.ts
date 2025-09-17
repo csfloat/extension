@@ -1,6 +1,6 @@
 import {OffscreenRequestBundle, OffscreenResponseBundle} from './types';
 import {OffscreenRequestHandler} from './handlers/types';
-import {closeOffscreenDocument, openOffscreenDocument} from '../utils/offscreen';
+import {closeOffscreenDocument, openOffscreenDocument} from '../offscreen/utils';
 
 export async function SendToOffscreen<Req, Resp>(
     handler: OffscreenRequestHandler<Req, Resp>,
@@ -23,6 +23,6 @@ export async function SendToOffscreen<Req, Resp>(
 
         return response.data;
     } finally {
-        await closeOffscreenDocument();
+        //await closeOffscreenDocument();
     }
 }
