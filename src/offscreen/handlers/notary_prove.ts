@@ -44,7 +44,6 @@ export const TLSNProveOffscreenHandler = new SimpleOffscreenHandler<TLSNProveOff
             'Accept-Encoding': 'gzip',
         });
 
-        console.log(maxSentData, maxRecvData);
         const notary = NotaryServer.from(environment.notary.tlsn);
 
         const prover = (await new Prover({
@@ -146,7 +145,6 @@ async function calculateResponseSize(url: string, method: 'GET'|'POST', headers:
     let headersSize = statusLine.length + 2; // +2 for CRLF (\r\n)
 
     response.headers.forEach((value, name) => {
-        console.log(name, value);
         headersSize += name.length + value.length + 4; // for ": " and "\r\n"
     });
 
