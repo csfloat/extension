@@ -12,7 +12,6 @@ import {
     Presentation as TPresentation,
     Commit,
     NotaryServer,
-    Transcript,
     mapStringToRange,
     subtractRanges,
 } from 'tlsn-js';
@@ -33,18 +32,24 @@ export const TLSNProveOffscreenHandler = new SimpleOffscreenHandler<TLSNProveOff
     async (request) => {
         const serverURL = getSteamRequestURL(request.notary_request, request.access_token);
 
-        // Getting max sent bytes as close as possible to the real req size is crucial for performance
-        const maxSentData = calculateRequestSize(serverURL,'GET', {
+        const maxSentData = calculateRequestSize(serverURL, 'GET', {
             'Connection': 'close',
             'Host': 'api.steampowered.com',
             'Accept-Encoding': 'gzip',
         });
 
+        const maxRecvData = await calculateResponseSize(serverURL, 'GET', {
+            'Connection': 'close',
+            'Host': 'api.steampowered.com',
+            'Accept-Encoding': 'gzip',
+        });
+
+        console.log(maxSentData, maxRecvData);
         const notary = NotaryServer.from(environment.notary.tlsn);
 
         const prover = (await new Prover({
             serverDns: 'api.steampowered.com',
-            maxRecvData: 12000,
+            maxRecvData,
             maxSentData,
         })) as TProver;
 
@@ -60,12 +65,6 @@ export const TLSNProveOffscreenHandler = new SimpleOffscreenHandler<TLSNProveOff
 
         const transcript = await prover.transcript();
         const { sent, recv } = transcript;
-
-        const {
-            info: recvInfo,
-            headers: recvHeaders,
-            body: recvBody,
-        } = parseHttpMessage(Buffer.from(recv), 'response');
 
         const commit: Commit = {
             sent: subtractRanges(
@@ -98,38 +97,6 @@ export const TLSNProveOffscreenHandler = new SimpleOffscreenHandler<TLSNProveOff
     }
 );
 
-function parseHttpMessage(buffer: Buffer, type: 'request' | 'response') {
-    const parser = new HTTPParser(
-        type === 'request' ? HTTPParser.REQUEST : HTTPParser.RESPONSE,
-    );
-    const body: Buffer[] = [];
-    let complete = false;
-    let headers: string[] = [];
-
-    parser.onBody = (t) => {
-        body.push(t);
-    };
-
-    parser.onHeadersComplete = (res) => {
-        headers = res.headers;
-    };
-
-    parser.onMessageComplete = () => {
-        complete = true;
-    };
-
-    parser.execute(buffer);
-    parser.finish();
-
-    if (!complete) throw new Error(`Could not parse ${type.toUpperCase()}`);
-
-    return {
-        info: buffer.toString('utf-8').split('\r\n')[0] + '\r\n',
-        headers,
-        body,
-    };
-}
-
 /**
  * Estimates the total request byte size over the wire if sent over HTTP 1.1
  *
@@ -142,7 +109,7 @@ function parseHttpMessage(buffer: Buffer, type: 'request' | 'response') {
  * @param headers HTTP request headers
  * @param body Optional request body
  */
-export function calculateRequestSize(url: string, method: 'GET'|'POST', headers: Record<string, string>, body?: string): number {
+function calculateRequestSize(url: string, method: 'GET'|'POST', headers: Record<string, string>, body?: string): number {
     const requestLineSize = new TextEncoder().encode(
         `${method} ${url} HTTP/1.1\r\n`,
     ).length;
@@ -158,4 +125,45 @@ export function calculateRequestSize(url: string, method: 'GET'|'POST', headers:
         : 0;
 
     return requestLineSize + headersSize + 2 + bodySize; // +2 for CRLF after headers
+}
+
+/**
+ * Calculates the exact response byte size for the HTTP request by making the request itself and counting the response
+ *
+ * @param url Full request uRL including protocol, domain, path
+ * @param method HTTP method (ie. "GET")
+ * @param headers HTTP request headers
+ * @param body Optional request body
+ */
+async function calculateResponseSize(url: string, method: 'GET'|'POST', headers: Record<string, string>, body?: string): Promise<number> {
+    const opts: RequestInit = {method, headers};
+    if (body) {
+        opts.body = body;
+    }
+    const response = await fetch(url, opts);
+
+    const statusLine = `HTTP/1.1 ${response.status} ${response.statusText}`;
+    let headersSize = statusLine.length + 2; // +2 for CRLF (\r\n)
+
+    response.headers.forEach((value, name) => {
+        console.log(name, value);
+        headersSize += name.length + value.length + 4; // for ": " and "\r\n"
+    });
+
+    // Not included in fetch headers, but is in the network response
+    headersSize += 'Connection: close'.length + 2;
+    headersSize += 'X-N: S'.length + 2;
+
+    // Add the final CRLF that separates the headers from the body.
+    headersSize += 2;
+
+    const contentLength = response.headers.get('content-length');
+
+    if (!contentLength) {
+        throw new Error('no content length in response headers')
+    }
+
+    const bodySize = parseInt(contentLength, 10);
+
+    return headersSize + bodySize;
 }
