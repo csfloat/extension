@@ -1,7 +1,6 @@
 import {OffscreenRequestBundle, OffscreenResponseBundle} from './types';
-import {OffscreenRequestHandler, OffscreenRequestType} from './handlers/types';
-import {closeOffscreenDocument, openOffscreenDocument} from '../offscreen/utils';
-import {wait} from '../lib/utils/snips';
+import {OffscreenRequestType} from './handlers/types';
+import {openOffscreenDocument} from '../offscreen/utils';
 
 export async function SendToOffscreen<Req, Resp>(
     requestType: OffscreenRequestType,

@@ -33,12 +33,19 @@ export const TLSNProveOffscreenHandler = new SimpleOffscreenHandler<TLSNProveOff
     async (request) => {
         const serverURL = getSteamRequestURL(request.notary_request, request.access_token);
 
+        // Getting max sent bytes as close as possible to the real req size is crucial for performance
+        const maxSentData = calculateRequestSize(serverURL,'GET', {
+            'Connection': 'close',
+            'Host': 'api.steampowered.com',
+            'Accept-Encoding': 'gzip',
+        });
+
         const notary = NotaryServer.from(environment.notary.tlsn);
 
         const prover = (await new Prover({
             serverDns: 'api.steampowered.com',
-            maxRecvData: 2048,
-            maxSentData: 800,
+            maxRecvData: 12000,
+            maxSentData,
         })) as TProver;
 
         await prover.setup(await notary.sessionUrl());
@@ -47,13 +54,8 @@ export const TLSNProveOffscreenHandler = new SimpleOffscreenHandler<TLSNProveOff
             url: serverURL,
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-                secret: 'test_secret',
-            },
-            body: {
-                hello: 'world',
-                one: 1,
-            },
+                'Accept-Encoding': 'gzip',
+            }
         });
 
         const transcript = await prover.transcript();
@@ -64,8 +66,6 @@ export const TLSNProveOffscreenHandler = new SimpleOffscreenHandler<TLSNProveOff
             headers: recvHeaders,
             body: recvBody,
         } = parseHttpMessage(Buffer.from(recv), 'response');
-
-        const body = JSON.parse(recvBody[0].toString());
 
         const commit: Commit = {
             sent: subtractRanges(
@@ -128,4 +128,34 @@ function parseHttpMessage(buffer: Buffer, type: 'request' | 'response') {
         headers,
         body,
     };
+}
+
+/**
+ * Estimates the total request byte size over the wire if sent over HTTP 1.1
+ *
+ * Of note, it accounts for a quirk in tlsn-js where the GET path includes the domain as well (which isn't needed)
+ *
+ * Adapted from https://github.com/tlsnotary/tlsn-js/issues/101
+ *
+ * @param url Full request uRL including protocol, domain, path
+ * @param method HTTP method (ie. "GET")
+ * @param headers HTTP request headers
+ * @param body Optional request body
+ */
+export function calculateRequestSize(url: string, method: 'GET'|'POST', headers: Record<string, string>, body?: string): number {
+    const requestLineSize = new TextEncoder().encode(
+        `${method} ${url} HTTP/1.1\r\n`,
+    ).length;
+
+    const headersSize = new TextEncoder().encode(
+        Object.entries(headers)
+            .map(([key, value]) => `${key}: ${value}\r\n`) // CRLF after each header
+            .join(""),
+    ).length;
+
+    const bodySize = body
+        ? new TextEncoder().encode(JSON.stringify(body)).length
+        : 0;
+
+    return requestLineSize + headersSize + 2 + bodySize; // +2 for CRLF after headers
 }
