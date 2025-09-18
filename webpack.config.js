@@ -108,6 +108,8 @@ module.exports = (env) => {
                     {from: 'README.md', to: '', context: '.'},
                     {from: 'src/popup/popup.html', to: 'src/', context: '.'},
                     {from: 'src/offscreen/offscreen.html', to: 'src/', context: '.'},
+                    {from: 'node_modules/tlsn-js/build/*.{wasm,js}', to: '[name][ext]'},
+                    {from: 'node_modules/tlsn-js/build/snippets', to: 'snippets/', context: '.'},
                     {
                         from: 'manifest.json',
                         to: 'manifest.json',
@@ -155,12 +157,25 @@ module.exports = (env) => {
                 test: /bluegem\.json$/,
                 deleteOriginalAssets: true, 
             }),
+            new webpack.ProvidePlugin({
+                Buffer: ['buffer', 'Buffer'],
+            }),
         ],
         stats: {
             errorDetails: true,
         },
         optimization: {
             usedExports: true,
+        },
+        // Required by wasm-bindgen-rayon, in order to use SharedArrayBuffer on the Web
+        // Ref:
+        //  - https://github.com/GoogleChromeLabs/wasm-bindgen-rayon#setting-up
+        //  - https://web.dev/i18n/en/coop-coep/
+        devServer: {
+            headers: {
+                'Cross-Origin-Embedder-Policy': 'require-corp',
+                'Cross-Origin-Opener-Policy': 'same-origin',
+            }
         },
     };
 };

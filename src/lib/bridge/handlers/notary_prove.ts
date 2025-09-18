@@ -1,14 +1,19 @@
 import {SimpleHandler} from './main';
 import {RequestType} from './types';
 import {SendToOffscreen} from '../../../offscreen/client';
-import {TLSNProveOffscreenHandler} from '../../../offscreen/handlers/notary_prove';
 import {HasPermissions} from './has_permissions';
 import {NotaryProveRequest} from '../../notary/types';
 import {getAccessToken} from '../../alarms/access_token';
+import {PresentationJSON} from 'tlsn-js/build/types';
+import {
+    OffscreenRequestType,
+    TLSNProveOffscreenRequest,
+    TLSNProveOffscreenResponse,
+} from '../../../offscreen/handlers/types';
 
 
 export interface NotaryProveResponse {
-    data: any;
+    presentation: PresentationJSON;
 }
 
 export const NotaryProve = new SimpleHandler<NotaryProveRequest, NotaryProveResponse>(
@@ -27,13 +32,13 @@ export const NotaryProve = new SimpleHandler<NotaryProveRequest, NotaryProveResp
 
         const access_token = await getAccessToken(request.expected_steam_id);
 
-        const response = await SendToOffscreen(TLSNProveOffscreenHandler, {
+        const response = await SendToOffscreen<TLSNProveOffscreenRequest, TLSNProveOffscreenResponse>(OffscreenRequestType.TLSN_PROVE, {
             notary_request: request,
             access_token
         });
 
         return {
-            data: response.data,
+            presentation: response.presentation,
         };
     }
 );

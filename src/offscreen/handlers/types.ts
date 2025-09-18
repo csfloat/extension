@@ -1,4 +1,7 @@
 import MessageSender = chrome.runtime.MessageSender;
+import {NotaryProveRequest} from '../../lib/notary/types';
+import {AccessToken} from '../../lib/alarms/access_token';
+import {PresentationJSON} from 'tlsn-js/build/types';
 
 export enum OffscreenRequestType {
     UNKNOWN = 0,
@@ -25,4 +28,13 @@ export class SimpleOffscreenHandler<Req, Resp> implements OffscreenRequestHandle
     handleRequest(request: Req, sender: MessageSender): Promise<Resp> | Resp {
         return this.handler(request, sender);
     }
+}
+
+export interface TLSNProveOffscreenRequest {
+    notary_request: NotaryProveRequest;
+    access_token: AccessToken;
+}
+
+export interface TLSNProveOffscreenResponse {
+    presentation: PresentationJSON;
 }
