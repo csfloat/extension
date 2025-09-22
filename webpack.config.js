@@ -42,6 +42,9 @@ function convertToFirefoxManifest(manifest) {
     cp.host_permissions.push('*://*.csfloat.com/*');
     // Force optional host permissions to be required
     cp.host_permissions = cp.host_permissions.concat(cp.optional_host_permissions);
+    // Not supported in Firefox
+    cp.permissions = cp.permissions.filter(e => e !== 'offscreen');
+
     return cp;
 }
 
@@ -123,6 +126,13 @@ module.exports = (env) => {
                             if (mode === 'development') {
                                 // Add permissions only used for connecting to localhost dev env
                                 processed.host_permissions.push('http://localhost:8080/*');
+                                processed.host_permissions.push('http://localhost:4200/*');
+
+                                // If you're running phoenix locally
+                                processed.content_scripts.push({
+                                    matches: ['*://*.localhost/*'],
+                                    js: ['src/lib/page_scripts/csfloat.js'],
+                                });
 
                                 const versionResource = processed.web_accessible_resources.find((e) =>
                                     e.resources[0].includes('version.txt')
