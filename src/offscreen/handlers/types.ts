@@ -12,14 +12,16 @@ export interface OffscreenRequestHandler<Req, Resp> {
     handleRequest(request: Req, sender: MessageSender): Promise<Resp> | Resp;
 
     getType(): OffscreenRequestType;
+
+    // Whether to signal that the offscreen window should be closed after handling this request
+    shouldClose(): boolean;
 }
 
 export class SimpleOffscreenHandler<Req, Resp> implements OffscreenRequestHandler<Req, Resp> {
     constructor(
         private type: OffscreenRequestType,
         private handler: (request: Req, sender: MessageSender) => Promise<Resp> | Resp
-    ) {
-    }
+    ) {}
 
     getType(): OffscreenRequestType {
         return this.type;
@@ -27,6 +29,24 @@ export class SimpleOffscreenHandler<Req, Resp> implements OffscreenRequestHandle
 
     handleRequest(request: Req, sender: MessageSender): Promise<Resp> | Resp {
         return this.handler(request, sender);
+    }
+
+    shouldClose(): boolean {
+        return false;
+    }
+}
+
+export class ClosableOffscreenHandler<Req, Resp> extends SimpleOffscreenHandler<Req, Resp> {
+    constructor(
+        type: OffscreenRequestType,
+        handler: (request: Req, sender: MessageSender) => Promise<Resp> | Resp,
+        private shouldCloseHandler: () => boolean
+    ) {
+        super(type, handler);
+    }
+
+    shouldClose() {
+        return this.shouldCloseHandler();
     }
 }
 

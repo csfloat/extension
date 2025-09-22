@@ -6,14 +6,27 @@ import {initThreads} from './handlers/notary_prove';
 async function initialize() {
     await initThreads();
 
-    async function handle(request: OffscreenRequestBundle, sender: chrome.runtime.MessageSender): Promise<any> {
+    async function handle(request: OffscreenRequestBundle, sender: chrome.runtime.MessageSender): Promise<OffscreenResponseBundle> {
         const handler = OFFSCREEN_HANDLERS_MAP[request.type];
 
         if (!handler) {
             throw new Error(`couldn't find handler for request type ${request.type}`);
         }
 
-        return handler.handleRequest(request.data, sender);
+        try {
+            const response = await handler.handleRequest(request.data, sender);
+
+            return {
+                data: response,
+                shouldClose: handler.shouldClose(),
+            }
+        } catch (e: any) {
+            console.error('Offscreen document error', e);
+            return {
+                error: e.message,
+                shouldClose: handler.shouldClose(),
+            }
+        }
     }
 
     chrome.runtime.onMessage.addListener((request: OffscreenRequestBundle, sender, sendResponse) => {
@@ -22,18 +35,11 @@ async function initialize() {
         }
 
         handle(request, sender)
-            .then(response => {
-                const bundle: OffscreenResponseBundle = {
-                    data: response
-                };
+            .then(bundle => {
                 sendResponse(bundle);
             })
             .catch(e => {
-                console.error('Offscreen document error', e);
-                const bundle: OffscreenResponseBundle = {
-                    error: e.message
-                };
-                sendResponse(bundle);
+                console.error('IRRECOVERABLE ERROR IN OFFSCREEN DURING REQUEST', e);
             });
 
 

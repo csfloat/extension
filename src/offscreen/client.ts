@@ -1,6 +1,6 @@
 import {OffscreenRequestBundle, OffscreenResponseBundle} from './types';
 import {OffscreenRequestType} from './handlers/types';
-import {openOffscreenDocument} from '../offscreen/utils';
+import {closeOffscreenDocument, openOffscreenDocument} from '../offscreen/utils';
 
 export async function SendToOffscreen<Req, Resp>(
     requestType: OffscreenRequestType,
@@ -14,15 +14,15 @@ export async function SendToOffscreen<Req, Resp>(
         data: args,
     };
 
-    try {
-        const response: OffscreenResponseBundle = await chrome.runtime.sendMessage(bundle);
+    const response: OffscreenResponseBundle = await chrome.runtime.sendMessage(bundle);
 
-        if (response.error) {
-            throw new Error(response.error);
-        }
-
-        return response.data;
-    } finally {
-        //await closeOffscreenDocument();
+    if (response.shouldClose) {
+        await closeOffscreenDocument();
     }
+
+    if (response.error) {
+        throw new Error(response.error);
+    }
+
+    return response.data;
 }

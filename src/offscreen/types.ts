@@ -9,4 +9,5 @@ export interface OffscreenRequestBundle {
 export interface OffscreenResponseBundle {
     data?: any;
     error?: string;
+    shouldClose?: boolean;
 }

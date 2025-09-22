@@ -1,4 +1,5 @@
 import {
+    ClosableOffscreenHandler,
     OffscreenRequestType,
     SimpleOffscreenHandler,
     TLSNProveOffscreenRequest,
@@ -15,7 +16,6 @@ import {
     mapStringToRange,
     subtractRanges,
 } from 'tlsn-js';
-import {HTTPParser} from 'http-parser-js';
 const { init, Prover, Presentation }: any = Comlink.wrap(
     new Worker(new URL('../worker.ts', import.meta.url)),
 );
@@ -27,9 +27,13 @@ export async function initThreads() {
     });
 };
 
-export const TLSNProveOffscreenHandler = new SimpleOffscreenHandler<TLSNProveOffscreenRequest, TLSNProveOffscreenResponse>(
+let totalProveRequests = 0;
+
+export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<TLSNProveOffscreenRequest, TLSNProveOffscreenResponse>(
     OffscreenRequestType.TLSN_PROVE,
     async (request) => {
+        totalProveRequests++;
+
         const serverURL = getSteamRequestURL(request.notary_request, request.access_token);
 
         // Headers that will be sent with the original request to Steam
@@ -94,6 +98,12 @@ export const TLSNProveOffscreenHandler = new SimpleOffscreenHandler<TLSNProveOff
         return {
             presentation: presentationJSON,
         };
+    },
+    () => {
+        // Require the offscreen to be re-initialized after every 5 prove requests
+        // Why? A hacky workaround a potential panic of thread counts overflowing as described in
+        // https://github.com/tlsnotary/tlsn/issues/959
+        return totalProveRequests >= 5;
     }
 );
 
