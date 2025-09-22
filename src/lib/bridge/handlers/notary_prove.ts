@@ -10,13 +10,14 @@ import {
     TLSNProveOffscreenRequest,
     TLSNProveOffscreenResponse,
 } from '../../../offscreen/handlers/types';
+import {MaxConcurrency} from '../wrappers/cached';
 
 
 export interface NotaryProveResponse {
     presentation: PresentationJSON;
 }
 
-export const NotaryProve = new SimpleHandler<NotaryProveRequest, NotaryProveResponse>(
+export const NotaryProve = MaxConcurrency(new SimpleHandler<NotaryProveRequest, NotaryProveResponse>(
     RequestType.NOTARY_PROVE,
     async (request: NotaryProveRequest): Promise<NotaryProveResponse> => {
         const steamPoweredPermissions = await HasPermissions.handleRequest(
@@ -41,4 +42,4 @@ export const NotaryProve = new SimpleHandler<NotaryProveRequest, NotaryProveResp
             presentation: response.presentation,
         };
     }
-);
+), 2);

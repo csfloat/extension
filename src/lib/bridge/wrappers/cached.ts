@@ -75,3 +75,14 @@ export class CachedHandler<Req, Resp> implements RequestHandler<Req, Resp> {
         return this.queue.fetch(request, sender);
     }
 }
+
+/**
+ * Sets max concurrency for the given handler. Requests in excess of this limit will block until the active
+ * requests are finished. Uses a FIFO queue underneath.
+ *
+ * @param handler Handler to wrap with a max concurrency
+ * @param maxConcurrency Max concurrency
+ */
+export function MaxConcurrency<Req, Resp>(handler: RequestHandler<Req, Resp>, maxConcurrency: number) {
+    return new CachedHandler(handler, maxConcurrency, /* disable caching */ 0);
+}
