@@ -32,17 +32,18 @@ export const TLSNProveOffscreenHandler = new SimpleOffscreenHandler<TLSNProveOff
     async (request) => {
         const serverURL = getSteamRequestURL(request.notary_request, request.access_token);
 
-        const maxSentData = calculateRequestSize(serverURL, 'GET', {
+        // Headers that will be sent with the original request to Steam
+        // This MUST accurately depict the headers that the browser will send,
+        // otherwise the max sent bytes will be off
+        const headers = {
             'Connection': 'close',
             'Host': 'api.steampowered.com',
             'Accept-Encoding': 'gzip',
-        });
+        };
 
-        const maxRecvData = await calculateResponseSize(serverURL, 'GET', {
-            'Connection': 'close',
-            'Host': 'api.steampowered.com',
-            'Accept-Encoding': 'gzip',
-        });
+        const maxSentData = calculateRequestSize(serverURL, 'GET', headers);
+
+        const maxRecvData = await calculateResponseSize(serverURL, 'GET', headers);
 
         const notary = NotaryServer.from(environment.notary.tlsn);
 
