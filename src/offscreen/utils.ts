@@ -1,5 +1,4 @@
 import ContextType = chrome.runtime.ContextType;
-import {wait} from '../lib/utils/snips';
 
 const OFFSCREEN_DOCUMENT_PATH = '/src/offscreen.html';
 
@@ -20,14 +19,23 @@ export async function openOffscreenDocument(): Promise<void> {
         await creating;
     } else {
         creating = (async () => {
+            const ready = new Promise<void>((resolve) => {
+                const listener = (request: any, sender: chrome.runtime.MessageSender) => {
+                    if (request?.type === 'offscreen_ready' && sender.url === offscreenUrl) {
+                        chrome.runtime.onMessage.removeListener(listener);
+                        resolve();
+                    }
+                };
+                chrome.runtime.onMessage.addListener(listener);
+            });
+
             await chrome.offscreen.createDocument({
                 url: OFFSCREEN_DOCUMENT_PATH,
                 reasons: [chrome.offscreen.Reason.WORKERS],
                 justification: 'Workers for multi-threading',
             });
-            // We need to wait for the threads to initialize
-            // TODO: Perhaps we can have a better signaling system?
-            await wait(1000);
+
+            await ready;
         })();
         await creating;
         creating = null;

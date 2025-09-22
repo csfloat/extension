@@ -40,6 +40,9 @@ async function initialize() {
         // Keep message channel open for async response
         return true;
     });
+
+    // Signal to service worker that offscreen is ready
+    chrome.runtime.sendMessage({ type: 'offscreen_ready' });
 }
 
 initialize();
