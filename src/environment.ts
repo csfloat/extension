@@ -3,6 +3,6 @@ export const environment = {
     notary: {
         tlsn: 'https://notary.csfloat.com/tlsn/',
         ws: 'wss://notary.csfloat.com/ws/',
-        loggingLevel: 'Warn'
-    }
+        loggingLevel: 'Warn',
+    },
 };

@@ -2,10 +2,7 @@ import {OffscreenRequestBundle, OffscreenResponseBundle} from './types';
 import {OffscreenRequestType} from './handlers/types';
 import {closeOffscreenDocument, openOffscreenDocument} from '../offscreen/utils';
 
-export async function SendToOffscreen<Req, Resp>(
-    requestType: OffscreenRequestType,
-    args: Req
-): Promise<Resp> {
+export async function SendToOffscreen<Req, Resp>(requestType: OffscreenRequestType, args: Req): Promise<Resp> {
     await openOffscreenDocument();
 
     const bundle: OffscreenRequestBundle = {

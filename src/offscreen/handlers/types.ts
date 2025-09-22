@@ -5,7 +5,7 @@ import {PresentationJSON} from 'tlsn-js/build/types';
 
 export enum OffscreenRequestType {
     UNKNOWN = 0,
-    TLSN_PROVE = 1
+    TLSN_PROVE = 1,
 }
 
 export interface OffscreenRequestHandler<Req, Resp> {

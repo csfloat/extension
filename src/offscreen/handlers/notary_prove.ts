@@ -16,20 +16,21 @@ import {
     mapStringToRange,
     subtractRanges,
 } from 'tlsn-js';
-const { init, Prover, Presentation }: any = Comlink.wrap(
-    new Worker(new URL('../worker.ts', import.meta.url)),
-);
+const {init, Prover, Presentation}: any = Comlink.wrap(new Worker(new URL('../worker.ts', import.meta.url)));
 
 export async function initThreads() {
     await init({
         loggingLevel: environment.notary.loggingLevel,
         hardwareConcurrency: navigator.hardwareConcurrency,
     });
-};
+}
 
 let totalProveRequests = 0;
 
-export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<TLSNProveOffscreenRequest, TLSNProveOffscreenResponse>(
+export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
+    TLSNProveOffscreenRequest,
+    TLSNProveOffscreenResponse
+>(
     OffscreenRequestType.TLSN_PROVE,
     async (request) => {
         totalProveRequests++;
@@ -40,8 +41,8 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<TLSNProveO
         // This MUST accurately depict the headers that the browser will send,
         // otherwise the max sent bytes will be off
         const headers = {
-            'Connection': 'close',
-            'Host': 'api.steampowered.com',
+            Connection: 'close',
+            Host: 'api.steampowered.com',
             'Accept-Encoding': 'gzip',
         };
 
@@ -64,23 +65,20 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<TLSNProveO
             method: 'GET',
             headers: {
                 'Accept-Encoding': 'gzip',
-            }
+            },
         });
 
         const transcript = await prover.transcript();
-        const { sent, recv } = transcript;
+        const {sent, recv} = transcript;
 
         const commit: Commit = {
             sent: subtractRanges(
-                { start: 0, end: sent.length },
-                mapStringToRange(
-                    [request.access_token.token],
-                    Buffer.from(sent).toString('utf-8'),
-                ),
+                {start: 0, end: sent.length},
+                mapStringToRange([request.access_token.token], Buffer.from(sent).toString('utf-8'))
             ),
             recv: [
                 // No secrets in response body
-                {start: 0, end: recv.length },
+                {start: 0, end: recv.length},
             ],
         };
         const notarizationOutputs = await prover.notarize(commit);
@@ -90,7 +88,7 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<TLSNProveO
             secretsHex: notarizationOutputs.secrets,
             notaryUrl: notarizationOutputs.notaryUrl,
             websocketProxyUrl: notarizationOutputs.websocketProxyUrl,
-            reveal: { ...commit, server_identity: false },
+            reveal: {...commit, server_identity: false},
         })) as TPresentation;
 
         const presentationJSON = await presentation.json();
@@ -119,20 +117,21 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<TLSNProveO
  * @param headers HTTP request headers
  * @param body Optional request body
  */
-function calculateRequestSize(url: string, method: 'GET'|'POST', headers: Record<string, string>, body?: string): number {
-    const requestLineSize = new TextEncoder().encode(
-        `${method} ${url} HTTP/1.1\r\n`,
-    ).length;
+function calculateRequestSize(
+    url: string,
+    method: 'GET' | 'POST',
+    headers: Record<string, string>,
+    body?: string
+): number {
+    const requestLineSize = new TextEncoder().encode(`${method} ${url} HTTP/1.1\r\n`).length;
 
     const headersSize = new TextEncoder().encode(
         Object.entries(headers)
             .map(([key, value]) => `${key}: ${value}\r\n`) // CRLF after each header
-            .join(""),
+            .join('')
     ).length;
 
-    const bodySize = body
-        ? new TextEncoder().encode(JSON.stringify(body)).length
-        : 0;
+    const bodySize = body ? new TextEncoder().encode(JSON.stringify(body)).length : 0;
 
     return requestLineSize + headersSize + 2 + bodySize; // +2 for CRLF after headers
 }
@@ -145,7 +144,12 @@ function calculateRequestSize(url: string, method: 'GET'|'POST', headers: Record
  * @param headers HTTP request headers
  * @param body Optional request body
  */
-async function calculateResponseSize(url: string, method: 'GET'|'POST', headers: Record<string, string>, body?: string): Promise<number> {
+async function calculateResponseSize(
+    url: string,
+    method: 'GET' | 'POST',
+    headers: Record<string, string>,
+    body?: string
+): Promise<number> {
     const opts: RequestInit = {method, headers};
     if (body) {
         opts.body = body;
@@ -169,7 +173,7 @@ async function calculateResponseSize(url: string, method: 'GET'|'POST', headers:
     const contentLength = response.headers.get('content-length');
 
     if (!contentLength) {
-        throw new Error('no content length in response headers')
+        throw new Error('no content length in response headers');
     }
 
     const bodySize = parseInt(contentLength, 10);

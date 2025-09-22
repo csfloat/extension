@@ -31,8 +31,8 @@ function buildQueryString(params: Record<string, any>): string {
  */
 export function getSteamRequestURL(request: NotaryProveRequest, access_token: AccessToken): string {
     // Separate the 'type' property from the actual URL parameters
-    const { type, ...params } = request;
+    const {type, ...params} = request;
     const baseUrl = PROOF_BASE_URLS[type];
     const queryString = buildQueryString(Object.assign(params, {access_token: access_token.token}));
     return `${baseUrl}${queryString}`;
-};
+}
