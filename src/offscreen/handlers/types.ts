@@ -4,7 +4,6 @@ import {AccessToken} from '../../lib/alarms/access_token';
 import {PresentationJSON} from 'tlsn-js/build/types';
 
 export enum OffscreenRequestType {
-    UNKNOWN = 0,
     TLSN_PROVE = 1,
 }
 
