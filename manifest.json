@@ -48,6 +48,7 @@
         "service_worker": "src/background.js",
         "type": "module"
     },
+    "minimum_chrome_version": "109",
     "permissions": ["storage", "scripting", "alarms", "declarativeNetRequestWithHostAccess", "offscreen"],
     "host_permissions": [
         "*://*.steamcommunity.com/market/listings/730/*",

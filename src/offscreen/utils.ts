@@ -1,17 +1,12 @@
-import ContextType = chrome.runtime.ContextType;
-
 const OFFSCREEN_DOCUMENT_PATH = '/src/offscreen.html';
 
 let creating: Promise<void> | null;
 
 export async function openOffscreenDocument(): Promise<void> {
     const offscreenUrl = chrome.runtime.getURL(OFFSCREEN_DOCUMENT_PATH);
-    const existingContexts = await chrome.runtime.getContexts({
-        contextTypes: [ContextType.OFFSCREEN_DOCUMENT],
-        documentUrls: [offscreenUrl],
-    });
+    const hasExistingContext = await chrome.offscreen.hasDocument();
 
-    if (existingContexts.length > 0) {
+    if (hasExistingContext) {
         return;
     }
 
@@ -43,13 +38,9 @@ export async function openOffscreenDocument(): Promise<void> {
 }
 
 export async function closeOffscreenDocument(): Promise<void> {
-    const offscreenUrl = chrome.runtime.getURL(OFFSCREEN_DOCUMENT_PATH);
-    const existingContexts = await chrome.runtime.getContexts({
-        contextTypes: [ContextType.OFFSCREEN_DOCUMENT],
-        documentUrls: [offscreenUrl],
-    });
+    const hasExistingContext = await chrome.offscreen.hasDocument();
 
-    if (existingContexts.length === 0) {
+    if (!hasExistingContext) {
         return;
     }
 

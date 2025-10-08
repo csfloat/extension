@@ -70,7 +70,6 @@
     "dependencies": {
         "buffer": "^6.0.3",
         "comlink": "^4.4.2",
-        "http-parser-js": "^0.5.10",
         "tlsn-js": "0.1.0-alpha.12.0"
     }
 }

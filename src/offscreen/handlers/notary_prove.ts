@@ -1,7 +1,6 @@
 import {
     ClosableOffscreenHandler,
     OffscreenRequestType,
-    SimpleOffscreenHandler,
     TLSNProveOffscreenRequest,
     TLSNProveOffscreenResponse,
 } from './types';
@@ -60,7 +59,7 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
 
         await prover.setup(await notary.sessionUrl());
 
-        const resp = await prover.sendRequest(environment.notary.ws, {
+        await prover.sendRequest(environment.notary.ws, {
             url: serverURL,
             method: 'GET',
             headers: {

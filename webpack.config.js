@@ -180,7 +180,7 @@ module.exports = (env) => {
         // Required by wasm-bindgen-rayon, in order to use SharedArrayBuffer on the Web
         // Ref:
         //  - https://github.com/GoogleChromeLabs/wasm-bindgen-rayon#setting-up
-        //  - https://web.dev/i18n/en/coop-coep/
+        //  - https://web.dev/articles/coop-coep
         devServer: {
             headers: {
                 'Cross-Origin-Embedder-Policy': 'require-corp',
