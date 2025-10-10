@@ -107,7 +107,7 @@ export function renderClickableRank(info: ItemInfo): TemplateResult<1> {
 export function isSellableOnCSFloat(asset: rgAsset): boolean {
     return (
         isSkin(asset) ||
-        (isCharm(asset) && !isHighlightCharm(asset)) ||
+        isCharm(asset)||
         isAgent(asset) ||
         isSticker(asset) ||
         isPatch(asset) ||
