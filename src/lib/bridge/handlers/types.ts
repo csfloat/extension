@@ -32,4 +32,5 @@ export enum RequestType {
     PING_ROLLBACK_TRADE = 30,
     FETCH_TRADE_HISTORY = 31,
     FETCH_SLIM_TRADES = 32,
+    NOTARY_PROVE = 33,
 }

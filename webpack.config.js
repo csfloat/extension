@@ -42,6 +42,9 @@ function convertToFirefoxManifest(manifest) {
     cp.host_permissions.push('*://*.csfloat.com/*');
     // Force optional host permissions to be required
     cp.host_permissions = cp.host_permissions.concat(cp.optional_host_permissions);
+    // Not supported in Firefox
+    cp.permissions = cp.permissions.filter(e => e !== 'offscreen');
+
     return cp;
 }
 
@@ -55,6 +58,7 @@ module.exports = (env) => {
             getPathEntries('./src/lib/types/*.d.ts'),
             getPathEntries('./src/background.ts'),
             getPathEntries('./src/popup/popup.ts'),
+            getPathEntries('./src/offscreen/offscreen.ts'),
             getPathEntries('./src/**/*.js')
         ),
         output: {
@@ -106,6 +110,9 @@ module.exports = (env) => {
                     {from: 'src', to: 'raw/', context: '.'},
                     {from: 'README.md', to: '', context: '.'},
                     {from: 'src/popup/popup.html', to: 'src/', context: '.'},
+                    {from: 'src/offscreen/offscreen.html', to: 'src/', context: '.'},
+                    {from: 'node_modules/tlsn-js/build/*.{wasm,js}', to: '[name][ext]'},
+                    {from: 'node_modules/tlsn-js/build/snippets', to: 'snippets/', context: '.'},
                     {
                         from: 'manifest.json',
                         to: 'manifest.json',
@@ -119,6 +126,13 @@ module.exports = (env) => {
                             if (mode === 'development') {
                                 // Add permissions only used for connecting to localhost dev env
                                 processed.host_permissions.push('http://localhost:8080/*');
+                                processed.host_permissions.push('http://localhost:4200/*');
+
+                                // If you're running phoenix locally
+                                processed.content_scripts.push({
+                                    matches: ['*://*.localhost/*'],
+                                    js: ['src/lib/page_scripts/csfloat.js'],
+                                });
 
                                 const versionResource = processed.web_accessible_resources.find((e) =>
                                     e.resources[0].includes('version.txt')
@@ -153,12 +167,25 @@ module.exports = (env) => {
                 test: /bluegem\.json$/,
                 deleteOriginalAssets: true, 
             }),
+            new webpack.ProvidePlugin({
+                Buffer: ['buffer', 'Buffer'],
+            }),
         ],
         stats: {
             errorDetails: true,
         },
         optimization: {
             usedExports: true,
+        },
+        // Required by wasm-bindgen-rayon, in order to use SharedArrayBuffer on the Web
+        // Ref:
+        //  - https://github.com/GoogleChromeLabs/wasm-bindgen-rayon#setting-up
+        //  - https://web.dev/articles/coop-coep
+        devServer: {
+            headers: {
+                'Cross-Origin-Embedder-Policy': 'require-corp',
+                'Cross-Origin-Opener-Policy': 'same-origin',
+            }
         },
     };
 };
