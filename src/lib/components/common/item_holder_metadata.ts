@@ -78,6 +78,10 @@ export abstract class ItemHolderMetadata extends FloatElement {
     get assetId(): string | undefined {
         return $J(this).parent().attr('id')?.split('_')[2];
     }
+    
+    get isTradeProtected(): boolean {
+        return $J(this).parent().hasClass('provisional_item');
+    }
 
     abstract get asset(): rgAsset | undefined;
     abstract get ownerSteamId(): string | undefined;

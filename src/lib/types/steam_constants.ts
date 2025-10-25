@@ -9,6 +9,7 @@ export enum AppId {
 
 export enum ContextId {
     PRIMARY = 2,
+    PROTECTED = 16,
 }
 
 // https://developer.valvesoftware.com/wiki/Steam_Web_API/IEconService
