@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import {AppId, ContextId, Currency} from './steam_constants';
+import {AppId, ContextId} from './steam_constants';
 
 type ClassId = string;
 type InstanceId = string;
@@ -116,15 +116,22 @@ export interface mOwner {
     strSteamId: string;
 }
 
-// g_ActiveInventory
+// g_ActiveInventory.m_rgChildInventories[contextId]
 export interface CInventory {
     initialized: boolean;
     m_rgAssets: {[assetId: string]: InventoryAsset};
+    m_parentInventory: CAppwideInventory | null;
     rgInventory: {[assetId: string]: rgAsset};
     m_owner?: mOwner;
     owner?: mOwner;
     selectedItem?: InventoryAsset;
     appid?: number;
+}
+
+// g_ActiveInventory
+export interface CAppwideInventory extends CInventory {
+    m_rgChildInventories: {[contextId in ContextId]: CInventory};
+    m_rgContextIds: string[];
 }
 
 export interface CAjaxPagingControls {
@@ -231,7 +238,7 @@ declare global {
     const g_rgListingInfo: {[listingId: string]: ListingData};
     const g_rgWalletInfo: WalletInfo | undefined; // Not populated when user is signed-out
     const g_rgAssets: SteamAssets;
-    const g_ActiveInventory: CInventory | undefined; // Only populated on Steam inventory pages
+    const g_ActiveInventory: CAppwideInventory | CInventory | undefined; // Only populated on Steam inventory pages
     const g_steamID: string;
     const g_oSearchResults: CAjaxPagingControls;
     const BuyItemDialog: BuyItemDialog | undefined; // Only populated on Steam Market pages
