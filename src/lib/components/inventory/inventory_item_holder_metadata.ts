@@ -1,7 +1,7 @@
 import {CustomElement, InjectAppend, InjectionMode} from '../injectors';
 import {rgAsset} from '../../types/steam';
 import {ItemHolderMetadata} from '../common/item_holder_metadata';
-import { ContextId } from '../../types/steam_constants';
+import {ContextId} from '../../types/steam_constants';
 
 @CustomElement()
 @InjectAppend(
