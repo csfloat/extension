@@ -238,7 +238,7 @@ declare global {
     const g_rgListingInfo: {[listingId: string]: ListingData};
     const g_rgWalletInfo: WalletInfo | undefined; // Not populated when user is signed-out
     const g_rgAssets: SteamAssets;
-    const g_ActiveInventory: CAppwideInventory | undefined; // Only populated on Steam inventory pages
+    const g_ActiveInventory: CAppwideInventory | CInventory | undefined; // Only populated on Steam inventory pages
     const g_steamID: string;
     const g_oSearchResults: CAjaxPagingControls;
     const BuyItemDialog: BuyItemDialog | undefined; // Only populated on Steam Market pages
