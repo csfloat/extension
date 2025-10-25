@@ -1,4 +1,4 @@
-import { CInventory, CAppwideInventory } from '../types/steam';
+import {CInventory, CAppwideInventory} from '../types/steam';
 
 export function defined(t: string): boolean {
     return t !== 'undefined';
