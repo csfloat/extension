@@ -16,7 +16,7 @@ import {getDopplerPhase, hasDopplerPhase} from '../../utils/dopplers';
 @CustomElement()
 export class ListItemModal extends FloatElement {
     @property()
-    itemInfo!: ItemInfo;
+    itemInfo: ItemInfo | undefined;
 
     @property()
     asset!: InventoryAsset;
@@ -86,9 +86,12 @@ export class ListItemModal extends FloatElement {
 
     get searchUrl(): string {
         let extendedMHN = this.asset.description.market_hash_name;
-        if (hasDopplerPhase(this.itemInfo.paintindex)) {
-            extendedMHN += ` [${getDopplerPhase(this.itemInfo.paintindex)}]`;
+
+        const paintindex = this.itemInfo?.paintindex;
+        if (paintindex && hasDopplerPhase(paintindex)) {
+            extendedMHN += ` [${getDopplerPhase(paintindex)}]`;
         }
+        
         return `https://csfloat.com/search?market_hash_name=${encodeURIComponent(extendedMHN)}`;
     }
 
