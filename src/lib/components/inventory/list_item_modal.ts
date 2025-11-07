@@ -11,6 +11,7 @@ import {listItemModalStyles} from './list_item_modal_styles';
 import {CSFError, CSFErrorCode} from '../../utils/errors';
 import {FetchCSFloatMe} from '../../bridge/handlers/fetch_csfloat_me';
 import {STEAL_ICON, CHEAP_ICON, RECOMMENDED_ICON, EXPENSIVE_ICON} from '../../utils/icons';
+import {getDopplerPhase, hasDopplerPhase} from '../../utils/dopplers';
 
 @CustomElement()
 export class ListItemModal extends FloatElement {
@@ -84,7 +85,11 @@ export class ListItemModal extends FloatElement {
     private readonly MAX_DESCRIPTION_LENGTH = 32;
 
     get searchUrl(): string {
-        return `https://csfloat.com/search?market_hash_name=${encodeURIComponent(this.asset.description.market_hash_name)}`;
+        let extendedMHN = this.asset.description.market_hash_name;
+        if (hasDopplerPhase(this.itemInfo.paintindex)) {
+            extendedMHN += ` [${getDopplerPhase(this.itemInfo.paintindex)}]`;
+        }
+        return `https://csfloat.com/search?market_hash_name=${encodeURIComponent(extendedMHN)}`;
     }
 
     static styles = [...listItemModalStyles];
