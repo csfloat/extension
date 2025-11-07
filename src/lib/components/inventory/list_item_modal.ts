@@ -91,7 +91,7 @@ export class ListItemModal extends FloatElement {
         if (paintindex && hasDopplerPhase(paintindex)) {
             extendedMHN += ` [${getDopplerPhase(paintindex)}]`;
         }
-        
+
         return `https://csfloat.com/search?market_hash_name=${encodeURIComponent(extendedMHN)}`;
     }
 
