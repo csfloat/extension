@@ -1,6 +1,6 @@
-import {SimpleHandler} from './main';
-import {RequestType} from './types';
-import {environment} from '../../../environment';
+import { SimpleHandler } from './main';
+import { RequestType } from './types';
+import { environment } from '../../../environment';
 
 export interface TradeHistoryAsset {
     asset_id: string;
@@ -13,6 +13,7 @@ export interface TradeHistoryStatus {
     other_party_url: string;
     received_assets: TradeHistoryAsset[];
     given_assets: TradeHistoryAsset[];
+    time_init: number;
     time_settlement?: number;
     rollback_trade?: string;
 }
@@ -27,7 +28,7 @@ export interface TradeHistoryStatusRequest {
     type?: TradeHistoryType;
 }
 
-export interface TradeHistoryStatusResponse {}
+export interface TradeHistoryStatusResponse { }
 
 export const TradeHistoryStatus = new SimpleHandler<TradeHistoryStatusRequest, TradeHistoryStatusResponse>(
     RequestType.TRADE_HISTORY_STATUS,
