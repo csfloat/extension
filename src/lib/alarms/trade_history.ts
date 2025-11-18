@@ -94,6 +94,7 @@ export async function getTradeHistoryFromAPI(
         getDescriptions?: boolean;
         includeFailed?: boolean;
         includeTotal?: boolean;
+        language?: string;
     }
 ): Promise<TradeHistoryStatus[]> {
     const access = await getAccessToken();
@@ -122,6 +123,10 @@ export async function getTradeHistoryFromAPI(
 
     if (opts?.includeTotal !== undefined) {
         url += `&include_total=${opts.includeTotal}`;
+    }
+
+    if (opts?.language) {
+        url += `&language=${opts.language}`;
     }
 
     // This only works if they have granted permission for https://api.steampowered.com

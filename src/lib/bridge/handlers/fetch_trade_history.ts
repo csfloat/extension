@@ -11,6 +11,7 @@ export interface FetchTradeHistoryRequest {
     get_descriptions?: boolean;
     include_failed?: boolean;
     include_total?: boolean;
+    language?: string;
 }
 
 export interface FetchTradeHistoryResponse {
@@ -27,6 +28,7 @@ export const FetchTradeHistory = new SimpleHandler<FetchTradeHistoryRequest, Fet
             getDescriptions: req.get_descriptions,
             includeFailed: req.include_failed,
             includeTotal: req.include_total,
+            language: req.language,
         });
         return {
             trades,
