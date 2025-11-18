@@ -1,13 +1,13 @@
-import { SlimTrade } from '../types/float_market';
-import { TradeHistoryStatus, TradeHistoryType } from '../bridge/handlers/trade_history_status';
-import { AppId, TradeOfferState, TradeStatus } from '../types/steam_constants';
-import { clearAccessTokenFromStorage, getAccessToken } from './access_token';
+import {SlimTrade} from '../types/float_market';
+import {TradeHistoryStatus, TradeHistoryType} from '../bridge/handlers/trade_history_status';
+import {AppId, TradeOfferState, TradeStatus} from '../types/steam_constants';
+import {clearAccessTokenFromStorage, getAccessToken} from './access_token';
 
 export async function pingTradeHistory(
     pendingTrades: SlimTrade[],
     steamID?: string | null
 ): Promise<TradeHistoryStatus[]> {
-    const { history, type } = await getTradeHistory();
+    const {history, type} = await getTradeHistory();
 
     // premature optimization in case it's 100 trades
     const assetsToFind = pendingTrades.reduce(
@@ -15,7 +15,7 @@ export async function pingTradeHistory(
             acc[e.contract.item.asset_id] = e;
             return acc;
         },
-        {} as { [key: string]: SlimTrade }
+        {} as {[key: string]: SlimTrade}
     );
 
     // We only want to send history that is relevant to verifying trades on CSFloat
@@ -42,17 +42,17 @@ export async function pingTradeHistory(
         return history;
     }
 
-    await TradeHistoryStatus.handleRequest({ history: historyForCSFloat, type }, {});
+    await TradeHistoryStatus.handleRequest({history: historyForCSFloat, type}, {});
 
     return history;
 }
 
-async function getTradeHistory(): Promise<{ history: TradeHistoryStatus[]; type: TradeHistoryType }> {
+async function getTradeHistory(): Promise<{history: TradeHistoryStatus[]; type: TradeHistoryType}> {
     try {
         const history = await getTradeHistoryFromAPI(250);
         if (history.length > 0) {
             // Hedge in case this endpoint gets killed, only return if there are results, fallback to HTML parser
-            return { history, type: TradeHistoryType.API };
+            return {history, type: TradeHistoryType.API};
         } else {
             throw new Error('failed to get trade history');
         }
@@ -60,7 +60,7 @@ async function getTradeHistory(): Promise<{ history: TradeHistoryStatus[]; type:
         await clearAccessTokenFromStorage();
         // Fallback to HTML parsing
         const history = await getTradeHistoryFromHTML();
-        return { history, type: TradeHistoryType.HTML };
+        return {history, type: TradeHistoryType.HTML};
     }
 }
 
@@ -149,12 +149,12 @@ export async function getTradeHistoryFromAPI(
                 received_assets: (e.assets_received || [])
                     .filter((e) => e.appid === AppId.CSGO)
                     .map((e) => {
-                        return { asset_id: e.assetid, new_asset_id: e.new_assetid };
+                        return {asset_id: e.assetid, new_asset_id: e.new_assetid};
                     }),
                 given_assets: (e.assets_given || [])
                     .filter((e) => e.appid === AppId.CSGO)
                     .map((e) => {
-                        return { asset_id: e.assetid, new_asset_id: e.new_assetid };
+                        return {asset_id: e.assetid, new_asset_id: e.new_assetid};
                     }),
                 trade_id: e.tradeid,
                 time_settlement: e.time_settlement,
@@ -209,9 +209,9 @@ function parseTradeHistoryHTML(body: string): TradeHistoryStatus[] {
         const [text, index, type, assetId] = match;
         const tradeIndex = parseInt(index);
         if (type === 'received') {
-            statuses[tradeIndex].received_assets.push({ asset_id: assetId });
+            statuses[tradeIndex].received_assets.push({asset_id: assetId});
         } else if (type === 'given') {
-            statuses[tradeIndex].given_assets.push({ asset_id: assetId });
+            statuses[tradeIndex].given_assets.push({asset_id: assetId});
         }
     }
 
