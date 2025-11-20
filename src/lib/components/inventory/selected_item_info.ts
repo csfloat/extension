@@ -32,8 +32,14 @@ import './list_item_modal';
  * item click.
  */
 @CustomElement()
-@InjectAfter('div.app730#iteminfo0_content .item_desc_description div.item_desc_game_info', InjectionMode.CONTINUOUS)
-@InjectAfter('div.app730#iteminfo1_content .item_desc_description div.item_desc_game_info', InjectionMode.CONTINUOUS)
+@InjectAfter(
+    'div#iteminfo0 div:has(> a[href^="https://store.steampowered.com/app/730/CounterStrike_2"] > img)',
+    InjectionMode.CONTINUOUS
+)
+@InjectAfter(
+    'div#iteminfo1 div:has(> a[href^="https://store.steampowered.com/app/730/CounterStrike_2"] > img)',
+    InjectionMode.CONTINUOUS
+)
 export class SelectedItemInfo extends FloatElement {
     static styles = [
         ...FloatElement.styles,
