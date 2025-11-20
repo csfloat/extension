@@ -78,6 +78,7 @@ interface TradeHistoryAPIResponse {
             status: number;
             assets_given?: HistoryAsset[];
             assets_received?: HistoryAsset[];
+            time_init: number;
             time_escrow_end?: string;
             time_settlement?: number;
             rollback_trade?: string;
@@ -85,16 +86,54 @@ interface TradeHistoryAPIResponse {
     };
 }
 
-export async function getTradeHistoryFromAPI(maxTrades: number): Promise<TradeHistoryStatus[]> {
+export async function getTradeHistoryFromAPI(
+    maxTrades: number,
+    opts?: {
+        startAfterTime?: number;
+        startAfterTradeID?: string;
+        navigatingBack?: boolean;
+        getDescriptions?: boolean;
+        includeFailed?: boolean;
+        includeTotal?: boolean;
+        language?: string;
+    }
+): Promise<TradeHistoryStatus[]> {
     const access = await getAccessToken();
 
+    let url = `https://api.steampowered.com/IEconService/GetTradeHistory/v1/?access_token=${access.token}&max_trades=${maxTrades}`;
+
+    if (opts?.startAfterTime) {
+        url += `&start_after_time=${opts.startAfterTime}`;
+    }
+
+    if (opts?.startAfterTradeID) {
+        url += `&start_after_tradeid=${opts.startAfterTradeID}`;
+    }
+
+    if (opts?.navigatingBack !== undefined) {
+        url += `&navigating_back=${opts.navigatingBack}`;
+    }
+
+    if (opts?.getDescriptions !== undefined) {
+        url += `&get_descriptions=${opts.getDescriptions}`;
+    }
+
+    if (opts?.includeFailed !== undefined) {
+        url += `&include_failed=${opts.includeFailed}`;
+    }
+
+    if (opts?.includeTotal !== undefined) {
+        url += `&include_total=${opts.includeTotal}`;
+    }
+
+    if (opts?.language) {
+        url += `&language=${opts.language}`;
+    }
+
     // This only works if they have granted permission for https://api.steampowered.com
-    const resp = await fetch(
-        `https://api.steampowered.com/IEconService/GetTradeHistory/v1/?access_token=${access.token}&max_trades=${maxTrades}`,
-        {
-            credentials: 'include',
-        }
-    );
+    const resp = await fetch(url, {
+        credentials: 'include',
+    });
 
     if (resp.status !== 200) {
         throw new Error('invalid status');
@@ -119,6 +158,7 @@ export async function getTradeHistoryFromAPI(maxTrades: number): Promise<TradeHi
                     }),
                 trade_id: e.tradeid,
                 time_settlement: e.time_settlement,
+                time_init: e.time_init,
                 status: e.status,
                 rollback_trade: e.rollback_trade,
             } as TradeHistoryStatus;
@@ -156,6 +196,7 @@ function parseTradeHistoryHTML(body: string): TradeHistoryStatus[] {
             given_assets: [],
             trade_id: '',
             time_settlement: 0,
+            time_init: 0,
             status: 0,
             rollback_trade: '',
         } as TradeHistoryStatus;

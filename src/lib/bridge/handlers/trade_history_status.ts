@@ -13,6 +13,7 @@ export interface TradeHistoryStatus {
     other_party_url: string;
     received_assets: TradeHistoryAsset[];
     given_assets: TradeHistoryAsset[];
+    time_init: number;
     time_settlement?: number;
     rollback_trade?: string;
 }
