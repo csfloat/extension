@@ -303,14 +303,14 @@ export class SelectedItemInfo extends FloatElement {
 
         // If an item was listed, refresh the stall data
         if (e.detail?.listingId) {
-            this.refreshStallData();
+            this.refreshStallData(true);
         }
     }
 
-    private refreshStallData() {
+    private refreshStallData(forceRefresh = false) {
         if (g_ActiveInventory?.m_owner?.strSteamId) {
             gStallFetcher
-                .fetch({steam_id64: g_ActiveInventory.m_owner.strSteamId}, true)
+                .fetch({steam_id64: g_ActiveInventory.m_owner.strSteamId}, forceRefresh)
                 .then((stall) => (this.stall = stall))
                 .catch((error) => {
                     console.error('Failed to refresh stall data:', error);
