@@ -156,7 +156,7 @@ export class SelectedItemInfo extends FloatElement {
     }
 
     renderFloatBar(): TemplateResult<1> {
-        if (!this.itemInfo || !this.itemInfo.floatvalue) {
+        if (!this.itemInfo || !this.itemInfo.floatvalue || this.itemInfo.min === undefined || this.itemInfo.max === undefined) {
             return html``;
         }
 
