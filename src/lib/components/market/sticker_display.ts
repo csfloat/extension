@@ -196,7 +196,10 @@ export class StickerDisplay extends FloatElement {
     private loadKeychains(): void {
         const description = this.keychainDescription;
 
-        if (description?.type !== 'html' || (description.value.includes('sticker') && !description.value.includes('Sticker Slab'))) {
+        if (
+            description?.type !== 'html' ||
+            (description.value.includes('sticker') && !description.value.includes('Sticker Slab'))
+        ) {
             this.keychains = [];
             return;
         }
