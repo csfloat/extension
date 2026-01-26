@@ -109,7 +109,7 @@ export class StickerDisplay extends FloatElement {
                 <a target="_blank" href="${item.url}">
                     <img src="${item.imageUrl}" alt="${stickerName}" />
                 </a>
-                <span class="item-value">${item.value}</span>
+                ${item.value ? html`<span class="item-value">${item.value}</span>` : nothing}
             </div>
         `;
     }
@@ -196,13 +196,15 @@ export class StickerDisplay extends FloatElement {
     private loadKeychains(): void {
         const description = this.keychainDescription;
 
-        if (description?.type !== 'html' || description.value.includes('sticker')) {
+        if (description?.type !== 'html' || (description.value.includes('sticker') && !description.value.includes('Sticker Slab'))) {
             this.keychains = [];
             return;
         }
 
         this.keychains = this.parseAppliedItems(description, AppliedType.Charm, (index) => {
-            return `#${this.itemInfo.keychains[index]?.pattern}`;
+            // Sticker Slabs don't have a pattern
+            const pattern = this.itemInfo.keychains[index]?.pattern;
+            return pattern ? `#${pattern}` : '';
         });
     }
 
