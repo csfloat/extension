@@ -30,7 +30,7 @@ export async function pingTradeStatus(expectedSteamID?: string) {
 
     let pendingTrades: SlimTrade[];
     try {
-        const resp = await FetchSlimTrades.handleRequest({limit: 3000}, {});
+        const resp = await FetchSlimTrades.handleRequest({limit: 5000}, {});
         pendingTrades = resp.trades;
     } catch (e) {
         console.error(e);
