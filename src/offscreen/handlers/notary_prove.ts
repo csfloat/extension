@@ -50,11 +50,7 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
 
         const maybeNotaryToken = request.notary_request.meta?.notary_token;
 
-        const session = await NotarySessionClient.create(
-            maxRecvData,
-            maxSentData,
-            maybeNotaryToken,
-        );
+        const session = await NotarySessionClient.create(maxRecvData, maxSentData, maybeNotaryToken);
 
         try {
             // Create and setup prover

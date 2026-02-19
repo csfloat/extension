@@ -10,7 +10,7 @@ async function init(config?: {
     const {
         loggingLevel = environment.notary.loggingLevel as LoggingLevel,
         hardwareConcurrency = navigator.hardwareConcurrency || 4,
-        crateFilters
+        crateFilters,
     } = config || {};
 
     await initWasm();

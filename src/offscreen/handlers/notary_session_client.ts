@@ -22,7 +22,6 @@ export class NotarySessionClient {
         private readonly sessionID: string
     ) {}
 
-
     getID(): string {
         return this.sessionID;
     }
@@ -47,7 +46,7 @@ export class NotarySessionClient {
             this.ws,
             'session_completed',
             30_000,
-            'Timeout waiting for session_completed',
+            'Timeout waiting for session_completed'
         );
     }
 
