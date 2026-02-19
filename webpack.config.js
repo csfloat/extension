@@ -111,8 +111,8 @@ module.exports = (env) => {
                     {from: 'README.md', to: '', context: '.'},
                     {from: 'src/popup/popup.html', to: 'src/', context: '.'},
                     {from: 'src/offscreen/offscreen.html', to: 'src/', context: '.'},
-                    {from: 'node_modules/tlsn-js/build/*.{wasm,js}', to: '[name][ext]'},
-                    {from: 'node_modules/tlsn-js/build/snippets', to: 'snippets/', context: '.'},
+                    {from: 'node_modules/@csfloat/tlsn-wasm/*.{wasm,js}', to: '[name][ext]'},
+                    {from: 'node_modules/@csfloat/tlsn-wasm/snippets', to: 'snippets/', context: '.'},
                     {
                         from: 'manifest.json',
                         to: 'manifest.json',

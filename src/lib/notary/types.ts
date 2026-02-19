@@ -43,6 +43,9 @@ interface ProveRequestPayloads {
 export type NotaryProveRequest = {
     [T in ProofType]: {
         type: T;
-        expected_steam_id?: string;
+        meta?: {
+            expected_steam_id?: string;
+            notary_token?: string;
+        };
     } & ProveRequestPayloads[T];
 }[ProofType];

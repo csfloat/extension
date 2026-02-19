@@ -1,7 +1,6 @@
 import MessageSender = chrome.runtime.MessageSender;
 import {NotaryProveRequest} from '../../lib/notary/types';
 import {AccessToken} from '../../lib/alarms/access_token';
-import {PresentationJSON} from 'tlsn-js/build/types';
 
 export enum OffscreenRequestType {
     TLSN_PROVE = 1,
@@ -54,6 +53,10 @@ export interface TLSNProveOffscreenRequest {
     access_token: AccessToken;
 }
 
+export interface VerificationResults {
+    payload: string;
+}
+
 export interface TLSNProveOffscreenResponse {
-    presentation: PresentationJSON;
+    payload: string;
 }
