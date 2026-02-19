@@ -13,8 +13,8 @@ type ServerMessage =
     | {type: 'session_completed'; payload: string}
     | {type: 'error'; message: string};
 
-type SessionRegisteredMessage = Extract<ServerMessage, {type: 'session_registered'}>;
-type SessionCompletedMessage = Extract<ServerMessage, {type: 'session_completed'}>;
+type NonErrorServerMessage = Exclude<ServerMessage, {type: 'error'}>;
+type NonErrorServerMessageType = NonErrorServerMessage['type'];
 
 export class NotarySessionClient {
     private constructor(
@@ -34,7 +34,7 @@ export class NotarySessionClient {
 
         const registered = await this.waitForServerMessage(
             ws,
-            (message): message is SessionRegisteredMessage => message.type === 'session_registered',
+            'session_registered',
             5_000,
             'Timeout waiting for session_registered'
         );
@@ -45,7 +45,7 @@ export class NotarySessionClient {
     async finalizeResults(): Promise<VerificationResults> {
         return NotarySessionClient.waitForServerMessage(
             this.ws,
-            (message): message is SessionCompletedMessage => message.type === 'session_completed',
+            'session_completed',
             30_000,
             'Timeout waiting for session_completed',
         );
@@ -65,12 +65,12 @@ export class NotarySessionClient {
         return url;
     }
 
-    private static waitForServerMessage<TMessage extends ServerMessage>(
+    private static waitForServerMessage<TType extends NonErrorServerMessageType>(
         ws: WebSocket,
-        isExpectedMessage: (message: ServerMessage) => message is TMessage,
+        expectedType: TType,
         timeoutMs: number,
         timeoutMessage: string
-    ): Promise<TMessage> {
+    ): Promise<Extract<NonErrorServerMessage, {type: TType}>> {
         return new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
                 cleanup();
@@ -103,12 +103,12 @@ export class NotarySessionClient {
                     return;
                 }
 
-                if (!isExpectedMessage(message)) {
+                if (message.type !== expectedType) {
                     return;
                 }
 
                 cleanup();
-                resolve(message);
+                resolve(message as Extract<NonErrorServerMessage, {type: TType}>);
             };
 
             const onError = () => {
