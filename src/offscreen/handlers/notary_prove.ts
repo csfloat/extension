@@ -3,12 +3,12 @@ import {
     OffscreenRequestType,
     TLSNProveOffscreenRequest,
     TLSNProveOffscreenResponse,
-    VerificationResults,
 } from './types';
 import {getSteamRequestURL} from '../../lib/notary/utils';
 import * as Comlink from 'comlink';
 import {environment} from '../../environment';
 import type {LoggingLevel, Method, Prover as TProver, Reveal} from '@csfloat/tlsn-wasm';
+import {NotarySessionClient} from './notary_session_client';
 
 const {init, Prover}: any = Comlink.wrap(new Worker(new URL('../worker.ts', import.meta.url)));
 
@@ -24,63 +24,6 @@ export async function initThreads() {
 }
 
 let totalProveRequests = 0;
-
-type ClientMessage = {type: 'register'; maxRecvData: number; maxSentData: number; sessionData?: Record<string, string>}
-
-type ServerMessage =
-    | {type: 'session_registered'; sessionId: string}
-    | {type: 'session_completed'; payload: string}
-    | {type: 'error'; message: string};
-
-/**
- * Registers a session with the verifier and returns the verifier URL and proxy URL
- */
-async function registerSession(
-    maxRecvData: number,
-    maxSentData: number,
-    token?: string,
-): Promise<{sessionID: string; sessionWs: WebSocket}> {
-    return new Promise((resolve, reject) => {
-        let url = `${environment.notary.tlsn}/session`;
-        if (token) {
-            url += `?token=${token}`;
-        }
-
-        const ws = new WebSocket(url);
-
-        ws.onopen = () => {
-            ws.send(JSON.stringify({type: 'register', maxRecvData, maxSentData} as ClientMessage));
-        };
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data) as ServerMessage;
-            if (data.type === 'session_registered') {
-                resolve({sessionID: data.sessionId, sessionWs: ws});
-            } else if (data.type === 'error') {
-                reject(new Error(data.message));
-            }
-        };
-
-        ws.onerror = () => reject(new Error('WebSocket connection failed'));
-    });
-}
-
-function waitForSessionCompleted(ws: WebSocket, timeoutMs = 30_000): Promise<VerificationResults> {
-    return new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('Timeout waiting for session_completed')), timeoutMs);
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data) as ServerMessage;
-            if (data.type === 'session_completed') {
-                clearTimeout(timeout);
-                resolve({payload: data.payload});
-            } else if (data.type === 'error') {
-                clearTimeout(timeout);
-                reject(new Error(data.message));
-            }
-        };
-    });
-}
 
 export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
     TLSNProveOffscreenRequest,
@@ -107,7 +50,7 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
 
         const maybeNotaryToken = request.notary_request.meta?.notary_token;
 
-        const {sessionID, sessionWs} = await registerSession(
+        const session = await NotarySessionClient.create(
             maxRecvData,
             maxSentData,
             maybeNotaryToken,
@@ -123,7 +66,7 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
                 defer_decryption_from_start: true,
             })) as TProver;
 
-            let verifierUrl = `${environment.notary.tlsn}/verifier?sessionId=${sessionID}`;
+            let verifierUrl = `${environment.notary.tlsn}/verifier?sessionId=${session.getID()}`;
             if (maybeNotaryToken) {
                 verifierUrl += `&token=${maybeNotaryToken}`;
             }
@@ -159,7 +102,7 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
             const recvRanges = [{start: 0, end: recv.length}];
 
             // Set up listener before calling reveal
-            const completedPromise = waitForSessionCompleted(sessionWs);
+            const completedPromise = session.finalizeResults();
 
             // Reveal to verifier
             const reveal: Reveal = {sent: sentRanges, recv: recvRanges, server_identity: true};
@@ -167,9 +110,7 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
 
             return await completedPromise;
         } finally {
-            if (sessionWs.readyState === WebSocket.OPEN) {
-                sessionWs.close();
-            }
+            session.close();
         }
     },
     () => {
