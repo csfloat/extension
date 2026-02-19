@@ -31,23 +31,13 @@ export class NotarySessionClient {
 
         ws.send(JSON.stringify({type: 'register', maxRecvData, maxSentData} as ClientMessage));
 
-        const registered = await this.waitForServerMessage(
-            ws,
-            'session_registered',
-            5_000,
-            'Timeout waiting for session_registered'
-        );
+        const registered = await this.waitForServerMessage(ws, 'session_registered', 5_000);
 
         return new NotarySessionClient(ws, registered.sessionId);
     }
 
     async finalizeResults(): Promise<VerificationResults> {
-        return NotarySessionClient.waitForServerMessage(
-            this.ws,
-            'session_completed',
-            30_000,
-            'Timeout waiting for session_completed'
-        );
+        return NotarySessionClient.waitForServerMessage(this.ws, 'session_completed', 30_000);
     }
 
     close(): void {
@@ -67,13 +57,12 @@ export class NotarySessionClient {
     private static waitForServerMessage<TType extends NonErrorServerMessageType>(
         ws: WebSocket,
         expectedType: TType,
-        timeoutMs: number,
-        timeoutMessage: string
+        timeoutMs: number
     ): Promise<Extract<NonErrorServerMessage, {type: TType}>> {
         return new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
                 cleanup();
-                reject(new Error(timeoutMessage));
+                reject(new Error('timeout'));
             }, timeoutMs);
 
             const cleanup = () => {
