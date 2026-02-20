@@ -7,20 +7,20 @@ import {
 import {getSteamRequestURL} from '../../lib/notary/utils';
 import * as Comlink from 'comlink';
 import {environment} from '../../environment';
-import {
-    Prover as TProver,
-    Presentation as TPresentation,
-    Commit,
-    NotaryServer,
-    mapStringToRange,
-    subtractRanges,
-} from 'tlsn-js';
-const {init, Prover, Presentation}: any = Comlink.wrap(new Worker(new URL('../worker.ts', import.meta.url)));
+import type {LoggingLevel, Method, Prover as TProver, Reveal} from '@csfloat/tlsn-wasm';
+import {NotarySessionClient} from './notary_session_client';
+import {Remote} from 'comlink';
+
+const {init, Prover}: any = Comlink.wrap(new Worker(new URL('../worker.ts', import.meta.url)));
 
 export async function initThreads() {
     await init({
-        loggingLevel: environment.notary.loggingLevel,
+        loggingLevel: environment.notary.loggingLevel as LoggingLevel,
         hardwareConcurrency: navigator.hardwareConcurrency,
+        crateFilters: [
+            {name: 'yamux', level: 'Info'},
+            {name: 'uid_mux', level: 'Info'},
+        ],
     });
 }
 
@@ -49,52 +49,65 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
 
         const maxRecvData = await calculateResponseSize(serverURL, 'GET', headers);
 
-        const notary = NotaryServer.from(environment.notary.tlsn);
+        const maybeNotaryToken = request.notary_request.meta?.notary_token;
 
-        const prover = (await new Prover({
-            serverDns: 'api.steampowered.com',
-            maxRecvData,
-            maxSentData,
-        })) as TProver;
+        const session = await NotarySessionClient.create(maxRecvData, maxSentData, maybeNotaryToken);
 
-        await prover.setup(await notary.sessionUrl());
+        try {
+            // Create and setup prover
+            const prover = (await new Prover({
+                server_name: 'api.steampowered.com',
+                max_recv_data: maxRecvData,
+                max_sent_data: maxSentData,
+                network: 'Latency',
+                defer_decryption_from_start: true,
+            })) as Remote<TProver>;
 
-        await prover.sendRequest(environment.notary.ws, {
-            url: serverURL,
-            method: 'GET',
-            headers: {
-                'Accept-Encoding': 'gzip',
-            },
-        });
+            let verifierUrl = `${environment.notary.tlsn}/verifier?sessionId=${session.getID()}`;
+            if (maybeNotaryToken) {
+                verifierUrl += `&token=${maybeNotaryToken}`;
+            }
 
-        const transcript = await prover.transcript();
-        const {sent, recv} = transcript;
+            await prover.setup(verifierUrl);
 
-        const commit: Commit = {
-            sent: subtractRanges(
-                {start: 0, end: sent.length},
-                mapStringToRange([request.access_token.token], Buffer.from(sent).toString('utf-8'))
-            ),
-            recv: [
-                // No secrets in response body
-                {start: 0, end: recv.length},
-            ],
-        };
-        const notarizationOutputs = await prover.notarize(commit);
+            // Convert headers to Map<string, number[]> for WASM
+            const headerMap = new Map<string, number[]>();
+            for (const [key, value] of Object.entries(headers)) {
+                headerMap.set(key, Buffer.from(value).toJSON().data);
+            }
 
-        const presentation = (await new Presentation({
-            attestationHex: notarizationOutputs.attestation,
-            secretsHex: notarizationOutputs.secrets,
-            notaryUrl: notarizationOutputs.notaryUrl,
-            websocketProxyUrl: notarizationOutputs.websocketProxyUrl,
-            reveal: {...commit, server_identity: false},
-        })) as TPresentation;
+            let wsUrl = `${environment.notary.ws}`;
+            if (maybeNotaryToken) {
+                wsUrl += `?token=${maybeNotaryToken}`;
+            }
 
-        const presentationJSON = await presentation.json();
+            // Send HTTP request via proxy
+            await prover.send_request(wsUrl, {
+                uri: serverURL,
+                method: 'GET' as Method,
+                headers: headerMap,
+                body: undefined,
+            });
 
-        return {
-            presentation: presentationJSON,
-        };
+            const {sent, recv} = await prover.transcript();
+            const sentStr = Buffer.from(sent).toString('utf-8');
+
+            // Compute reveal ranges (hide the access token)
+            const secretRanges = mapStringToRange([request.access_token.token], sentStr);
+            const sentRanges = subtractRanges({start: 0, end: sent.length}, secretRanges);
+            const recvRanges = [{start: 0, end: recv.length}];
+
+            // Set up listener before calling reveal
+            const completedPromise = session.finalizeResults();
+
+            // Reveal to verifier
+            const reveal: Reveal = {sent: sentRanges, recv: recvRanges, server_identity: true};
+            await prover.reveal(reveal);
+
+            return await completedPromise;
+        } finally {
+            session.close();
+        }
     },
     () => {
         // Require the offscreen to be re-initialized after every 5 prove requests
@@ -178,4 +191,48 @@ async function calculateResponseSize(
     const bodySize = parseInt(contentLength, 10);
 
     return headersSize + bodySize;
+}
+
+/**
+ * Computes ranges that hide specified strings from the transcript
+ */
+function subtractRanges(
+    fullRange: {start: number; end: number},
+    secretRanges: {start: number; end: number}[]
+): {start: number; end: number}[] {
+    const sorted = [...secretRanges].sort((a, b) => a.start - b.start);
+    const result: {start: number; end: number}[] = [];
+    let currentPos = fullRange.start;
+
+    for (const secret of sorted) {
+        if (secret.start > currentPos) {
+            result.push({start: currentPos, end: secret.start});
+        }
+        currentPos = Math.max(currentPos, secret.end);
+    }
+
+    if (currentPos < fullRange.end) {
+        result.push({start: currentPos, end: fullRange.end});
+    }
+
+    return result;
+}
+
+/**
+ * Maps strings to their byte ranges in the transcript
+ */
+function mapStringToRange(secrets: string[], transcript: string): {start: number; end: number}[] {
+    const ranges: {start: number; end: number}[] = [];
+    for (const secret of secrets) {
+        if (!secret) {
+            continue;
+        }
+
+        let pos = 0;
+        while ((pos = transcript.indexOf(secret, pos)) !== -1) {
+            ranges.push({start: pos, end: pos + secret.length});
+            pos += secret.length;
+        }
+    }
+    return ranges;
 }

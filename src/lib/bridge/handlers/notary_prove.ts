@@ -4,17 +4,15 @@ import {SendToOffscreen} from '../../../offscreen/client';
 import {HasPermissions} from './has_permissions';
 import {NotaryProveRequest} from '../../notary/types';
 import {getAccessToken} from '../../alarms/access_token';
-import {PresentationJSON} from 'tlsn-js/build/types';
 import {
     OffscreenRequestType,
     TLSNProveOffscreenRequest,
     TLSNProveOffscreenResponse,
+    VerificationResults,
 } from '../../../offscreen/handlers/types';
 import {MaxConcurrency} from '../wrappers/cached';
 
-export interface NotaryProveResponse {
-    presentation: PresentationJSON;
-}
+export interface NotaryProveResponse extends VerificationResults {}
 
 export const NotaryProve = MaxConcurrency(
     new SimpleHandler<NotaryProveRequest, NotaryProveResponse>(
@@ -31,7 +29,7 @@ export const NotaryProve = MaxConcurrency(
                 throw new Error('must have api.steampowered.com permissions in order to prove API requests');
             }
 
-            const access_token = await getAccessToken(request.expected_steam_id);
+            const access_token = await getAccessToken(request.meta?.expected_steam_id);
 
             const response = await SendToOffscreen<TLSNProveOffscreenRequest, TLSNProveOffscreenResponse>(
                 OffscreenRequestType.TLSN_PROVE,
@@ -42,7 +40,7 @@ export const NotaryProve = MaxConcurrency(
             );
 
             return {
-                presentation: response.presentation,
+                payload: response.payload,
             };
         }
     ),

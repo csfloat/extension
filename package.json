@@ -70,6 +70,6 @@
     "dependencies": {
         "buffer": "^6.0.3",
         "comlink": "^4.4.2",
-        "tlsn-js": "0.1.0-alpha.12.0"
+        "@csfloat/tlsn-wasm": "0.1.0-alpha.14"
     }
 }

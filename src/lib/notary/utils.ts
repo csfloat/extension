@@ -33,6 +33,10 @@ export function getSteamRequestURL(request: NotaryProveRequest, access_token: Ac
     // Separate the 'type' property from the actual URL parameters
     const {type, ...params} = request;
     const baseUrl = PROOF_BASE_URLS[type];
+
+    // internal field
+    delete params.meta;
+
     const queryString = buildQueryString(Object.assign(params, {access_token: access_token.token}));
     return `${baseUrl}${queryString}`;
 }

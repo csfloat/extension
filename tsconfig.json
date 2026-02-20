@@ -10,7 +10,8 @@
         "noEmitOnError": true,
         "experimentalDecorators": true,
         "useDefineForClassFields": false,
-        "moduleResolution": "Node"
+        "moduleResolution": "Node",
+        "skipLibCheck": true
     },
     "exclude": ["dist/", "tools/"]
 }
