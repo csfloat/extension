@@ -9,6 +9,7 @@ import * as Comlink from 'comlink';
 import {environment} from '../../environment';
 import type {LoggingLevel, Method, Prover as TProver, Reveal} from '@csfloat/tlsn-wasm';
 import {NotarySessionClient} from './notary_session_client';
+import {Remote} from 'comlink';
 
 const {init, Prover}: any = Comlink.wrap(new Worker(new URL('../worker.ts', import.meta.url)));
 
@@ -60,7 +61,7 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
                 max_sent_data: maxSentData,
                 network: 'Latency',
                 defer_decryption_from_start: true,
-            })) as TProver;
+            })) as Remote<TProver>;
 
             let verifierUrl = `${environment.notary.tlsn}/verifier?sessionId=${session.getID()}`;
             if (maybeNotaryToken) {
@@ -88,8 +89,7 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
                 body: undefined,
             });
 
-            const transcript = await prover.transcript();
-            const {sent, recv} = transcript;
+            const {sent, recv} = await prover.transcript();
             const sentStr = Buffer.from(sent).toString('utf-8');
 
             // Compute reveal ranges (hide the access token)
