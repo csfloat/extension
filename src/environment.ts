@@ -5,4 +5,5 @@ export const environment = {
         ws: 'wss://notary.csfloat.com/proxy',
         loggingLevel: 'Warn',
     },
+    reverse_watch_base_api_url: 'https://reverse.watch/api',
 };
