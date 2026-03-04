@@ -3,7 +3,6 @@ import {RequestType} from './types';
 import {environment} from '../../../environment';
 
 export interface NotaryToken {
-    steam_id: string;
     token: string;
     expires_at: string;
 }
