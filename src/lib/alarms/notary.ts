@@ -4,9 +4,14 @@ import {FetchNotaryToken} from '../bridge/handlers/fetch_notary_token';
 import {FetchNotaryMeta} from '../bridge/handlers/fetch_notary_meta';
 import {ProofType, NotaryProveRequest} from '../notary/types';
 import {MAX_TRADE_HISTORY_FETCH} from './constants';
+import {isFirefox} from '../utils/detect';
 import {environment} from '../../environment';
 
 export async function isBackgroundNotaryRollbackEnabled(): Promise<boolean> {
+    if (isFirefox()) {
+        return false;
+    }
+
     try {
         const meta = await FetchNotaryMeta.handleRequest({}, {});
         return meta.rollback?.background === true;
