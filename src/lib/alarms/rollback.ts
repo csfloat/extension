@@ -3,6 +3,7 @@ import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 import {PingRollbackTrade} from '../bridge/handlers/ping_rollback_trade';
 import {TradeStatus} from '../types/steam_constants';
 import {isBackgroundNotaryRollbackEnabled, proveTradesInBackground} from './notary';
+import {reportTradeError} from './error_report';
 
 interface RollbackTradeInfo {
     steamTrade: TradeHistoryStatus;
@@ -57,6 +58,7 @@ export async function pingRollbackTrades(pendingTrades: SlimTrade[], tradeHistor
             return;
         } catch (e) {
             console.error('notary proving failed, falling back to legacy ping', e);
+            reportTradeError(rollbackTrades[0].csfloatTrade.id, `background extension notary failed: ${e}`);
         }
     }
 
