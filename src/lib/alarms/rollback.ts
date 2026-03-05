@@ -2,15 +2,17 @@ import {SlimTrade, TradeState} from '../types/float_market';
 import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 import {PingRollbackTrade} from '../bridge/handlers/ping_rollback_trade';
 import {TradeStatus} from '../types/steam_constants';
+import {isBackgroundNotaryRollbackEnabled, proveTradesInBackground} from './notary';
+import {reportTradeError} from './error_report';
 
-export async function pingRollbackTrades(pendingTrades: SlimTrade[], tradeHistory: TradeHistoryStatus[]) {
-    if (!pendingTrades || pendingTrades.length === 0) {
-        return;
-    }
+interface RollbackTradeInfo {
+    steamTrade: TradeHistoryStatus;
+    csfloatTrade: SlimTrade;
+    rollbackTrade?: TradeHistoryStatus;
+}
 
-    if (!tradeHistory || tradeHistory.length === 0) {
-        return;
-    }
+function findRollbackTrades(pendingTrades: SlimTrade[], tradeHistory: TradeHistoryStatus[]): RollbackTradeInfo[] {
+    const results: RollbackTradeInfo[] = [];
 
     for (const trade of tradeHistory) {
         // Status 12 corresponds to a rollback via trade protection (undocumented)
@@ -32,13 +34,42 @@ export async function pingRollbackTrades(pendingTrades: SlimTrade[], tradeHistor
             continue;
         }
 
-        // try to find the rollback trade id
         const rollbackTrade = tradeHistory.find((e) => e.rollback_trade === trade.trade_id);
+        results.push({steamTrade: trade, csfloatTrade, rollbackTrade});
+    }
 
-        // Pinging the first asset in a trade will cancel all the items in the trade server-side
+    return results;
+}
+
+export async function pingRollbackTrades(pendingTrades: SlimTrade[], tradeHistory: TradeHistoryStatus[]) {
+    if (!pendingTrades?.length || !tradeHistory?.length) {
+        return;
+    }
+
+    const rollbackTrades = findRollbackTrades(pendingTrades, tradeHistory);
+    if (rollbackTrades.length === 0) {
+        return;
+    }
+
+    if (await isBackgroundNotaryRollbackEnabled()) {
+        try {
+            await proveTradesInBackground(rollbackTrades.map((r) => r.steamTrade));
+            console.log(`proved ${rollbackTrades.length} rollback trade(s) via notary`);
+            return;
+        } catch (e) {
+            console.error('notary proving failed, falling back to legacy ping', e);
+            reportTradeError(rollbackTrades[0].csfloatTrade.id, `background extension notary failed: ${e}`);
+        }
+    }
+
+    await pingRollbackTradesLegacy(rollbackTrades);
+}
+
+async function pingRollbackTradesLegacy(rollbackTrades: RollbackTradeInfo[]) {
+    for (const {csfloatTrade, rollbackTrade} of rollbackTrades) {
         try {
             await PingRollbackTrade.handleRequest(
-                {trade_id: csfloatTrade?.id, rollback_trade_id: rollbackTrade?.trade_id},
+                {trade_id: csfloatTrade.id, rollback_trade_id: rollbackTrade?.trade_id},
                 {}
             );
         } catch (e) {

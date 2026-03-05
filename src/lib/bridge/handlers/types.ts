@@ -33,4 +33,6 @@ export enum RequestType {
     FETCH_TRADE_HISTORY = 31,
     FETCH_SLIM_TRADES = 32,
     NOTARY_PROVE = 33,
+    FETCH_NOTARY_META = 34,
+    FETCH_NOTARY_TOKEN = 35,
 }

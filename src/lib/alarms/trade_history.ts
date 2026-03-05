@@ -1,6 +1,7 @@
 import {SlimTrade} from '../types/float_market';
 import {TradeHistoryStatus, TradeHistoryType} from '../bridge/handlers/trade_history_status';
 import {AppId, TradeOfferState, TradeStatus} from '../types/steam_constants';
+import {MAX_TRADE_HISTORY_FETCH} from './constants';
 import {clearAccessTokenFromStorage, getAccessToken} from './access_token';
 
 export async function pingTradeHistory(
@@ -49,7 +50,7 @@ export async function pingTradeHistory(
 
 async function getTradeHistory(): Promise<{history: TradeHistoryStatus[]; type: TradeHistoryType}> {
     try {
-        const history = await getTradeHistoryFromAPI(250);
+        const history = await getTradeHistoryFromAPI(MAX_TRADE_HISTORY_FETCH);
         if (history.length > 0) {
             // Hedge in case this endpoint gets killed, only return if there are results, fallback to HTML parser
             return {history, type: TradeHistoryType.API};
