@@ -118,6 +118,28 @@ export class ItemRowWrapper extends FloatElement {
         }
     }
 
+    /**
+     * As part of the March 2/2026 update, skins listed on SCM get moved into the trade protected inventory context
+     * so the user can still use them in-game while listed. However, Valve introduced a bug where these skins
+     * can't be inspected in game.
+     *
+     * Detect and skip these skins to prevent overloaded errors to the user and browser request throttling.
+     */
+    get isBuggedSkin(): boolean {
+        if (!this.asset || !isSkin(this.asset)) {
+            return false;
+        }
+
+        if (this.asset.unowned_contextid !== "16") {
+            // Only applies for trade protected inventory context
+            return false;
+        }
+
+        const fv = (this.asset.asset_properties || []).find((prop) => prop.propertyid === 2);
+        // Has no FV
+        return !fv;
+    }
+
     @state()
     private itemInfo: ItemInfo | undefined;
     @state()
@@ -140,6 +162,10 @@ export class ItemRowWrapper extends FloatElement {
 
         // If the item is a highlight charm, we're done here
         if (this.asset && isHighlightCharm(this.asset)) {
+            return;
+        }
+
+        if (this.isBuggedSkin) {
             return;
         }
 
@@ -233,6 +259,10 @@ export class ItemRowWrapper extends FloatElement {
         }
 
         if (this.asset && !isSkin(this.asset) && !isCharm(this.asset)) {
+            return nothing;
+        }
+
+        if (this.isBuggedSkin) {
             return nothing;
         }
 
