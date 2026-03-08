@@ -230,3 +230,23 @@ export function floor(n: number, precision?: number) {
 
     return Math.floor(n * p) / p;
 }
+
+/**
+ * As part of the March 4/2026 update, skins listed on SCM get moved into the trade protected inventory context
+ * so the user can still use them in-game while listed. However, Valve introduced a bug where these skins
+ * can't be inspected in game.
+ *
+ * Detect and skip these skins to prevent overloaded errors to the user and browser request throttling.
+ */
+export function isBuggedSkin(asset: rgAsset | undefined): boolean {
+    if (!asset || !isSkin(asset)) {
+        return false;
+    }
+
+    if (asset.unowned_contextid !== '16') {
+        return false;
+    }
+
+    const fv = (asset.asset_properties || []).find((prop) => prop.propertyid === 2);
+    return !fv;
+}

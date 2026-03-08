@@ -17,6 +17,7 @@ import {
     isCharm,
     isBlueSkin,
     isHighlightCharm,
+    isBuggedSkin,
 } from '../../utils/skin';
 import {gFilterService} from '../../services/filter';
 import {AppId, ContextId, Currency} from '../../types/steam_constants';
@@ -143,6 +144,10 @@ export class ItemRowWrapper extends FloatElement {
             return;
         }
 
+        if (isBuggedSkin(this.asset)) {
+            return;
+        }
+
         try {
             this.itemInfo = await this.fetchFloat();
         } catch (e: any) {
@@ -233,6 +238,10 @@ export class ItemRowWrapper extends FloatElement {
         }
 
         if (this.asset && !isSkin(this.asset) && !isCharm(this.asset)) {
+            return nothing;
+        }
+
+        if (isBuggedSkin(this.asset)) {
             return nothing;
         }
 
