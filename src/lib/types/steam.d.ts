@@ -71,11 +71,10 @@ export interface rgDescription {
     }[];
 }
 
-type RequireOnlyOne<T, Keys extends keyof T = keyof T> =
-    Pick<T, Exclude<keyof T, Keys>>
-    & {
-    [K in Keys]-?: Required<Pick<T, K>> & Partial<Record<Exclude<Keys, K>, never>>
-}[Keys];
+type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
+    {
+        [K in Keys]-?: Required<Pick<T, K>> & Partial<Record<Exclude<Keys, K>, never>>;
+    }[Keys];
 
 interface rgAssetPropertyBase {
     propertyid: number;
@@ -85,10 +84,7 @@ interface rgAssetPropertyBase {
 }
 
 // Only one of int_value, float_value, or string_value can be present
-type rgAssetProperty = RequireOnlyOne<
-    rgAssetPropertyBase,
-    'int_value' | 'float_value' | 'string_value'
->;
+type rgAssetProperty = RequireOnlyOne<rgAssetPropertyBase, 'int_value' | 'float_value' | 'string_value'>;
 
 // g_rgAssets
 export interface rgAsset extends rgDescription {

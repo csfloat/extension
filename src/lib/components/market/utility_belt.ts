@@ -86,8 +86,8 @@ export class UtilityBelt extends FloatElement {
 
         return html`
             <div class="bugged-skin-warning">
-                <b>${this.buggedSkinCount} skin${this.buggedSkinCount > 1 ? 's' : ''}</b> on this page
-                cannot display float data since they're not inspectable in-game (March 4, 2026 update). Valve pls fix.
+                <b>${this.buggedSkinCount} skin${this.buggedSkinCount > 1 ? 's' : ''}</b> on this page cannot display
+                float data since they're not inspectable in-game (March 4, 2026 update). Valve pls fix.
             </div>
         `;
     }
