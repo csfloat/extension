@@ -35,5 +35,5 @@ export enum RequestType {
     NOTARY_PROVE = 33,
     FETCH_NOTARY_META = 34,
     FETCH_NOTARY_TOKEN = 35,
-    FETCH_REVERSAL_STATUS = 34,
+    FETCH_REVERSAL_STATUS = 36,
 }
