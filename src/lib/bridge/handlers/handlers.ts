@@ -34,6 +34,8 @@ import {PingRollbackTrade} from './ping_rollback_trade';
 import {FetchTradeHistory} from './fetch_trade_history';
 import {FetchSlimTrades} from './fetch_slim_trades';
 import {NotaryProve} from './notary_prove';
+import {FetchNotaryMeta} from './fetch_notary_meta';
+import {FetchNotaryToken} from './fetch_notary_token';
 import {FetchReversalStatus} from './fetch_reversal_status';
 
 export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
@@ -71,5 +73,7 @@ export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.FETCH_TRADE_HISTORY]: FetchTradeHistory,
     [RequestType.FETCH_SLIM_TRADES]: FetchSlimTrades,
     [RequestType.NOTARY_PROVE]: NotaryProve,
+    [RequestType.FETCH_NOTARY_META]: FetchNotaryMeta,
+    [RequestType.FETCH_NOTARY_TOKEN]: FetchNotaryToken,
     [RequestType.FETCH_REVERSAL_STATUS]: FetchReversalStatus,
 };

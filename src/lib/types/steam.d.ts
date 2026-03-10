@@ -71,6 +71,21 @@ export interface rgDescription {
     }[];
 }
 
+type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
+    {
+        [K in Keys]-?: Required<Pick<T, K>> & Partial<Record<Exclude<Keys, K>, never>>;
+    }[Keys];
+
+interface rgAssetPropertyBase {
+    propertyid: number;
+    int_value?: string;
+    float_value?: string;
+    string_value?: string;
+}
+
+// Only one of int_value, float_value, or string_value can be present
+type rgAssetProperty = RequireOnlyOne<rgAssetPropertyBase, 'int_value' | 'float_value' | 'string_value'>;
+
 // g_rgAssets
 export interface rgAsset extends rgDescription {
     amount: number;
@@ -86,6 +101,7 @@ export interface rgAsset extends rgDescription {
     unowned_contextid: string;
     unowned_id: string;
     element?: HTMLElement;
+    asset_properties?: rgAssetProperty[];
 }
 
 export interface rgInventoryAsset {
