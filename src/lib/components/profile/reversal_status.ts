@@ -37,9 +37,9 @@ export class ReversalStatus extends FloatElement {
                         .info-link {
                             color: #ebebeb;
                             text-decoration: none;
-                            
+
                             &:hover {
-                                color: #66C0F4;
+                                color: #66c0f4;
                             }
                         }
                     }
@@ -96,16 +96,22 @@ export class ReversalStatus extends FloatElement {
         const daysSince = this.daysSinceLastReversal ?? 0;
         const message = `${daysSince} day(s) since last trade reversal`;
         return html`
-    <div class="container">
-        <div class="warning">
-            ${message}
-            <span class="info-link-container"> | 
-                <a class="info-link" href="https://help.steampowered.com/en/faqs/view/365F-4BEE-2AE2-7BDD" target="_blank" rel="noreferrer">
-                    Info
-                </a>
-            </span>
-        </div>
-    </div>
-`;
+            <div class="container">
+                <div class="warning">
+                    ${message}
+                    <span class="info-link-container">
+                        |
+                        <a
+                            class="info-link"
+                            href="https://help.steampowered.com/en/faqs/view/365F-4BEE-2AE2-7BDD"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            Info
+                        </a>
+                    </span>
+                </div>
+            </div>
+        `;
     }
 }
