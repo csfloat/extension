@@ -54,8 +54,7 @@
         "*://*.steamcommunity.com/market/listings/730/*",
         "*://*.steamcommunity.com/id/*/inventory*",
         "*://*.steamcommunity.com/id/*/tradehistory*",
-        "*://*.steamcommunity.com/profiles/*/inventory*",
-        "*://reverse.watch/api/v1/users/*"
+        "*://*.steamcommunity.com/profiles/*/inventory*"
     ],
     "optional_host_permissions": ["*://*.steampowered.com/*"],
     "externally_connectable": {
