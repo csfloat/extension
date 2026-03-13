@@ -64,17 +64,11 @@ export class ReversalStatus extends FloatElement {
             return match[1];
         }
 
-        // Extract from embedded javascript
-        const scripts = document.querySelectorAll('script[type="text/javascript"]');
-        for (const script of scripts) {
-            const content = script.textContent;
-
-            const match = content?.match(/g_rgProfileData\s*=\s*({.*?});/);
-            if (match) {
-                return JSON.parse(match[1]).steamid;
-            }
+        if (!g_rgProfileData) {
+            throw new Error('g_rgProfileData is undefined');
         }
-        return '';
+
+        return g_rgProfileData.steamid;
     }
 
     async connectedCallback() {
