@@ -5,5 +5,5 @@ export const environment = {
         ws: 'wss://notary.csfloat.com/proxy',
         loggingLevel: 'Error',
     },
-    reverse_watch_base_api_url: 'http://localhost:8080/api',
+    reverse_watch_base_api_url: 'http://localhost:3434/api',
 };
