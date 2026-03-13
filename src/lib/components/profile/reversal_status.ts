@@ -1,4 +1,4 @@
-﻿import {CustomElement, InjectAfter, InjectionMode} from '../injectors';
+import {CustomElement, InjectAfter, InjectionMode} from '../injectors';
 import {FloatElement} from '../custom';
 import {css, html} from 'lit';
 import {state} from 'lit/decorators.js';
@@ -14,6 +14,7 @@ export class ReversalStatus extends FloatElement {
     @state()
     show: boolean = false;
 
+    @state()
     reversalStatus: FetchReversalStatusResponse | undefined = undefined;
 
     static styles = [
