@@ -20,8 +20,30 @@ export class ReversalStatus extends FloatElement {
         ...FloatElement.styles,
         css`
             .container {
+                display: flex;
+                align-items: center;
+                gap: 6px;
                 color: #de6667;
                 margin-bottom: 10px;
+
+                .warning {
+                    display: inline;
+                    align-items: top;
+                    justify-content: start;
+
+                    .info-link-container {
+                        color: #828282;
+
+                        .info-link {
+                            color: #ebebeb;
+                            text-decoration: none;
+                            
+                            &:hover {
+                                color: #66C0F4;
+                            }
+                        }
+                    }
+                }
             }
         `,
     ];
@@ -78,15 +100,18 @@ export class ReversalStatus extends FloatElement {
         }
 
         const daysSince = this.daysSinceLastReversal ?? 0;
-        let message = 'User reversed a trade';
-        if (daysSince === 0) {
-            message += ' today';
-        } else if (daysSince === 1) {
-            message += ' yesterday';
-        } else {
-            message += ` ${daysSince} days ago`;
-        }
-
-        return html` <div class="container"><b>WARNING:</b> ${message}</div>`;
+        const message = `${daysSince} day(s) since last trade reversal`;
+        return html`
+    <div class="container">
+        <div class="warning">
+            ${message}
+            <span class="info-link-container"> | 
+                <a class="info-link" href="https://help.steampowered.com/en/faqs/view/365F-4BEE-2AE2-7BDD" target="_blank" rel="noreferrer">
+                    Info
+                </a>
+            </span>
+        </div>
+    </div>
+`;
     }
 }
