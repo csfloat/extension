@@ -2,6 +2,7 @@
  * Keys for use as the raw "key" in local/sync storage for a row
  */
 import {SerializedFilter} from '../filter/types';
+import type {ItemSchema} from '../types/schema';
 
 export enum StorageKey {
     // Backwards compatible with <3.0.0
@@ -12,6 +13,7 @@ export enum StorageKey {
     LAST_TRADE_PING_ATTEMPT = 'last_trade_ping_attempt',
     LAST_TRADE_BLOCKED_PING_ATTEMPT = 'last_trade_blocked_ping_attempt',
     PRICE_CACHE = 'price_cache', // Stores market hash name -> price mapping (~0.86MB)
+    SCHEMA_CACHE = 'schema_cache', // Stores the full CSFloat schema payload
 }
 
 export type DynamicStorageKey = string;
@@ -53,3 +55,7 @@ export const PRICE_CACHE = newRow<{
     prices: Record<string, number>;
     dopplerPrices?: Record<string, Record<number, number>>;
 }>(StorageKey.PRICE_CACHE);
+export const SCHEMA_CACHE = newRow<{
+    lastUpdated: number;
+    schema: ItemSchema.Response;
+}>(StorageKey.SCHEMA_CACHE);
