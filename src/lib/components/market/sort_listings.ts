@@ -126,7 +126,6 @@ export class SortListings extends FloatElement {
                     const asset = g_rgAssets[AppId.CSGO][ContextId.PRIMARY][listingInfo.asset.id];
                     const info = await gFloatFetcher.fetch({
                         link: link!,
-                        marketHashName: asset?.market_hash_name,
                     });
                     return {
                         failed: false,

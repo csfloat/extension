@@ -263,7 +263,6 @@ export class SelectedItemInfo extends FloatElement {
             try {
                 this.itemInfo = await gFloatFetcher.fetch({
                     link: this.inspectLink,
-                    marketHashName: this.asset.description.market_hash_name,
                 });
             } catch (e: any) {
                 console.error(`Failed to fetch float for ${this.asset.assetid}: ${e.toString()}`);

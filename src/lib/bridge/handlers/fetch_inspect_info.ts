@@ -1,12 +1,12 @@
 import {decodeLink, CEconItemPreviewDataBlock} from '@csfloat/cs2-inspect-serializer';
 import {SimpleHandler} from './main';
 import {RequestType} from './types';
+import {gSchemaFetcher} from '../../services/schema_fetcher';
+import type {ItemSchema} from '../../types/schema';
 
 interface Sticker {
     slot: number;
     stickerId: number;
-    codename?: string;
-    material?: string;
     name?: string;
     wear?: number;
 }
@@ -26,12 +26,7 @@ export interface ItemInfo {
     paintseed: number;
     inventory: number;
     origin: number;
-    s: string;
-    a: string;
-    d: string;
-    m: string;
     floatvalue: number;
-    imageurl: string;
     min: number;
     max: number;
     weapon_type?: string;
@@ -48,7 +43,6 @@ export interface ItemInfo {
 export interface FetchInspectInfoRequest {
     link: string;
     listPrice?: number;
-    marketHashName?: string;
 }
 
 export interface FetchInspectInfoResponse {
@@ -59,12 +53,38 @@ export interface FetchInspectInfoResponse {
 export const FetchInspectInfo = new SimpleHandler<FetchInspectInfoRequest, FetchInspectInfoResponse>(
     RequestType.FETCH_INSPECT_INFO,
     async (req) => {
-        const itemMetadata = parseMarketHashName(req.marketHashName);
         let decoded: CEconItemPreviewDataBlock;
         try {
             decoded = decodeLink(req.link);
         } catch (error) {
             throw new Error('Failed to decode inspect link');
+        }
+
+        const defindex = decoded.defindex ?? 0;
+        const paintindex = decoded.paintindex ?? 0;
+        const floatvalue = decoded.paintwear ?? 0;
+
+        let min = 0;
+        let max = 1;
+        let weaponType: string | undefined;
+        let itemName: string | undefined;
+        let rarityName: string | undefined;
+
+        try {
+            const schema = await gSchemaFetcher.getSchema();
+            const weapon = schema.weapons?.[String(defindex)];
+            const paint = getSchemaPaint(weapon, paintindex);
+
+            weaponType = weapon?.name;
+            rarityName = schema.rarities.find((rarity) => rarity.value === (paint?.rarity ?? decoded.rarity))?.name;
+
+            if (paint) {
+                itemName = paint.name;
+                min = paint.min;
+                max = paint.max;
+            }
+        } catch (error) {
+            console.error('Failed to fetch schema item metadata:', error);
         }
 
         return {
@@ -81,50 +101,62 @@ export const FetchInspectInfo = new SimpleHandler<FetchInspectInfoRequest, Fetch
                     pattern: keychain.pattern ?? 0,
                 })),
                 itemid: decoded.itemid?.toString() ?? '',
-                defindex: decoded.defindex ?? 0,
-                paintindex: decoded.paintindex ?? 0,
+                defindex,
+                paintindex,
                 rarity: decoded.rarity ?? 0,
                 quality: decoded.quality ?? 0,
                 paintseed: decoded.paintseed ?? 0,
                 inventory: decoded.inventory ?? 0,
                 origin: decoded.origin ?? 0,
-                s: '',
-                a: '',
-                d: '',
-                m: '',
-                floatvalue: decoded.paintwear ?? 0,
-                imageurl: '',
-                min: 0,
-                max: 1,
-                weapon_type: itemMetadata?.weaponType,
-                item_name: itemMetadata?.itemName,
-                wear_name: itemMetadata?.wearName,
-                full_item_name: req.marketHashName,
+                floatvalue,
+                min,
+                max,
+                weapon_type: weaponType,
+                item_name: itemName,
+                rarity_name: rarityName,
+                wear_name: getWearName(floatvalue),
             },
         };
     }
 );
 
-interface ParsedMarketHashName {
-    weaponType?: string;
-    itemName?: string;
-    wearName?: string;
+function getSchemaPaint(weapon: ItemSchema.RawWeapon, paintIndex: number) {
+    if (!weapon) {
+        return;
+    }
+
+    if (weapon.paints?.[String(paintIndex)] !== undefined) {
+        return weapon.paints[String(paintIndex)];
+    }
+
+    if (weapon.paints?.['0'] !== undefined) {
+        return weapon.paints['0'];
+    }
+
+    const availablePaintIndexes = Object.keys(weapon.paints || {});
+    if (availablePaintIndexes.length === 1) {
+        return weapon.paints[availablePaintIndexes[0]];
+    }
 }
 
-function parseMarketHashName(marketHashName?: string): ParsedMarketHashName | undefined {
-    if (!marketHashName) {
-        return;
+function getWearName(floatvalue: number): string | undefined {
+    if (floatvalue <= 0.07) {
+        return 'Factory New';
     }
 
-    const match = /^(.*?) \| (.*?)(?: \(([^)]+)\))?$/.exec(marketHashName);
-    if (!match) {
-        return;
+    if (floatvalue <= 0.15) {
+        return 'Minimal Wear';
     }
 
-    const [, weaponType, itemName, wearName] = match;
-    return {
-        weaponType,
-        itemName,
-        wearName,
-    };
+    if (floatvalue <= 0.38) {
+        return 'Field-Tested';
+    }
+
+    if (floatvalue <= 0.45) {
+        return 'Well-Worn';
+    }
+
+    if (floatvalue <= 1) {
+        return 'Battle-Scarred';
+    }
 }

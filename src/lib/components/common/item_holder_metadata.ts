@@ -178,7 +178,6 @@ export abstract class ItemHolderMetadata extends FloatElement {
         try {
             this.itemInfo = await gFloatFetcher.fetch({
                 link: this.inspectLink,
-                marketHashName: this.asset.market_hash_name,
             });
         } catch (e: any) {
             console.error(`Failed to fetch float for ${this.assetId}: ${e.toString()}`);
