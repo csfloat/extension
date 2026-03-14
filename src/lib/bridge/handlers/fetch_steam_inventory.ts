@@ -72,56 +72,56 @@ export interface FetchSteamPoweredInventoryResponse {
     total_inventory_count: number;
 }
 
-export const FetchSteamPoweredInventory = new SimpleHandler<FetchSteamPoweredInventoryRequest, FetchSteamPoweredInventoryResponse>(
-    RequestType.FETCH_STEAM_POWERED_INVENTORY,
-    async (req) => {
-        const accessToken = await getAccessToken(req.steam_id);
+export const FetchSteamPoweredInventory = new SimpleHandler<
+    FetchSteamPoweredInventoryRequest,
+    FetchSteamPoweredInventoryResponse
+>(RequestType.FETCH_STEAM_POWERED_INVENTORY, async (req) => {
+    const accessToken = await getAccessToken(req.steam_id);
 
-        const params = new URLSearchParams({
-            access_token: accessToken.token,
-            steamid: req.steam_id,
-            appid: req.app_id.toString(),
-            contextid: req.context_id.toString(),
-        });
+    const params = new URLSearchParams({
+        access_token: accessToken.token,
+        steamid: req.steam_id,
+        appid: req.app_id.toString(),
+        contextid: req.context_id.toString(),
+    });
 
-        if (req.start_assetid) {
-            params.set('start_assetid', req.start_assetid);
-        }
-
-        if (req.count) {
-            params.set('count', req.count.toString());
-        }
-
-        if (req.get_descriptions !== undefined) {
-            params.set('get_descriptions', req.get_descriptions.toString());
-        }
-
-        if (req.for_trade_offer_verification !== undefined) {
-            params.set('for_trade_offer_verification', req.for_trade_offer_verification.toString());
-        }
-
-        if (req.language) {
-            params.set('language', req.language);
-        }
-
-        if (req.get_asset_properties !== undefined) {
-            params.set('get_asset_properties', req.get_asset_properties.toString());
-        }
-
-        const resp = await fetch(
-            `https://api.steampowered.com/IEconService/GetInventoryItemsWithDescriptions/v1/?${params.toString()}`
-        );
-
-        if (!resp.ok) {
-            throw new Error(`Invalid response code: ${resp.status}`);
-        }
-
-        const data = await resp.json();
-
-        if (!data.response) {
-            throw new Error('Invalid response from Steam API');
-        }
-
-        return data.response as FetchSteamPoweredInventoryResponse;
+    if (req.start_assetid) {
+        params.set('start_assetid', req.start_assetid);
     }
-);
+
+    if (req.count) {
+        params.set('count', req.count.toString());
+    }
+
+    if (req.get_descriptions !== undefined) {
+        params.set('get_descriptions', req.get_descriptions.toString());
+    }
+
+    if (req.for_trade_offer_verification !== undefined) {
+        params.set('for_trade_offer_verification', req.for_trade_offer_verification.toString());
+    }
+
+    if (req.language) {
+        params.set('language', req.language);
+    }
+
+    if (req.get_asset_properties !== undefined) {
+        params.set('get_asset_properties', req.get_asset_properties.toString());
+    }
+
+    const resp = await fetch(
+        `https://api.steampowered.com/IEconService/GetInventoryItemsWithDescriptions/v1/?${params.toString()}`
+    );
+
+    if (!resp.ok) {
+        throw new Error(`Invalid response code: ${resp.status}`);
+    }
+
+    const data = await resp.json();
+
+    if (!data.response) {
+        throw new Error('Invalid response from Steam API');
+    }
+
+    return data.response as FetchSteamPoweredInventoryResponse;
+});
