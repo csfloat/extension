@@ -13,7 +13,8 @@ import {gReversalFetcher} from '../../services/reversal_fetcher';
 export class ReversalStatus extends FloatElement {
     @state()
     show: boolean = false;
-
+    
+    @state()
     reversalStatus: FetchReversalStatusResponse | undefined = undefined;
 
     static styles = [
@@ -28,19 +29,29 @@ export class ReversalStatus extends FloatElement {
 
                 .warning {
                     display: inline;
-                    align-items: top;
+                    align-items: flex-start;
                     justify-content: start;
 
                     .info-link-container {
                         color: #828282;
 
                         .info-link {
-                            color: #ebebeb;
                             text-decoration: none;
+                            color: #ebebeb;
 
                             &:hover {
                                 color: #66c0f4;
                             }
+                        }
+                    }
+                    
+                    .powered-by-container {
+                        font-size: 12px;
+                        color: #828282;
+                        
+                        .powered-by-link {
+                            text-decoration: none;
+                            color: #ebebeb;
                         }
                     }
                 }
@@ -110,6 +121,7 @@ export class ReversalStatus extends FloatElement {
                             Info
                         </a>
                     </span>
+                    <span class="powered-by-container">(powered by <a class="powered-by-link" href="https://reverse.watch">reverse.watch</a>)</span>
                 </div>
             </div>
         `;
