@@ -72,7 +72,7 @@ export const FetchInspectInfo = new SimpleHandler<FetchInspectInfoRequest, Fetch
 
         try {
             const schema = await gSchemaFetcher.getSchema();
-            const weapon = schema.weapons?.[String(defindex)];
+            const weapon = schema.weapons[defindex];
             const paint = getSchemaPaint(weapon, paintindex);
 
             weaponType = weapon?.name;
@@ -120,13 +120,13 @@ export const FetchInspectInfo = new SimpleHandler<FetchInspectInfoRequest, Fetch
     }
 );
 
-function getSchemaPaint(weapon: ItemSchema.RawWeapon, paintIndex: number) {
+function getSchemaPaint(weapon: ItemSchema.RawWeapon | undefined, paintIndex: number) {
     if (!weapon) {
         return;
     }
 
-    if (weapon.paints?.[String(paintIndex)] !== undefined) {
-        return weapon.paints[String(paintIndex)];
+    if (weapon.paints[paintIndex] !== undefined) {
+        return weapon.paints[paintIndex];
     }
 
     if (weapon.paints?.['0'] !== undefined) {
