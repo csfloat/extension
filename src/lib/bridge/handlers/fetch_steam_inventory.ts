@@ -10,6 +10,7 @@ export interface FetchSteamPoweredInventoryRequest {
     start_assetid?: string;
     count?: number;
     get_descriptions?: boolean;
+    for_trade_offer_verification?: boolean;
     language?: string;
     get_asset_properties?: boolean;
 }
@@ -93,6 +94,10 @@ export const FetchSteamPoweredInventory = new SimpleHandler<FetchSteamPoweredInv
 
         if (req.get_descriptions !== undefined) {
             params.set('get_descriptions', req.get_descriptions.toString());
+        }
+
+        if (req.for_trade_offer_verification !== undefined) {
+            params.set('for_trade_offer_verification', req.for_trade_offer_verification.toString());
         }
 
         if (req.language) {
