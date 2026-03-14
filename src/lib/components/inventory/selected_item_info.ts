@@ -94,9 +94,13 @@ export class SelectedItemInfo extends FloatElement {
             return;
         }
 
-        return this.asset.description
-            ?.actions![0].link.replace('%owner_steamid%', g_ActiveInventory.m_owner.strSteamId!)
-            .replace('%assetid%', this.asset.assetid!);
+        const link = this.asset.description?.actions![0].link;
+        if (link.includes('%propid:6%')) {
+            const propId = this.asset.asset_properties?.find((p) => p.propertyid === 6)?.string_value;
+            if (!propId || !link) return;
+            return link.replace('%propid:6%', propId);
+        }
+        return link;
     }
 
     get stallListing(): Contract | undefined {
@@ -259,6 +263,7 @@ export class SelectedItemInfo extends FloatElement {
             try {
                 this.itemInfo = await gFloatFetcher.fetch({
                     link: this.inspectLink,
+                    marketHashName: this.asset.description.market_hash_name,
                 });
             } catch (e: any) {
                 console.error(`Failed to fetch float for ${this.asset.assetid}: ${e.toString()}`);

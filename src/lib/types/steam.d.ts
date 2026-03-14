@@ -117,6 +117,7 @@ export interface rgInventoryAsset {
 export interface InventoryAsset {
     amount: string;
     appid: AppId;
+    asset_properties?: rgAssetProperty[];
     assetid: string;
     classid: string;
     contextid: string;

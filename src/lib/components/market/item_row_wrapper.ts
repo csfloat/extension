@@ -86,6 +86,7 @@ export class ItemRowWrapper extends FloatElement {
         return gFloatFetcher.fetch({
             link: this.inspectLink!,
             listPrice: this.usdPrice,
+            marketHashName: this.asset?.market_hash_name,
         });
     }
 

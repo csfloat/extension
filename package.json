@@ -68,6 +68,7 @@
         "webpack-cli": "^6.0.1"
     },
     "dependencies": {
+        "@csfloat/cs2-inspect-serializer": "file:../cs-inspect-serializer",
         "buffer": "^6.0.3",
         "comlink": "^4.4.2",
         "@csfloat/tlsn-wasm": "0.1.0-alpha.14"

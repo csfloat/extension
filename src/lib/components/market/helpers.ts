@@ -12,7 +12,13 @@ export function getMarketInspectLink(listingId: string): string | undefined {
     const asset = g_rgAssets[AppId.CSGO][ContextId.PRIMARY][listingInfo.asset.id!];
     if (!asset || !asset.market_actions?.length) return;
 
-    return asset.market_actions[0].link.replace('%listingid%', listingId).replace('%assetid%', asset.id);
+    const link = asset.market_actions[0].link;
+    if (link.includes('%propid:6%')) {
+        const propId = asset.asset_properties?.find((p) => p.propertyid === 6)?.string_value;
+        if (!propId || !link) return;
+        return link.replace('%propid:6%', propId);
+    }
+    return link;
 }
 
 /**

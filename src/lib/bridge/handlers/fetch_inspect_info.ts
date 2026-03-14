@@ -1,3 +1,4 @@
+import {decodeLink, CEconItemPreviewDataBlock} from '@csfloat/cs2-inspect-serializer';
 import {SimpleHandler} from './main';
 import {RequestType} from './types';
 
@@ -47,6 +48,7 @@ export interface ItemInfo {
 export interface FetchInspectInfoRequest {
     link: string;
     listPrice?: number;
+    marketHashName?: string;
 }
 
 export interface FetchInspectInfoResponse {
@@ -56,16 +58,73 @@ export interface FetchInspectInfoResponse {
 
 export const FetchInspectInfo = new SimpleHandler<FetchInspectInfoRequest, FetchInspectInfoResponse>(
     RequestType.FETCH_INSPECT_INFO,
-    (req) => {
-        const apiUrl = `https://api.csfloat.com/?url=${req.link}&minimal=true${req.listPrice ? '&listPrice=' + req.listPrice : ''}`;
-        return fetch(apiUrl).then((resp) => {
-            return resp.json().then((json: FetchInspectInfoResponse) => {
-                if (resp.ok) {
-                    return json;
-                } else {
-                    throw Error(json.error);
-                }
-            }) as Promise<FetchInspectInfoResponse>;
-        });
+    async (req) => {
+        const itemMetadata = parseMarketHashName(req.marketHashName);
+        let decoded: CEconItemPreviewDataBlock;
+        try {
+            decoded = decodeLink(req.link);
+        } catch (error) {
+            throw new Error('Failed to decode inspect link');
+        }
+
+        return {
+            iteminfo: {
+                stickers: decoded.stickers.map((sticker) => ({
+                    slot: sticker.slot ?? 0,
+                    stickerId: sticker.stickerId ?? 0,
+                    wear: sticker.wear,
+                })),
+                keychains: decoded.keychains.map((keychain) => ({
+                    slot: keychain.slot ?? 0,
+                    stickerId: keychain.stickerId ?? 0,
+                    wear: keychain.wear,
+                    pattern: keychain.pattern ?? 0,
+                })),
+                itemid: decoded.itemid?.toString() ?? '',
+                defindex: decoded.defindex ?? 0,
+                paintindex: decoded.paintindex ?? 0,
+                rarity: decoded.rarity ?? 0,
+                quality: decoded.quality ?? 0,
+                paintseed: decoded.paintseed ?? 0,
+                inventory: decoded.inventory ?? 0,
+                origin: decoded.origin ?? 0,
+                s: '',
+                a: '',
+                d: '',
+                m: '',
+                floatvalue: decoded.paintwear ?? 0,
+                imageurl: '',
+                min: 0,
+                max: 1,
+                weapon_type: itemMetadata?.weaponType,
+                item_name: itemMetadata?.itemName,
+                wear_name: itemMetadata?.wearName,
+                full_item_name: req.marketHashName,
+            },
+        };
     }
 );
+
+interface ParsedMarketHashName {
+    weaponType?: string;
+    itemName?: string;
+    wearName?: string;
+}
+
+function parseMarketHashName(marketHashName?: string): ParsedMarketHashName | undefined {
+    if (!marketHashName) {
+        return;
+    }
+
+    const match = /^(.*?) \| (.*?)(?: \(([^)]+)\))?$/.exec(marketHashName);
+    if (!match) {
+        return;
+    }
+
+    const [, weaponType, itemName, wearName] = match;
+    return {
+        weaponType,
+        itemName,
+        wearName,
+    };
+}

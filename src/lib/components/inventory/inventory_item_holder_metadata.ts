@@ -18,7 +18,12 @@ export class InventoryItemHolderMetadata extends ItemHolderMetadata {
         if (isCAppwideInventory(g_ActiveInventory)) {
             const contextId = this.isTradeProtected ? ContextId.PROTECTED : ContextId.PRIMARY;
 
-            return g_ActiveInventory.m_rgChildInventories[contextId]?.m_rgAssets[this.assetId]?.description;
+            const invAsset = g_ActiveInventory.m_rgChildInventories[contextId]?.m_rgAssets[this.assetId];
+            if (invAsset && !invAsset.description.asset_properties) {
+                // due to inconsistencies in Steam's data structure, we sometimes need to manually populate this field here
+                invAsset.description.asset_properties = invAsset.asset_properties;
+            }
+            return invAsset?.description;
         } else {
             return g_ActiveInventory.m_rgAssets[this.assetId]?.description;
         }

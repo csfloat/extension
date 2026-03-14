@@ -122,9 +122,12 @@ export class SortListings extends FloatElement {
                 // Catch error to prevent one failure from stopping the Promise.all() later
                 try {
                     const link = getMarketInspectLink(listingId);
-                    const info = await gFloatFetcher.fetch({link: link!});
                     const listingInfo = g_rgListingInfo[listingId];
                     const asset = g_rgAssets[AppId.CSGO][ContextId.PRIMARY][listingInfo.asset.id];
+                    const info = await gFloatFetcher.fetch({
+                        link: link!,
+                        marketHashName: asset?.market_hash_name,
+                    });
                     return {
                         failed: false,
                         info,
