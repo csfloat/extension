@@ -136,6 +136,7 @@ export interface mOwner {
 // g_ActiveInventory.m_rgChildInventories[contextId]
 export interface CInventory {
     initialized: boolean;
+    m_rgAssetProperties: {[assetId: string]: rgAssetProperty[]};
     m_rgAssets: {[assetId: string]: InventoryAsset};
     m_parentInventory: CAppwideInventory | null;
     rgInventory: {[assetId: string]: rgAsset};
