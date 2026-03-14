@@ -12,9 +12,6 @@ import {gReversalFetcher} from '../../services/reversal_fetcher';
 )
 export class ReversalStatus extends FloatElement {
     @state()
-    show: boolean = false;
-    
-    @state()
     reversalStatus: FetchReversalStatusResponse | undefined = undefined;
 
     static styles = [
@@ -59,6 +56,11 @@ export class ReversalStatus extends FloatElement {
         `,
     ];
 
+    @state()
+    get show(): boolean {
+        return !!this.reversalStatus?.has_reversed;
+    }
+
     get daysSinceLastReversal(): number | null {
         if (!this.reversalStatus?.last_reversal_timestamp) {
             return null;
@@ -93,7 +95,6 @@ export class ReversalStatus extends FloatElement {
             }
 
             this.reversalStatus = await gReversalFetcher.fetch({steam_id64: steamId});
-            this.show = this.reversalStatus?.has_reversed;
         } catch (e) {
             console.error('failed to fetch reversal status', e);
         }
