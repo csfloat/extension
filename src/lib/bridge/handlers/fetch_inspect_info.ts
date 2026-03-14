@@ -87,6 +87,9 @@ export const FetchInspectInfo = new SimpleHandler<FetchInspectInfoRequest, Fetch
             console.error('Failed to fetch schema item metadata:', error);
         }
 
+        const quality = decoded.quality ?? 0;
+        const fullItemName = getFullItemName(quality, weaponType, itemName);
+
         return {
             iteminfo: {
                 stickers: decoded.stickers.map((sticker) => ({
@@ -104,7 +107,7 @@ export const FetchInspectInfo = new SimpleHandler<FetchInspectInfoRequest, Fetch
                 defindex,
                 paintindex,
                 rarity: decoded.rarity ?? 0,
-                quality: decoded.quality ?? 0,
+                quality,
                 paintseed: decoded.paintseed ?? 0,
                 inventory: decoded.inventory ?? 0,
                 origin: decoded.origin ?? 0,
@@ -115,6 +118,7 @@ export const FetchInspectInfo = new SimpleHandler<FetchInspectInfoRequest, Fetch
                 item_name: itemName,
                 rarity_name: rarityName,
                 wear_name: getWearName(floatvalue),
+                full_item_name: fullItemName,
             },
         };
     }
@@ -140,23 +144,38 @@ function getSchemaPaint(weapon: ItemSchema.RawWeapon | undefined, paintIndex: nu
 }
 
 function getWearName(floatvalue: number): string | undefined {
-    if (floatvalue <= 0.07) {
+    if (floatvalue < 0.07) {
         return 'Factory New';
     }
 
-    if (floatvalue <= 0.15) {
+    if (floatvalue < 0.15) {
         return 'Minimal Wear';
     }
 
-    if (floatvalue <= 0.38) {
+    if (floatvalue < 0.38) {
         return 'Field-Tested';
     }
 
-    if (floatvalue <= 0.45) {
+    if (floatvalue < 0.45) {
         return 'Well-Worn';
     }
 
     if (floatvalue <= 1) {
         return 'Battle-Scarred';
     }
+}
+
+function getFullItemName(quality: number, weaponType?: string, itemName?: string): string | undefined {
+    if (!weaponType || !itemName) {
+        return;
+    }
+
+    let prefix = '';
+    if (quality === 9) {
+        prefix = 'StatTrak™ ';
+    } else if (quality === 12) {
+        prefix = 'Souvenir ';
+    }
+
+    return `${prefix}${weaponType} | ${itemName}`;
 }

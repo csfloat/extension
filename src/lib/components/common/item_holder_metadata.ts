@@ -95,12 +95,15 @@ export abstract class ItemHolderMetadata extends FloatElement {
             return;
         }
 
-        const link = this.asset?.actions![0].link;
+        let link = this.asset?.actions![0].link;
         if (link.includes('%propid:6%')) {
             const propId = this.asset.asset_properties?.find((p) => p.propertyid === 6)?.string_value;
             if (!propId || !link) return;
             return link.replace('%propid:6%', propId);
         }
+        
+        link = link.replace('%owner_steamid%', this.ownerSteamId);
+        link = link.replace('%assetid%', this.assetId || '');
         return link;
     }
 
