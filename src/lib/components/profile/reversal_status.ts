@@ -4,6 +4,7 @@ import {css, html} from 'lit';
 import {state} from 'lit/decorators.js';
 import {FetchReversalStatusResponse} from '../../bridge/handlers/fetch_reversal_status';
 import {gReversalFetcher} from '../../services/reversal_fetcher';
+import {defined} from '../../utils/checkers';
 
 @CustomElement()
 @InjectAfter(
@@ -71,17 +72,19 @@ export class ReversalStatus extends FloatElement {
         return Math.floor(timeSince / (24 * 60 * 60 * 1000));
     }
 
-    getSteamId(): string {
+    getSteamId(): string | undefined {
+        if (!defined(typeof g_rgProfileData)) {
+            throw new Error('g_rgProfileData is undefined');
+        }
+
+        if (g_rgProfileData?.steamid) {
+            return g_rgProfileData.steamid;
+        }
+        
         const match = window.location.pathname.match(/^\/profiles\/(\d+)/);
         if (match) {
             return match[1];
         }
-
-        if (!g_rgProfileData) {
-            throw new Error('g_rgProfileData is undefined');
-        }
-
-        return g_rgProfileData.steamid;
     }
 
     async connectedCallback() {

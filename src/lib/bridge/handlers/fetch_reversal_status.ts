@@ -1,6 +1,6 @@
 ﻿import {RequestType} from './types';
 import {SimpleHandler} from './main';
-import {environment} from '../../../environment.dev';
+import {environment} from '../../../environment';
 
 export interface FetchReversalStatusRequest {
     steam_id64: string;
