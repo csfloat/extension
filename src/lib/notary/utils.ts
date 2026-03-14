@@ -6,6 +6,7 @@ const PROOF_BASE_URLS: Record<ProofType, string> = {
     [ProofType.TRADE_OFFER]: 'https://api.steampowered.com/IEconService/GetTradeOffer/v1/',
     [ProofType.TRADE_HISTORY]: 'https://api.steampowered.com/IEconService/GetTradeHistory/v1/',
     [ProofType.TRADE_STATUS]: 'https://api.steampowered.com/IEconService/GetTradeStatus/v1/',
+    [ProofType.INVENTORY]: 'https://api.steampowered.com/IEconService/GetInventoryItemsWithDescriptions/v1/',
 };
 
 function buildQueryString(params: Record<string, any>): string {
