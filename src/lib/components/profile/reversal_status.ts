@@ -42,11 +42,11 @@ export class ReversalStatus extends FloatElement {
                             }
                         }
                     }
-                    
+
                     .powered-by-container {
                         font-size: 12px;
                         color: #828282;
-                        
+
                         .powered-by-link {
                             text-decoration: none;
                             color: #ebebeb;
@@ -80,7 +80,7 @@ export class ReversalStatus extends FloatElement {
         if (g_rgProfileData?.steamid) {
             return g_rgProfileData.steamid;
         }
-        
+
         const match = window.location.pathname.match(/^\/profiles\/(\d+)/);
         if (match) {
             return match[1];
@@ -125,7 +125,9 @@ export class ReversalStatus extends FloatElement {
                             Info
                         </a>
                     </span>
-                    <span class="powered-by-container">(powered by <a class="powered-by-link" href="https://reverse.watch">reverse.watch</a>)</span>
+                    <span class="powered-by-container"
+                        >(powered by <a class="powered-by-link" href="https://reverse.watch">reverse.watch</a>)</span
+                    >
                 </div>
             </div>
         `;
