@@ -69,6 +69,8 @@ export const FetchInspectInfo = new SimpleHandler<FetchInspectInfoRequest, Fetch
         let weaponType: string | undefined;
         let itemName: string | undefined;
         let rarityName: string | undefined;
+        let stickers: Sticker[] = [];
+        let keychains: Keychain[] = [];
 
         try {
             const schema = await gSchemaFetcher.getSchema();
@@ -83,23 +85,35 @@ export const FetchInspectInfo = new SimpleHandler<FetchInspectInfoRequest, Fetch
                 min = paint.min;
                 max = paint.max;
             }
+
+            stickers = decoded.stickers.map((sticker) => {
+                const schemaSticker = schema.stickers[sticker.stickerId?.toString() ?? ''];
+                return {
+                    slot: sticker.slot ?? 0,
+                    stickerId: sticker.stickerId ?? 0,
+                    wear: sticker.wear,
+                    name: schemaSticker?.market_hash_name,
+                };
+            });
+
+            keychains = decoded.keychains.map((keychain) => {
+                const schemaKeychain = schema.keychains[keychain.stickerId?.toString() ?? ''];
+                return {
+                    slot: keychain.slot ?? 0,
+                    stickerId: keychain.stickerId ?? 0,
+                    wear: keychain.wear,
+                    pattern: keychain.pattern ?? 0,
+                    name: schemaKeychain?.market_hash_name,
+                };
+            });
         } catch (error) {
             console.error('Failed to fetch schema item metadata:', error);
         }
 
         return {
             iteminfo: {
-                stickers: decoded.stickers.map((sticker) => ({
-                    slot: sticker.slot ?? 0,
-                    stickerId: sticker.stickerId ?? 0,
-                    wear: sticker.wear,
-                })),
-                keychains: decoded.keychains.map((keychain) => ({
-                    slot: keychain.slot ?? 0,
-                    stickerId: keychain.stickerId ?? 0,
-                    wear: keychain.wear,
-                    pattern: keychain.pattern ?? 0,
-                })),
+                stickers,
+                keychains,
                 itemid: decoded.itemid?.toString() ?? '',
                 defindex,
                 paintindex,
@@ -120,9 +134,9 @@ export const FetchInspectInfo = new SimpleHandler<FetchInspectInfoRequest, Fetch
     }
 );
 
-function getSchemaPaint(weapon: ItemSchema.RawWeapon | undefined, paintIndex: number) {
+function getSchemaPaint(weapon: ItemSchema.RawWeapon | undefined, paintIndex: number): ItemSchema.RawPaint | undefined {
     if (!weapon) {
-        return;
+        return undefined;
     }
 
     if (weapon.paints[paintIndex] !== undefined) {
