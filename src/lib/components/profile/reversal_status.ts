@@ -73,11 +73,7 @@ export class ReversalStatus extends FloatElement {
     }
 
     getSteamId(): string | undefined {
-        if (!defined(typeof g_rgProfileData)) {
-            throw new Error('g_rgProfileData is undefined');
-        }
-
-        if (g_rgProfileData?.steamid) {
+        if (defined(typeof g_rgProfileData) && g_rgProfileData) {
             return g_rgProfileData.steamid;
         }
 
