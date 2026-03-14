@@ -95,9 +95,13 @@ export abstract class ItemHolderMetadata extends FloatElement {
             return;
         }
 
-        return this.asset
-            ?.actions![0].link.replace('%owner_steamid%', this.ownerSteamId)
-            .replace('%assetid%', this.assetId!);
+        const link = this.asset?.actions![0].link;
+        if (link.includes('%propid:6%')) {
+            const propId = this.asset.asset_properties?.find((p) => p.propertyid === 6)?.string_value;
+            if (!propId || !link) return;
+            return link.replace('%propid:6%', propId);
+        }
+        return link;
     }
 
     protected render(): HTMLTemplateResult {
