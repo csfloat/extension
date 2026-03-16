@@ -3,6 +3,7 @@ export enum ProofType {
     TRADE_OFFER = 'trade_offer',
     TRADE_HISTORY = 'trade_history',
     TRADE_STATUS = 'trade_status',
+    INVENTORY = 'inventory',
 }
 
 interface ProveRequestPayloads {
@@ -37,6 +38,18 @@ interface ProveRequestPayloads {
         tradeid: string;
         get_descriptions?: boolean;
         language?: string;
+    };
+    // IEconService/GetInventoryItemsWithDescriptions/v1/
+    [ProofType.INVENTORY]: {
+        steamid: string;
+        appid: number;
+        contextid: number;
+        get_descriptions?: boolean;
+        for_trade_offer_verification?: boolean;
+        language?: string;
+        start_assetid?: string;
+        count?: number;
+        get_asset_properties?: boolean;
     };
 }
 
