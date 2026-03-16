@@ -4,9 +4,13 @@ import {
     FetchReversalStatusRequest,
     FetchReversalStatusResponse,
 } from '../bridge/handlers/fetch_reversal_status';
-import {GenericJob, SimpleCachedQueue} from '../utils/queue';
+import {GenericJob, TTLCachedQueue} from '../utils/queue';
 
-class ReversalFetcher extends SimpleCachedQueue<FetchReversalStatusRequest, FetchReversalStatusResponse> {
+class ReversalFetcher extends TTLCachedQueue<FetchReversalStatusRequest, FetchReversalStatusResponse> {
+    constructor(maxConcurrency: number, ttlMs: number) {
+        super(maxConcurrency, ttlMs);
+    }
+
     fetch(req: FetchReversalStatusRequest): Promise<FetchReversalStatusResponse> {
         return this.add(new GenericJob(req));
     }
@@ -26,4 +30,4 @@ class ReversalFetcher extends SimpleCachedQueue<FetchReversalStatusRequest, Fetc
     }
 }
 
-export const gReversalFetcher = new ReversalFetcher(1);
+export const gReversalFetcher = new ReversalFetcher(1, 30 * 60 * 1000 /* 30 minutes */);

@@ -57,7 +57,6 @@ export class ReversalStatus extends FloatElement {
         `,
     ];
 
-    @state()
     get show(): boolean {
         return !!this.reversalStatus?.has_reversed;
     }
