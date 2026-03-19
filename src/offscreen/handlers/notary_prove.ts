@@ -71,7 +71,7 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
                 server_name: 'api.steampowered.com',
                 max_recv_data: maxRecvData,
                 max_sent_data: maxSentData,
-                network: 'Latency',
+                network: request.notary_request.meta?.network_setting ?? 'Latency',
                 defer_decryption_from_start: true,
             })) as Remote<TProver>;
 
