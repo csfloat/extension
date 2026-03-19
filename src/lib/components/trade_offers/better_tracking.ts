@@ -111,7 +111,9 @@ export class BetterTrackingWidget extends FloatElement {
                               />
                           </div>
                           <span class="item-name">Setup Steam Tracking on CSFloat</span>
-                          <div class="sale-info">Verify trades and inventory contents while preserving your privacy.</div>
+                          <div class="sale-info">
+                              Verify trades and inventory contents while preserving your privacy.
+                          </div>
                       </div>
                       <csfloat-steam-button
                           id="csfloat-enable-enhanced"
