@@ -9,6 +9,7 @@ import {FetchPendingTrades} from '../../bridge/handlers/fetch_pending_trades';
 import {HasPermissions} from '../../bridge/handlers/has_permissions';
 import {PingSetupExtension} from '../../bridge/handlers/ping_setup_extension';
 import {isFirefox} from '../../utils/detect';
+import {hasQueryParameter} from '../../utils/browser';
 
 @CustomElement()
 @InjectAfter(
@@ -78,6 +79,11 @@ export class BetterTrackingWidget extends FloatElement {
                 return;
             }
 
+            if (hasQueryParameter('csfloat_enable_tracking')) {
+                this.show = true;
+                return;
+            }
+
             const trades = await ClientSend(FetchPendingTrades, {
                 state: 'queued,pending,verified,failed,cancelled',
                 limit: 1,
@@ -104,8 +110,8 @@ export class BetterTrackingWidget extends FloatElement {
                                   style="height: 32px;"
                               />
                           </div>
-                          <span class="item-name">Setup Offer Tracking on CSFloat</span>
-                          <div class="sale-info">Verify trades while preserving your privacy.</div>
+                          <span class="item-name">Setup Steam Tracking on CSFloat</span>
+                          <div class="sale-info">Verify trades and inventory contents while preserving your privacy.</div>
                       </div>
                       <csfloat-steam-button
                           id="csfloat-enable-enhanced"
