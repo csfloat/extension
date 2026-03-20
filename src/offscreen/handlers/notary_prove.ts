@@ -10,6 +10,7 @@ import {environment} from '../../environment';
 import type {LoggingLevel, Method, Prover as TProver, Reveal} from '@csfloat/tlsn-wasm';
 import {NotarySessionClient} from './notary_session_client';
 import {Remote} from 'comlink';
+import {wait} from '../../lib/utils/snips';
 
 const {init, Prover}: any = Comlink.wrap(new Worker(new URL('../worker.ts', import.meta.url)));
 
@@ -45,9 +46,20 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
             'Accept-Encoding': 'gzip',
         };
 
-        const maxSentData = calculateRequestSize(serverURL, 'GET', headers);
+        let maxSentData = request.notary_request.meta?.max_sent_data;
+        if (!maxSentData) {
+            maxSentData = calculateRequestSize(serverURL, 'GET', headers);
+        }
 
-        const maxRecvData = await calculateResponseSize(serverURL, 'GET', headers);
+        let maxRecvData = request.notary_request.meta?.max_recv_data;
+        if (!maxRecvData) {
+            maxRecvData = await calculateResponseSize(serverURL, 'GET', headers);
+
+            if (request.notary_request.meta?.after_response_calc_delay_ms) {
+                // Wait for the specified delay before proceeding, typically to prevent a rate limit
+                await wait(request.notary_request.meta.after_response_calc_delay_ms);
+            }
+        }
 
         const maybeNotaryToken = request.notary_request.meta?.notary_token;
 
@@ -59,7 +71,7 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
                 server_name: 'api.steampowered.com',
                 max_recv_data: maxRecvData,
                 max_sent_data: maxSentData,
-                network: 'Latency',
+                network: request.notary_request.meta?.network_setting ?? 'Latency',
                 defer_decryption_from_start: true,
             })) as Remote<TProver>;
 

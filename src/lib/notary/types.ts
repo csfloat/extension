@@ -1,3 +1,5 @@
+import {NetworkSetting} from '@csfloat/tlsn-wasm';
+
 export enum ProofType {
     TRADE_OFFERS = 'trade_offers',
     TRADE_OFFER = 'trade_offer',
@@ -59,6 +61,16 @@ export type NotaryProveRequest = {
         meta?: {
             expected_steam_id?: string;
             notary_token?: string;
+            // Number of milliseconds to wait after calculating the size of the response, useful
+            // to prevent rate limiting.
+            after_response_calc_delay_ms?: number;
+
+            // Optionally set the max sent/recv data instead of having the extension calculate it (with an extra request)
+            max_sent_data?: number;
+            max_recv_data?: number;
+
+            // Optionally override the network setting for proving
+            network_setting?: NetworkSetting;
         };
     } & ProveRequestPayloads[T];
 }[ProofType];

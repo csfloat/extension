@@ -21,16 +21,16 @@ export class InventoryItemHolderMetadata extends ItemHolderMetadata {
             const invAsset = g_ActiveInventory.m_rgChildInventories[contextId]?.m_rgAssets[this.assetId];
             if (invAsset && !invAsset.description.asset_properties) {
                 // due to inconsistencies in Steam's data structure, we sometimes need to manually populate this field here
-                invAsset.description.asset_properties = invAsset.asset_properties;
+                return {...invAsset.description, asset_properties: invAsset.asset_properties};
             }
             return invAsset?.description;
         } else {
             const invAsset = g_ActiveInventory.m_rgAssets[this.assetId];
             if (invAsset && !invAsset.description.asset_properties) {
                 // due to inconsistencies in Steam's data structure, we sometimes need to manually populate this field here
-                invAsset.description.asset_properties = g_ActiveInventory.m_rgAssetProperties[this.assetId];
+                return {...invAsset.description, asset_properties: g_ActiveInventory.m_rgAssetProperties[this.assetId]};
             }
-            return g_ActiveInventory.m_rgAssets[this.assetId]?.description;
+            return invAsset?.description;
         }
     }
 
