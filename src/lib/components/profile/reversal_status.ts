@@ -48,7 +48,7 @@ export class ReversalStatus extends FloatElement {
                         .powered-by-link {
                             text-decoration: none;
                             color: #ebebeb;
-                            
+
                             &:hover {
                                 color: #66c0f4;
                             }
