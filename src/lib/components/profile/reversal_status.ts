@@ -27,8 +27,6 @@ export class ReversalStatus extends FloatElement {
 
                 .warning {
                     display: inline;
-                    align-items: flex-start;
-                    justify-content: start;
 
                     .info-link-container {
                         color: #828282;
@@ -50,6 +48,10 @@ export class ReversalStatus extends FloatElement {
                         .powered-by-link {
                             text-decoration: none;
                             color: #ebebeb;
+                            
+                            &:hover {
+                                color: #66c0f4;
+                            }
                         }
                     }
                 }
