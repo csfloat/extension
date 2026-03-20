@@ -250,12 +250,21 @@ export type SteamAssets = {
     };
 };
 
+// g_rgProfileData
+export interface ProfileData {
+    url: string;
+    steamid: string;
+    personaname: string;
+    summary?: string;
+}
+
 // Declares globals available in the Steam Page Context
 declare global {
     const $J: typeof $;
     const g_rgListingInfo: {[listingId: string]: ListingData};
     const g_rgWalletInfo: WalletInfo | undefined; // Not populated when user is signed-out
     const g_rgAssets: SteamAssets;
+    const g_rgProfileData: ProfileData | undefined; // Only populated on Steam profile pages
     const g_ActiveInventory: CAppwideInventory | CInventory | undefined; // Only populated on Steam inventory pages
     const g_steamID: string;
     const g_oSearchResults: CAjaxPagingControls;
