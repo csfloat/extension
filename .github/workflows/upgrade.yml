@@ -13,18 +13,19 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [24.x]
 
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           fetch-depth: 0
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
+          cache: "npm"
 
       - name: Update manifest/package.json version
         run: |
@@ -32,7 +33,7 @@ jobs:
           jq '.version = $ENV.VERSION' manifest.json > tmp && mv tmp manifest.json
           jq '.version = $ENV.VERSION' package.json > tmp && mv tmp package.json
           jq '.version = $ENV.VERSION | .packages."".version = $ENV.VERSION' package-lock.json > tmp && mv tmp package-lock.json
-          npm install
+          npm ci
           npx prettier --write manifest.json package.json package-lock.json
         env:
           VERSION: ${{ inputs.version }}

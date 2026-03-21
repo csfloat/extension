@@ -12,18 +12,23 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [24.x]
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
 
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v6
       with:
         node-version: ${{ matrix.node-version }}
+        cache: "npm"
 
-    - name: Lint
-      run: |
-        npm ci
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Run ESLint
+      run: 
         npm run lint
-        npm run checkformat
+
+    - name: Run Prettier
+      run: npm run checkformat
