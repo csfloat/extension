@@ -196,11 +196,15 @@ async function calculateResponseSize(
 
     const contentLength = response.headers.get('content-length');
 
-    if (!contentLength) {
-        throw new Error('no content length in response headers');
-    }
+    let bodySize: number;
 
-    const bodySize = parseInt(contentLength, 10);
+    if (contentLength) {
+        bodySize = parseInt(contentLength, 10);
+    } else {
+        console.debug('fallback to measuring response blob due to no content-length header');
+        const blob = await response.blob();
+        bodySize = blob.size;
+    }
 
     return headersSize + bodySize;
 }
