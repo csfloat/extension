@@ -26,7 +26,6 @@ jobs:
         run: npm ci
 
       - name: Swap Environment for Beta
-        # This only happens inside this isolated runner, protecting your prod code
         run: cp src/environment.beta.ts src/environment.ts
 
       - name: Build Extension
