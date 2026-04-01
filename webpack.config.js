@@ -156,9 +156,16 @@ module.exports = (env) => {
 
                             if (mode === 'staging') {
                                 // https://developer.chrome.com/docs/extensions/develop/migrate/publish-mv3#publish-beta
+                                // Grab the run number from the GitHub Action environment, default to 0 for local builds
+                                const runNumber = process.env.GITHUB_RUN_NUMBER || '0';
+
+                                // Append the run number to the strict version (e.g., 5.14.0.42)
+                                processed.version = `${processed.version}.${runNumber}`;
+
+                                // Update names
                                 processed.name += ' - STAGING';
                                 processed.short_name += ' (Staging)';
-                                processed.version_name = processed.version + ' (Staging)';
+                                processed.version_name = `${processed.version} (Staging)`;
 
                                 if (!processed.externally_connectable.matches.includes('*://*.csfloat.build/*')) {
                                     processed.externally_connectable.matches.push('*://*.csfloat.build/*');
