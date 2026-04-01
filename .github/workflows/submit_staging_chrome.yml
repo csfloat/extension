@@ -1,0 +1,43 @@
+name: Submit Staging to Chrome Web Store
+
+on:
+  push:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24.x]
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Staging Extension
+        run: npm run build_staging
+
+      - name: Zip Staging Extension
+        run: |
+          cd dist
+          zip -r ../staging-extension.zip .
+          cd ..
+
+      - name: Publish to Chrome Web Store (Staging)
+        uses: browser-actions/release-chrome-extension@v0.2.1
+        with:
+          extension-id: ${{ secrets.STAGING_CHROME_EXTENSION_ID }}
+          extension-path: ./staging-extension.zip
+          oauth-client-id: ${{ secrets.OAUTH_CLIENT_ID }}
+          oauth-client-secret: ${{ secrets.OAUTH_CLIENT_SECRET }}
+          oauth-refresh-token: ${{ secrets.OAUTH_REFRESH_TOKEN }}

@@ -1,5 +1,5 @@
 export const environment = {
-    csfloat_base_api_url: 'https://csfloat.buiid/api',
+    csfloat_base_api_url: 'https://csfloat.build/api',
     notary: {
         tlsn: 'https://notary.csfloat.com',
         ws: 'wss://notary.csfloat.com/proxy',

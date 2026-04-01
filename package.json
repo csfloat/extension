@@ -12,6 +12,7 @@
     },
     "scripts": {
         "build": "webpack --env mode=prod browser=chrome --config webpack.config.js --stats-error-details",
+        "build_staging": "webpack --env mode=staging browser=chrome --config webpack.config.js --stats-error-details",
         "build_ff": "webpack --env mode=prod browser=firefox --config webpack.config.js --stats-error-details",
         "start": "webpack --env mode=development browser=chrome --config webpack.config.js --stats-error-details --watch",
         "start_ff": "webpack --env mode=development browser=firefox --config webpack.config.js --stats-error-details --watch",

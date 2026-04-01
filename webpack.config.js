@@ -91,8 +91,13 @@ module.exports = (env) => {
                     test: /environment\.ts$/,
                     loader: 'file-replace-loader',
                     options: {
-                        condition: mode === 'development',
-                        replacement: resolve('./src/environment.dev.ts'),
+                        // Activate replacement if mode is development OR staging
+                        condition: mode === 'development' || mode === 'staging',
+                        // Dynamically route to the correct file
+                        replacement:
+                            mode === 'staging'
+                                ? resolve('./src/environment.staging.ts')
+                                : resolve('./src/environment.dev.ts'),
                     },
                 },
                 {
@@ -110,7 +115,7 @@ module.exports = (env) => {
             new CopyPlugin({
                 patterns: [
                     {from: 'icons', to: 'icons', context: '.'},
-                    {from: 'data', to: 'data', context: '.', globOptions: { ignore: ['bluegem.json'] } },
+                    {from: 'data', to: 'data', context: '.', globOptions: {ignore: ['bluegem.json']}},
                     {from: 'src/global.css', to: 'src/', context: '.'},
                     {from: 'src/background_ff.html', to: 'src/', context: '.'},
                     {from: 'src/steamcommunity_ruleset.json', to: 'src/', context: '.'},
@@ -149,6 +154,24 @@ module.exports = (env) => {
                                 processed.externally_connectable.matches.push('http://localhost:4200/*');
                             }
 
+                            if (mode === 'staging') {
+                                // https://developer.chrome.com/docs/extensions/develop/migrate/publish-mv3#publish-beta
+                                processed.name += ' - STAGING';
+                                processed.short_name += ' (Staging)';
+                                processed.version_name = processed.version + ' (Staging)';
+
+                                if (!processed.externally_connectable.matches.includes('*://*.csfloat.build/*')) {
+                                    processed.externally_connectable.matches.push('*://*.csfloat.build/*');
+                                }
+
+                                const versionResource = processed.web_accessible_resources.find((e) =>
+                                    e.resources[0].includes('version.txt')
+                                );
+                                if (versionResource && !versionResource.matches.includes('https://csfloat.build/*')) {
+                                    versionResource.matches.push('https://csfloat.build/*');
+                                }
+                            }
+
                             if (env.browser === 'firefox') {
                                 processed = convertToFirefoxManifest(processed);
                             }
@@ -169,10 +192,10 @@ module.exports = (env) => {
             }),
             // Add Gzip compression for bluegem.json
             new CompressionPlugin({
-                filename: "[path][base].gz", // Change extension to .gz
-                algorithm: "gzip",
+                filename: '[path][base].gz', // Change extension to .gz
+                algorithm: 'gzip',
                 test: /bluegem\.json$/,
-                deleteOriginalAssets: true, 
+                deleteOriginalAssets: true,
             }),
             new webpack.ProvidePlugin({
                 Buffer: ['buffer', 'Buffer'],
@@ -192,7 +215,7 @@ module.exports = (env) => {
             headers: {
                 'Cross-Origin-Embedder-Policy': 'require-corp',
                 'Cross-Origin-Opener-Policy': 'same-origin',
-            }
+            },
         },
     };
 };
