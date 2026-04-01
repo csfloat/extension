@@ -192,6 +192,12 @@ module.exports = (env) => {
                         transform(raw) {
                             let processed = JSON.parse(raw.toString());
 
+                            // Apply the exact same version bump for staging
+                            if (mode === 'staging') {
+                                const runNumber = process.env.GITHUB_RUN_NUMBER || '0';
+                                return `${processed.version}.${runNumber}`;
+                            }
+
                             return processed.version;
                         },
                     },

@@ -43,21 +43,20 @@ jobs:
           retention-days: 180
 
       - name: Cancel Pending Review (If Exists)
+        continue-on-error: true
         run: |
           echo "Generating access token..."
-          ACCESS_TOKEN=$(curl -s -X POST "https://oauth2.googleapis.com/token" \
+          ACCESS_TOKEN=$(curl -s -f -X POST "https://oauth2.googleapis.com/token" \
             -d "client_id=${{ secrets.OAUTH_CLIENT_ID }}" \
             -d "client_secret=${{ secrets.OAUTH_CLIENT_SECRET }}" \
             -d "refresh_token=${{ secrets.OAUTH_REFRESH_TOKEN }}" \
             -d "grant_type=refresh_token" | jq -r .access_token)
           
           echo "Attempting to cancel any pending staging reviews..."
-          # We use -f (--fail) so curl returns a non-zero exit code on HTTP errors (e.g., if there's no review to cancel).
-          # We append '|| true' so the workflow gracefully ignores the error and continues to the publish step.
           curl -s -f -X POST \
             -H "Authorization: Bearer $ACCESS_TOKEN" \
             -H "Content-Length: 0" \
-            "https://chromewebstore.googleapis.com/v2/publishers/${{ secrets.CWS_PUBLISHER_ID }}/items/${{ secrets.STAGING_CHROME_EXTENSION_ID }}:cancelSubmission" || true
+            "https://chromewebstore.googleapis.com/v2/publishers/${{ secrets.CWS_PUBLISHER_ID }}/items/${{ secrets.STAGING_CHROME_EXTENSION_ID }}:cancelSubmission"
 
       - name: Publish to Chrome Web Store (Staging)
         uses: browser-actions/release-chrome-extension@v0.2.1
