@@ -5,6 +5,11 @@ on:
     branches: [ "master" ]
   workflow_dispatch:
 
+# Ensure only one staging deployment runs at a time, canceling outdated runs
+concurrency:
+  group: "staging-deploy"
+  cancel-in-progress: true
+
 jobs:
   deploy-staging:
     runs-on: ubuntu-latest
