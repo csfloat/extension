@@ -161,9 +161,14 @@ function calculateRequestSize(
 }
 
 /**
- * Calculates the exact response byte size for the HTTP request by making the request itself and counting the response
+ * Calculates the response byte size for the HTTP request by making the request itself and counting the response.
  *
- * @param url Full request uRL including protocol, domain, path
+ * Fallback priority when content-length is absent (i.e., Transfer Encoding is chunked):
+ *  1. Resource Timing API (encodedBodySize) — on-wire size, but may be 0 for cross-origin without TAO
+ *  2. Re-compress with gzip via CompressionStream — close estimate when the response was gzip-encoded
+ *  3. Decompressed body length — last resort, will overshoot for compressed responses
+ *
+ * @param url Full request URL including protocol, domain, path
  * @param method HTTP method (ie. "GET")
  * @param headers HTTP request headers
  * @param body Optional request body
@@ -196,17 +201,82 @@ async function calculateResponseSize(
 
     const contentLength = response.headers.get('content-length');
 
-    let bodySize: number;
-
     if (contentLength) {
-        bodySize = parseInt(contentLength, 10);
-    } else {
-        console.debug('fallback to measuring response blob due to no content-length header');
-        const blob = await response.blob();
-        bodySize = blob.size;
+        return headersSize + parseInt(contentLength, 10);
     }
 
-    return headersSize + bodySize;
+    // No content-length; consume the body so we can estimate the on-wire size
+    const decompressedBody = await response.arrayBuffer();
+    const contentEncoding = response.headers.get('content-encoding');
+    const wasGzipped = contentEncoding?.toLowerCase().includes('gzip') ?? false;
+
+    // Try Resource Timing API for the encoded (on-wire) body size.
+    // Returns 0 for cross-origin responses without Timing-Allow-Origin,
+    // but worth checking since it's the most accurate when available.
+    const perfBodySize = await getEncodedBodySizeFromPerformance(url);
+    if (perfBodySize > 0) {
+        // encodedBodySize excludes chunked transfer encoding framing (chunk-size
+        // hex digits + CRLFs per chunk), which IS counted by the notary. Pad to cover it.
+        console.debug('fallback to performance body size:', perfBodySize);
+        return headersSize + Math.ceil(perfBodySize * 1.05) + 256;
+    }
+
+    // Re-compress with gzip to approximate the on-wire body size.
+    // Only meaningful when the server actually sent gzip'd data.
+    if (wasGzipped && typeof CompressionStream !== 'undefined') {
+        const compressedSize = await estimateGzipSize(new Uint8Array(decompressedBody));
+        // CompressionStream uses zlib default (level 6), but the server may use a
+        // lower level (larger output). Pad generously — overshooting is safe,
+        // undershooting causes a protocol failure.
+        console.debug('fallback to estimated gzip size:', compressedSize);
+        return headersSize + Math.ceil(compressedSize * 1.20) + 256;
+    }
+
+    // Last resort: decompressed body length (overshoots for compressed responses)
+    console.debug('fallback to decompressed body size — on-wire size may differ');
+    return headersSize + decompressedBody.byteLength;
+}
+
+/**
+ * Attempts to read the encoded (on-wire) body size from the Resource Timing API.
+ * Returns 0 if unavailable or if the entry reports 0 (e.g. cross-origin without TAO).
+ */
+async function getEncodedBodySizeFromPerformance(url: string): Promise<number> {
+    if (typeof performance === 'undefined' || !performance.getEntriesByName) {
+        return 0;
+    }
+
+    // Yield to the event loop so the browser has a chance to queue the entry
+    await new Promise<void>((r) => setTimeout(r, 0));
+
+    const entries = performance.getEntriesByName(url, 'resource') as PerformanceResourceTiming[];
+    if (entries.length === 0) {
+        return 0;
+    }
+
+    return entries[entries.length - 1].encodedBodySize ?? 0;
+}
+
+/**
+ * Compresses data with gzip using the Compression Streams API and returns the resulting size.
+ * Available in Chrome 80+ and Firefox 113+.
+ */
+async function estimateGzipSize(data: Uint8Array): Promise<number> {
+    const cs = new CompressionStream('gzip');
+    const writer = cs.writable.getWriter();
+    const reader = cs.readable.getReader();
+
+    writer.write(data as unknown as BufferSource);
+    writer.close();
+
+    let totalSize = 0;
+    while (true) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        totalSize += value.byteLength;
+    }
+
+    return totalSize;
 }
 
 /**
