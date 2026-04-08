@@ -64,10 +64,13 @@ jobs:
             "https://chromewebstore.googleapis.com/v2/publishers/${{ secrets.CWS_PUBLISHER_ID }}/items/${{ secrets.STAGING_CHROME_EXTENSION_ID }}:cancelSubmission"
 
       - name: Publish to Chrome Web Store (Staging)
-        uses: browser-actions/release-chrome-extension@v0.2.1
-        with:
-          extension-id: ${{ secrets.STAGING_CHROME_EXTENSION_ID }}
-          extension-path: ./staging-extension.zip
-          oauth-client-id: ${{ secrets.OAUTH_CLIENT_ID }}
-          oauth-client-secret: ${{ secrets.OAUTH_CLIENT_SECRET }}
-          oauth-refresh-token: ${{ secrets.OAUTH_REFRESH_TOKEN }}
+        env:
+          # The CLI automatically looks for these exact environment variables
+          EXTENSION_ID: ${{ secrets.STAGING_CHROME_EXTENSION_ID }}
+          CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.OAUTH_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.OAUTH_REFRESH_TOKEN }}
+        run: |
+          npx chrome-webstore-upload-cli@3 \
+            --source ./staging-extension.zip \
+            --trusted-testers
