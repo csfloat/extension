@@ -217,8 +217,10 @@ async function calculateResponseSize(
     if (perfBodySize > 0) {
         // encodedBodySize excludes chunked transfer encoding framing (chunk-size
         // hex digits + CRLFs per chunk), which IS counted by the notary. Pad to cover it.
-        console.debug('fallback to performance body size:', perfBodySize);
-        return headersSize + Math.ceil(perfBodySize * 1.05) + 256;
+        const adjustedPerfBodySize = Math.ceil(perfBodySize * 1.05) + 256;
+        console.debug('fallback to performance body size:', adjustedPerfBodySize);
+
+        return headersSize + adjustedPerfBodySize;
     }
 
     // Re-compress with gzip to approximate the on-wire body size.
@@ -228,8 +230,10 @@ async function calculateResponseSize(
         // CompressionStream uses zlib default (level 6), but the server may use a
         // lower level (larger output). Pad generously — overshooting is safe,
         // undershooting causes a protocol failure.
-        console.debug('fallback to estimated gzip size:', compressedSize);
-        return headersSize + Math.ceil(compressedSize * 1.20) + 256;
+        const adjustedCompressedSize = Math.ceil(compressedSize * 1.15) + 256;
+        console.debug('fallback to estimated gzip size:', adjustedCompressedSize);
+
+        return headersSize + adjustedCompressedSize;
     }
 
     // Last resort: decompressed body length (overshoots for compressed responses)
