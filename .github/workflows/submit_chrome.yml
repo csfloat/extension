@@ -29,12 +29,15 @@ jobs:
             CHROME_EXT_PATH=$(find assets -name "extension-*-chrome.zip" | head -n 1)
             echo "chrome_extension_path=$CHROME_EXT_PATH" >> $GITHUB_OUTPUT
 
-        - name: Chrome Web Store Publish
-          uses: browser-actions/release-chrome-extension@v0.2.1
-          with:
-            extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
-            extension-path: ${{ steps.find-path.outputs.chrome_extension_path }}
-            oauth-client-id: ${{ secrets.OAUTH_CLIENT_ID }}
-            oauth-client-secret: ${{ secrets.OAUTH_CLIENT_SECRET }}
-            oauth-refresh-token: ${{ secrets.OAUTH_REFRESH_TOKEN }}
+        - name: Publish to Chrome Web Store (Staging)
+          env:
+            # The CLI automatically looks for these exact environment variables
+            EXTENSION_ID: ${{ secrets.STAGING_CHROME_EXTENSION_ID }}
+            CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
+            CLIENT_SECRET: ${{ secrets.OAUTH_CLIENT_SECRET }}
+            REFRESH_TOKEN: ${{ secrets.OAUTH_REFRESH_TOKEN }}
+          run: |
+            npx chrome-webstore-upload-cli@3 \
+              --source ./staging-extension.zip \
+              --trusted-testers
             
