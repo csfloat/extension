@@ -2,6 +2,8 @@ import {decodeLink, CEconItemPreviewDataBlock} from '@csfloat/cs2-inspect-serial
 import {SimpleHandler} from './main';
 import {RequestType} from './types';
 import {gSchemaFetcher} from '../../services/schema_fetcher';
+import {gThresholdFetcher} from '../../services/threshold_fetcher';
+import {gRankBatcher} from '../../services/rank_batcher';
 import type {ItemSchema} from '../../types/schema';
 
 interface Sticker {
@@ -110,27 +112,44 @@ export const FetchInspectInfo = new SimpleHandler<FetchInspectInfoRequest, Fetch
             console.error('Failed to fetch schema item metadata:', error);
         }
 
-        return {
-            iteminfo: {
-                stickers,
-                keychains,
-                itemid: decoded.itemid?.toString() ?? '',
-                defindex,
-                paintindex,
-                rarity: decoded.rarity ?? 0,
-                quality: decoded.quality ?? 0,
-                paintseed: decoded.paintseed ?? 0,
-                inventory: decoded.inventory ?? 0,
-                origin: decoded.origin ?? 0,
-                floatvalue,
-                min,
-                max,
-                weapon_type: weaponType,
-                item_name: itemName,
-                rarity_name: rarityName,
-                wear_name: getWearName(floatvalue),
-            },
+        const iteminfo: ItemInfo = {
+            stickers,
+            keychains,
+            itemid: decoded.itemid?.toString() ?? '',
+            defindex,
+            paintindex,
+            rarity: decoded.rarity ?? 0,
+            quality: decoded.quality ?? 0,
+            paintseed: decoded.paintseed ?? 0,
+            inventory: decoded.inventory ?? 0,
+            origin: decoded.origin ?? 0,
+            floatvalue,
+            min,
+            max,
+            weapon_type: weaponType,
+            item_name: itemName,
+            rarity_name: rarityName,
+            wear_name: getWearName(floatvalue),
         };
+
+        try {
+            if (decoded.itemid != null) {
+                const stattrak = decoded.killeaterscoretype !== undefined;
+                const souvenir = (decoded.quality ?? 0) === 12;
+
+                if (await gThresholdFetcher.qualifiesForRankCheck(defindex, paintindex, stattrak, souvenir, floatvalue)) {
+                    const rankResult = await gRankBatcher.check(req.link, decoded.itemid.toString());
+                    if (rankResult) {
+                        iteminfo.low_rank = rankResult.low_rank;
+                        iteminfo.high_rank = rankResult.high_rank;
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Failed to check rank:', e);
+        }
+
+        return {iteminfo};
     }
 );
 

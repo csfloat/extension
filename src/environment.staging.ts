@@ -6,4 +6,5 @@ export const environment = {
         loggingLevel: 'Error',
     },
     reverse_watch_base_api_url: 'https://reverse.watch/api',
+    floatdb_gateway_url: 'https://gateway.floatdb.com',
 };
