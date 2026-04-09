@@ -6,7 +6,7 @@ import {isCAppwideInventory} from '../../utils/checkers';
 
 @CustomElement()
 @InjectAppend(
-    '#active_inventory_page div.inventory_page:not([style*="display: none"]) .itemHolder div.app730',
+    '#active_inventory_page div.inventory_page .itemHolder div.app730',
     InjectionMode.CONTINUOUS
 )
 export class InventoryItemHolderMetadata extends ItemHolderMetadata {
