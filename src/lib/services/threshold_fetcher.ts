@@ -1,11 +1,19 @@
 import {environment} from '../../environment';
+import {gStore} from '../storage/store';
+import {THRESHOLD_CACHE} from '../storage/keys';
 
 const THRESHOLDS_URL = `${environment.floatdb_gateway_url}/v1/ranks/thresholds/bin`;
 const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
+const RETRY_AFTER_FAILURE_MS = 15 * 60 * 1000; // 15 minutes
 
 interface ThresholdEntry {
     low: number;
     high: number;
+}
+
+interface ThresholdCache {
+    lastUpdated: number;
+    thresholds: Record<string, ThresholdEntry>;
 }
 
 function makeKey(defindex: number, paintindex: number, stattrak: boolean, souvenir: boolean): string {
@@ -44,7 +52,8 @@ function parseThresholdsBinary(buffer: ArrayBuffer): Map<string, ThresholdEntry>
 class ThresholdFetcher {
     private thresholds: Map<string, ThresholdEntry> | null = null;
     private lastFetched = 0;
-    private pendingFetch?: Promise<Map<string, ThresholdEntry>>;
+    private lastFailedAt = 0;
+    private pendingFetch?: Promise<Map<string, ThresholdEntry> | null>;
 
     async qualifiesForRankCheck(
         defindex: number,
@@ -54,12 +63,14 @@ class ThresholdFetcher {
         floatvalue: number
     ): Promise<boolean> {
         const thresholds = await this.getThresholds();
+        if (!thresholds) return false;
+
         const entry = thresholds.get(makeKey(defindex, paintindex, stattrak, souvenir));
         if (!entry) return false;
         return floatvalue <= entry.low || floatvalue >= entry.high;
     }
 
-    private async getThresholds(): Promise<Map<string, ThresholdEntry>> {
+    private async getThresholds(): Promise<Map<string, ThresholdEntry> | null> {
         if (this.thresholds && Date.now() - this.lastFetched < CACHE_DURATION_MS) {
             return this.thresholds;
         }
@@ -68,7 +79,11 @@ class ThresholdFetcher {
             return this.pendingFetch;
         }
 
-        const fetchPromise = this.fetchThresholds();
+        if (this.lastFailedAt && Date.now() - this.lastFailedAt < RETRY_AFTER_FAILURE_MS) {
+            return this.thresholds;
+        }
+
+        const fetchPromise = this.resolveThresholds();
         this.pendingFetch = fetchPromise;
 
         try {
@@ -80,7 +95,24 @@ class ThresholdFetcher {
         }
     }
 
-    private async fetchThresholds(): Promise<Map<string, ThresholdEntry>> {
+    private async resolveThresholds(): Promise<Map<string, ThresholdEntry> | null> {
+        const storedCache = await gStore.getWithStorage<ThresholdCache>(
+            chrome.storage.local,
+            THRESHOLD_CACHE.key
+        );
+
+        if (storedCache?.thresholds && Date.now() - storedCache.lastUpdated < CACHE_DURATION_MS) {
+            this.thresholds = new Map(Object.entries(storedCache.thresholds));
+            this.lastFetched = storedCache.lastUpdated;
+            return this.thresholds;
+        }
+
+        return this.fetchThresholds(storedCache);
+    }
+
+    private async fetchThresholds(
+        storedCache: ThresholdCache | null
+    ): Promise<Map<string, ThresholdEntry> | null> {
         try {
             const resp = await fetch(THRESHOLDS_URL);
             if (!resp.ok) {
@@ -92,14 +124,30 @@ class ThresholdFetcher {
 
             this.thresholds = parsed;
             this.lastFetched = Date.now();
+            this.lastFailedAt = 0;
+
+            const serializable = Object.fromEntries(parsed);
+            await gStore.setWithStorage(chrome.storage.local, THRESHOLD_CACHE.key, {
+                lastUpdated: this.lastFetched,
+                thresholds: serializable,
+            });
 
             return parsed;
         } catch (error) {
-            if (this.thresholds) {
-                console.error('Error fetching thresholds, using cached:', error);
+            console.error('Error fetching thresholds:', error);
+            this.lastFailedAt = Date.now();
+
+            // Fallback to last successful threshold fetch
+            if (this.thresholds) return this.thresholds;
+
+            // Fallback to last successful stored fetch
+            if (storedCache?.thresholds) {
+                this.thresholds = new Map(Object.entries(storedCache.thresholds));
+                this.lastFetched = storedCache.lastUpdated;
                 return this.thresholds;
             }
-            throw error;
+
+            return null;
         }
     }
 }
