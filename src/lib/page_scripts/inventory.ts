@@ -20,34 +20,25 @@ async function main() {
      * Instead, we eagerly fetch the ranks for all items that have been loaded.
      */
     Observe(() => {
-        const allProps = getAllCS2AssetProperties();
-        const propsLength  = Object.keys(allProps).length;
-        if (propsLength > 0 && !initialRun) {
-            // Ensure that we run the function at least once if we happened to load
-            // and all the properties were already there.
+        const count = Object.keys(getAllCS2AssetProperties()).length;
+        if (count > 0 && !initialRun) {
             initialRun = true;
             return true;
         }
-        return Object.keys(allProps).length;
+        return count;
     }, () => {
         if (typeof g_ActiveInventory === 'undefined') return;
 
-        const assetProperties = getAllCS2AssetProperties();
+        for (const [asset_id, props] of Object.entries(getAllCS2AssetProperties())) {
+            // No float value, skip
+            if (!props.some(e => e.propertyid === 2)) continue;
 
-        for (const [asset_id, props] of Object.entries(assetProperties)) {
-            if (!props.find(e => e.propertyid === 2)) {
-                // doesn't have a float, skip
-                continue;
-            }
-
-            const serializedLink = props.find(e => e.propertyid === 6);
-            if (!serializedLink?.string_value) {
-                continue;
-            }
+            const inspectLink = props.find(e => e.propertyid === 6)?.string_value;
+            if (!inspectLink) continue;
 
             gFloatFetcher.fetch({
-                asset_id: asset_id,
-                link: `steam://run/730//+csgo_econ_action_preview%20${serializedLink.string_value}`
+                asset_id,
+                link: `steam://run/730//+csgo_econ_action_preview%20${inspectLink}`,
             });
         }
     })
@@ -59,14 +50,11 @@ function getAllCS2AssetProperties(): {[assetId: string]: rgAssetProperty[]} {
     const allProperties = g_ActiveInventory.m_rgAssetProperties || {};
 
     if (isCAppwideInventory(g_ActiveInventory)) {
-        const primaryProps = g_ActiveInventory.m_rgChildInventories[ContextId.PRIMARY]?.m_rgAssetProperties;
-        if (Object.keys(primaryProps).length > 0) {
-            Object.assign(allProperties, primaryProps);
-        }
-
-        const protectedProps = g_ActiveInventory.m_rgChildInventories[ContextId.PROTECTED]?.m_rgAssetProperties;
-        if (Object.keys(protectedProps).length > 0) {
-            Object.assign(allProperties, protectedProps);
+        for (const contextId of [ContextId.PRIMARY, ContextId.PROTECTED]) {
+            const props = g_ActiveInventory.m_rgChildInventories[contextId]?.m_rgAssetProperties;
+            if (props && Object.keys(props).length > 0) {
+                Object.assign(allProperties, props);
+            }
         }
     }
 
