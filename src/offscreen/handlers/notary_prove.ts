@@ -270,7 +270,7 @@ async function estimateGzipSize(data: Uint8Array): Promise<number> {
     const writer = cs.writable.getWriter();
     const reader = cs.readable.getReader();
 
-    writer.write(data as unknown as BufferSource);
+    writer.write(data as BufferSource);
     writer.close();
 
     let totalSize = 0;
