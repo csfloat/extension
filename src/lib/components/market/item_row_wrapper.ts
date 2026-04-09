@@ -86,7 +86,6 @@ export class ItemRowWrapper extends FloatElement {
         return gFloatFetcher.fetch({
             link: this.inspectLink!,
             asset_id: this.listingInfo?.asset.id!,
-            listPrice: this.usdPrice,
         });
     }
 
@@ -110,14 +109,6 @@ export class ItemRowWrapper extends FloatElement {
         }
 
         return (this.listingInfo.converted_price + this.listingInfo.converted_fee) / 100;
-    }
-
-    get usdPrice(): number | undefined {
-        if (this.listingInfo?.currencyid === Currency.USD) {
-            return this.listingInfo.price + this.listingInfo.fee;
-        } else if (this.listingInfo?.converted_currencyid === Currency.USD) {
-            return this.listingInfo.converted_price! + this.listingInfo.converted_fee!;
-        }
     }
 
     @state()

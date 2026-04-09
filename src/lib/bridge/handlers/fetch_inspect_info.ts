@@ -45,7 +45,6 @@ export interface ItemInfo {
 export interface FetchInspectInfoRequest {
     link: string;
     asset_id: string;
-    listPrice?: number;
 }
 
 export interface FetchInspectInfoResponse {
