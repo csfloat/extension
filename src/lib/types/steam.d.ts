@@ -84,7 +84,7 @@ interface rgAssetPropertyBase {
 }
 
 // Only one of int_value, float_value, or string_value can be present
-type rgAssetProperty = RequireOnlyOne<rgAssetPropertyBase, 'int_value' | 'float_value' | 'string_value'>;
+export type rgAssetProperty = RequireOnlyOne<rgAssetPropertyBase, 'int_value' | 'float_value' | 'string_value'>;
 
 // g_rgAssets
 export interface rgAsset extends rgDescription {

@@ -173,11 +173,12 @@ export abstract class ItemHolderMetadata extends FloatElement {
         if (!isSkin(this.asset) && !isCharm(this.asset)) return;
 
         // Commodities won't have inspect links
-        if (!this.inspectLink) return;
+        if (!this.inspectLink || !this.assetId) return;
 
         try {
             this.itemInfo = await gFloatFetcher.fetch({
                 link: this.inspectLink,
+                asset_id: this.assetId,
             });
         } catch (e: any) {
             console.error(`Failed to fetch float for ${this.assetId}: ${e.toString()}`);

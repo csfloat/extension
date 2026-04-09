@@ -2,7 +2,7 @@ import {environment} from '../../environment';
 import {DeferredPromise} from '../utils/deferred_promise';
 
 const RANKS_CHECK_URL = `${environment.floatdb_gateway_url}/v1/ranks/check`;
-const DEBOUNCE_MS = 50;
+const DEBOUNCE_MS = 100;
 
 export interface RankResult {
     low_rank?: number;
@@ -16,12 +16,12 @@ interface PendingItem {
 
 /**
  * Batches concurrent rank check requests into a single POST to /v1/ranks/check.
- * Callers receive individual promises; a short debounce window (50ms) collects
+ * Callers receive individual promises; a short debounce window collects
  * qualifying items so that bulk page loads produce one network request instead of many.
  */
 class RankBatcher {
     private pending = new Map<string, PendingItem>();
-    private timer: ReturnType<typeof setTimeout> | null = null;
+    private debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
     check(link: string, assetId: string): Promise<RankResult | null> {
         const existing = this.pending.get(assetId);
@@ -32,16 +32,19 @@ class RankBatcher {
         const deferred = new DeferredPromise<RankResult | null>();
         this.pending.set(assetId, {link, deferred});
 
-        if (this.timer !== null) {
-            clearTimeout(this.timer);
+        if (this.debounceTimer !== null) {
+            clearTimeout(this.debounceTimer);
         }
-        this.timer = setTimeout(() => this.flush(), DEBOUNCE_MS);
+        this.debounceTimer = setTimeout(() => this.flush(), DEBOUNCE_MS);
 
         return deferred.promise();
     }
 
     private async flush(): Promise<void> {
-        this.timer = null;
+        if (this.debounceTimer !== null) {
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = null;
+        }
 
         const batch = new Map(this.pending);
         this.pending.clear();

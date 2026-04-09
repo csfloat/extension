@@ -85,6 +85,7 @@ export class ItemRowWrapper extends FloatElement {
     async fetchFloat(): Promise<ItemInfo> {
         return gFloatFetcher.fetch({
             link: this.inspectLink!,
+            asset_id: this.listingInfo?.asset.id!,
             listPrice: this.usdPrice,
         });
     }
