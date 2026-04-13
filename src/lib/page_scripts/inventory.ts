@@ -19,29 +19,32 @@ async function main() {
      *
      * Instead, we eagerly fetch the ranks for all items that have been loaded.
      */
-    Observe(() => {
-        const count = Object.keys(getAllCS2AssetProperties()).length;
-        if (count > 0 && !initialRun) {
-            initialRun = true;
-            return true;
+    Observe(
+        () => {
+            const count = Object.keys(getAllCS2AssetProperties()).length;
+            if (count > 0 && !initialRun) {
+                initialRun = true;
+                return true;
+            }
+            return count;
+        },
+        () => {
+            if (typeof g_ActiveInventory === 'undefined') return;
+
+            for (const [asset_id, props] of Object.entries(getAllCS2AssetProperties())) {
+                // No float value, skip
+                if (!props.some((e) => e.propertyid === 2)) continue;
+
+                const inspectLink = props.find((e) => e.propertyid === 6)?.string_value;
+                if (!inspectLink) continue;
+
+                gFloatFetcher.fetch({
+                    asset_id,
+                    link: `steam://run/730//+csgo_econ_action_preview%20${inspectLink}`,
+                });
+            }
         }
-        return count;
-    }, () => {
-        if (typeof g_ActiveInventory === 'undefined') return;
-
-        for (const [asset_id, props] of Object.entries(getAllCS2AssetProperties())) {
-            // No float value, skip
-            if (!props.some(e => e.propertyid === 2)) continue;
-
-            const inspectLink = props.find(e => e.propertyid === 6)?.string_value;
-            if (!inspectLink) continue;
-
-            gFloatFetcher.fetch({
-                asset_id,
-                link: `steam://run/730//+csgo_econ_action_preview%20${inspectLink}`,
-            });
-        }
-    })
+    );
 }
 
 function getAllCS2AssetProperties(): {[assetId: string]: rgAssetProperty[]} {

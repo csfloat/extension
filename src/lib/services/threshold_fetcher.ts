@@ -96,10 +96,7 @@ class ThresholdFetcher {
     }
 
     private async resolveThresholds(): Promise<Map<string, ThresholdEntry> | null> {
-        const storedCache = await gStore.getWithStorage<ThresholdCache>(
-            chrome.storage.local,
-            THRESHOLD_CACHE.key
-        );
+        const storedCache = await gStore.getWithStorage<ThresholdCache>(chrome.storage.local, THRESHOLD_CACHE.key);
 
         if (storedCache?.thresholds && Date.now() - storedCache.lastUpdated < CACHE_DURATION_MS) {
             this.thresholds = new Map(Object.entries(storedCache.thresholds));
@@ -110,9 +107,7 @@ class ThresholdFetcher {
         return this.fetchThresholds(storedCache);
     }
 
-    private async fetchThresholds(
-        storedCache: ThresholdCache | null
-    ): Promise<Map<string, ThresholdEntry> | null> {
+    private async fetchThresholds(storedCache: ThresholdCache | null): Promise<Map<string, ThresholdEntry> | null> {
         try {
             const resp = await fetch(THRESHOLDS_URL);
             if (!resp.ok) {

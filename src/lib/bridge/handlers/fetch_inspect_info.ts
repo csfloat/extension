@@ -52,10 +52,7 @@ export interface FetchInspectInfoResponse {
     error?: string;
 }
 
-async function processInspectItem(
-    req: FetchInspectInfoRequest,
-    schema: ItemSchema.Response
-): Promise<ItemInfo> {
+async function processInspectItem(req: FetchInspectInfoRequest, schema: ItemSchema.Response): Promise<ItemInfo> {
     let decoded: CEconItemPreviewDataBlock;
     try {
         decoded = decodeLink(req.link);

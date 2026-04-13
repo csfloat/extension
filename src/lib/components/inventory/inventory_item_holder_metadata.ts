@@ -5,10 +5,7 @@ import {ContextId} from '../../types/steam_constants';
 import {isCAppwideInventory} from '../../utils/checkers';
 
 @CustomElement()
-@InjectAppend(
-    '#active_inventory_page div.inventory_page .itemHolder div.app730',
-    InjectionMode.CONTINUOUS
-)
+@InjectAppend('#active_inventory_page div.inventory_page .itemHolder div.app730', InjectionMode.CONTINUOUS)
 export class InventoryItemHolderMetadata extends ItemHolderMetadata {
     get asset(): rgAsset | undefined {
         if (!this.assetId) return;
