@@ -50,7 +50,7 @@ async function main() {
 function getAllCS2AssetProperties(): {[assetId: string]: rgAssetProperty[]} {
     if (typeof g_ActiveInventory === 'undefined') return {};
 
-    const allProperties = g_ActiveInventory.m_rgAssetProperties || {};
+    const allProperties = Object.assign({}, g_ActiveInventory.m_rgAssetProperties || {});
 
     if (isCAppwideInventory(g_ActiveInventory)) {
         for (const contextId of [ContextId.PRIMARY, ContextId.PROTECTED]) {
