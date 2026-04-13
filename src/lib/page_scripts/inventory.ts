@@ -38,10 +38,14 @@ async function main() {
                 const inspectLink = props.find((e) => e.propertyid === 6)?.string_value;
                 if (!inspectLink) continue;
 
-                gFloatFetcher.fetch({
-                    asset_id,
-                    link: `steam://run/730//+csgo_econ_action_preview%20${inspectLink}`,
-                });
+                gFloatFetcher
+                    .fetch({
+                        asset_id,
+                        link: `steam://run/730//+csgo_econ_action_preview%20${inspectLink}`,
+                    })
+                    .catch((e) => {
+                        console.error(`Failed to eagerly fetch ${inspectLink}: ${e}`);
+                    });
             }
         }
     );
