@@ -83,9 +83,13 @@ export class ItemRowWrapper extends FloatElement {
     }
 
     async fetchFloat(): Promise<ItemInfo> {
+        if (!this.listingInfo?.asset.id) {
+            throw new Error('Missing asset ID');
+        }
+
         return gFloatFetcher.fetch({
             link: this.inspectLink!,
-            asset_id: this.listingInfo?.asset.id!,
+            asset_id: this.listingInfo?.asset.id,
         });
     }
 
