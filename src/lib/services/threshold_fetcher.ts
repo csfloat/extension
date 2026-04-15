@@ -1,15 +1,11 @@
 import {environment} from '../../environment';
 import {gStore} from '../storage/store';
 import {THRESHOLD_CACHE} from '../storage/keys';
+import type {ThresholdEntry} from '../types/floatdb';
 
 const THRESHOLDS_URL = `${environment.floatdb_gateway_url}/v1/ranks/thresholds/bin`;
 const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
 const RETRY_AFTER_FAILURE_MS = 15 * 60 * 1000; // 15 minutes
-
-export interface ThresholdEntry {
-    low: number;
-    high: number;
-}
 
 interface ThresholdCache {
     lastUpdated: number;

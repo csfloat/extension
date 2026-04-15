@@ -3,7 +3,7 @@
  */
 import {SerializedFilter} from '../filter/types';
 import type {ItemSchema} from '../types/schema';
-import type {ThresholdEntry} from '../services/threshold_fetcher';
+import type {ThresholdEntry} from '../types/floatdb';
 
 export enum StorageKey {
     // Backwards compatible with <3.0.0
