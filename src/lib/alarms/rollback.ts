@@ -4,6 +4,8 @@ import {PingRollbackTrade} from '../bridge/handlers/ping_rollback_trade';
 import {TradeStatus} from '../types/steam_constants';
 import {isBackgroundNotaryRollbackEnabled, proveTradesInBackground} from './notary';
 import {reportTradeError} from './error_report';
+import {gStore} from '../storage/store';
+import {StorageKey} from '../storage/keys';
 
 interface RollbackTradeInfo {
     steamTrade: TradeHistoryStatus;
@@ -52,13 +54,22 @@ export async function pingRollbackTrades(pendingTrades: SlimTrade[], tradeHistor
     }
 
     if (await isBackgroundNotaryRollbackEnabled()) {
-        try {
-            await proveTradesInBackground(rollbackTrades.map((r) => r.steamTrade));
-            console.log(`proved ${rollbackTrades.length} rollback trade(s) via notary`);
-            return;
-        } catch (e) {
-            console.error('notary proving failed, falling back to legacy ping', e);
-            reportTradeError(rollbackTrades[0].csfloatTrade.id, `background extension notary failed: ${e}`);
+        const lastFailure = await gStore.getWithStorage<number>(
+            chrome.storage.local,
+            StorageKey.LAST_NOTARY_BG_PROOF_FAILURE
+        );
+        if (lastFailure && lastFailure > Date.now() - 60 * 60 * 1000) {
+            console.log('skipping notary proof, last failure was less than 60 minutes ago');
+        } else {
+            try {
+                await proveTradesInBackground(rollbackTrades.map((r) => r.steamTrade));
+                console.log(`proved ${rollbackTrades.length} rollback trade(s) via notary`);
+                return;
+            } catch (e) {
+                console.error('notary proving failed, falling back to legacy ping', e);
+                await gStore.setWithStorage(chrome.storage.local, StorageKey.LAST_NOTARY_BG_PROOF_FAILURE, Date.now());
+                reportTradeError(rollbackTrades[0].csfloatTrade.id, `background extension notary failed: ${e}`);
+            }
         }
     }
 
