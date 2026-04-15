@@ -3,6 +3,7 @@
  */
 import {SerializedFilter} from '../filter/types';
 import type {ItemSchema} from '../types/schema';
+import type {ThresholdEntry} from '../types/floatdb';
 
 export enum StorageKey {
     // Backwards compatible with <3.0.0
@@ -14,6 +15,7 @@ export enum StorageKey {
     LAST_TRADE_BLOCKED_PING_ATTEMPT = 'last_trade_blocked_ping_attempt',
     PRICE_CACHE = 'price_cache', // Stores market hash name -> price mapping (~0.86MB)
     SCHEMA_CACHE = 'schema_cache', // Stores the full CSFloat schema payload
+    THRESHOLD_CACHE = 'threshold_cache', // Stores FloatDB rank thresholds
 }
 
 export type DynamicStorageKey = string;
@@ -59,3 +61,7 @@ export const SCHEMA_CACHE = newRow<{
     lastUpdated: number;
     schema: ItemSchema.Response;
 }>(StorageKey.SCHEMA_CACHE);
+export const THRESHOLD_CACHE = newRow<{
+    lastUpdated: number;
+    thresholds: Record<string, ThresholdEntry>;
+}>(StorageKey.THRESHOLD_CACHE);

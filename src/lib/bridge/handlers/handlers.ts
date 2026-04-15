@@ -1,6 +1,6 @@
 import {ExecuteScriptOnPage} from './execute_script';
 import {FetchStall} from './fetch_stall';
-import {FetchInspectInfo} from './fetch_inspect_info';
+import {FetchInspectInfo, FetchInspectInfoBatch} from './fetch_inspect_info';
 import {ExecuteCssOnPage} from './execute_css';
 import {StorageGet} from './storage_get';
 import {StorageSet} from './storage_set';
@@ -78,4 +78,5 @@ export const HANDLERS_MAP: {[key in RequestType]: RequestHandler<any, any>} = {
     [RequestType.FETCH_NOTARY_TOKEN]: FetchNotaryToken,
     [RequestType.FETCH_STEAM_POWERED_INVENTORY]: FetchSteamPoweredInventory,
     [RequestType.FETCH_REVERSAL_STATUS]: FetchReversalStatus,
+    [RequestType.FETCH_INSPECT_INFO_BATCH]: FetchInspectInfoBatch,
 };
