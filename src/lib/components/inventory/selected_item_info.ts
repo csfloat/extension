@@ -262,6 +262,7 @@ export class SelectedItemInfo extends FloatElement {
         ) {
             try {
                 this.itemInfo = await gFloatFetcher.fetch({
+                    asset_id: this.asset.assetid,
                     link: this.inspectLink,
                 });
             } catch (e: any) {

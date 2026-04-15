@@ -2,6 +2,8 @@ import {decodeLink, CEconItemPreviewDataBlock} from '@csfloat/cs2-inspect-serial
 import {SimpleHandler} from './main';
 import {RequestType} from './types';
 import {gSchemaFetcher} from '../../services/schema_fetcher';
+import {gThresholdFetcher} from '../../services/threshold_fetcher';
+import {gRankBatcher} from '../../services/rank_batcher';
 import type {ItemSchema} from '../../types/schema';
 
 interface Sticker {
@@ -42,7 +44,7 @@ export interface ItemInfo {
 
 export interface FetchInspectInfoRequest {
     link: string;
-    listPrice?: number;
+    asset_id: string;
 }
 
 export interface FetchInspectInfoResponse {
@@ -50,87 +52,136 @@ export interface FetchInspectInfoResponse {
     error?: string;
 }
 
+async function processInspectItem(req: FetchInspectInfoRequest, schema: ItemSchema.Response): Promise<ItemInfo> {
+    let decoded: CEconItemPreviewDataBlock;
+    try {
+        decoded = decodeLink(req.link);
+    } catch (error) {
+        throw new Error('Failed to decode inspect link');
+    }
+
+    const defindex = decoded.defindex ?? 0;
+    const paintindex = decoded.paintindex ?? 0;
+    const floatvalue = decoded.paintwear ?? 0;
+
+    let min = 0;
+    let max = 1;
+    let weaponType: string | undefined;
+    let itemName: string | undefined;
+    let rarityName: string | undefined;
+    let stickers: Sticker[] = [];
+    let keychains: Keychain[] = [];
+
+    try {
+        const weapon = schema.weapons[defindex];
+        const paint = getSchemaPaint(weapon, paintindex);
+
+        weaponType = weapon?.name;
+        rarityName = schema.rarities.find((rarity) => rarity.value === (paint?.rarity ?? decoded.rarity))?.name;
+
+        if (paint) {
+            itemName = paint.name;
+            min = paint.min;
+            max = paint.max;
+        }
+
+        stickers = decoded.stickers.map((sticker) => {
+            const schemaSticker = schema.stickers[sticker.stickerId?.toString() ?? ''];
+            return {
+                slot: sticker.slot ?? 0,
+                stickerId: sticker.stickerId ?? 0,
+                wear: sticker.wear,
+                name: schemaSticker?.market_hash_name,
+            };
+        });
+
+        keychains = decoded.keychains.map((keychain) => {
+            const schemaKeychain = schema.keychains[keychain.stickerId?.toString() ?? ''];
+            return {
+                slot: keychain.slot ?? 0,
+                stickerId: keychain.stickerId ?? 0,
+                wear: keychain.wear,
+                pattern: keychain.pattern ?? 0,
+                name: schemaKeychain?.market_hash_name,
+            };
+        });
+    } catch (error) {
+        console.error('Failed to fetch schema item metadata:', error);
+    }
+
+    const iteminfo: ItemInfo = {
+        stickers,
+        keychains,
+        itemid: decoded.itemid?.toString() ?? '',
+        defindex,
+        paintindex,
+        rarity: decoded.rarity ?? 0,
+        quality: decoded.quality ?? 0,
+        paintseed: decoded.paintseed ?? 0,
+        inventory: decoded.inventory ?? 0,
+        origin: decoded.origin ?? 0,
+        floatvalue,
+        min,
+        max,
+        weapon_type: weaponType,
+        item_name: itemName,
+        rarity_name: rarityName,
+        wear_name: getWearName(floatvalue),
+    };
+
+    try {
+        if (decoded.itemid != null && decoded.paintwear != null) {
+            const stattrak = decoded.killeaterscoretype !== undefined;
+            const souvenir = decoded.quality === 12;
+
+            if (await gThresholdFetcher.qualifiesForRankCheck(defindex, paintindex, stattrak, souvenir, floatvalue)) {
+                const rankResult = await gRankBatcher.check(req.link, decoded.itemid.toString());
+                if (rankResult) {
+                    iteminfo.low_rank = rankResult.low_rank;
+                    iteminfo.high_rank = rankResult.high_rank;
+                }
+            }
+        }
+    } catch (e) {
+        console.error('Failed to check rank:', e);
+    }
+
+    return iteminfo;
+}
+
 export const FetchInspectInfo = new SimpleHandler<FetchInspectInfoRequest, FetchInspectInfoResponse>(
     RequestType.FETCH_INSPECT_INFO,
     async (req) => {
-        let decoded: CEconItemPreviewDataBlock;
-        try {
-            decoded = decodeLink(req.link);
-        } catch (error) {
-            throw new Error('Failed to decode inspect link');
-        }
+        const schema = await gSchemaFetcher.getSchema();
+        return {iteminfo: await processInspectItem(req, schema)};
+    }
+);
 
-        const defindex = decoded.defindex ?? 0;
-        const paintindex = decoded.paintindex ?? 0;
-        const floatvalue = decoded.paintwear ?? 0;
+export interface FetchInspectInfoBatchRequest {
+    requests: FetchInspectInfoRequest[];
+}
 
-        let min = 0;
-        let max = 1;
-        let weaponType: string | undefined;
-        let itemName: string | undefined;
-        let rarityName: string | undefined;
-        let stickers: Sticker[] = [];
-        let keychains: Keychain[] = [];
+export interface FetchInspectInfoBatchResponse {
+    results: Record<string, FetchInspectInfoResponse>;
+}
 
-        try {
-            const schema = await gSchemaFetcher.getSchema();
-            const weapon = schema.weapons[defindex];
-            const paint = getSchemaPaint(weapon, paintindex);
+export const FetchInspectInfoBatch = new SimpleHandler<FetchInspectInfoBatchRequest, FetchInspectInfoBatchResponse>(
+    RequestType.FETCH_INSPECT_INFO_BATCH,
+    async (req) => {
+        const schema = await gSchemaFetcher.getSchema();
 
-            weaponType = weapon?.name;
-            rarityName = schema.rarities.find((rarity) => rarity.value === (paint?.rarity ?? decoded.rarity))?.name;
+        const results: Record<string, FetchInspectInfoResponse> = {};
+        await Promise.all(
+            req.requests.map(async (itemReq) => {
+                try {
+                    results[itemReq.asset_id] = {iteminfo: await processInspectItem(itemReq, schema)};
+                } catch (e) {
+                    results[itemReq.asset_id] = {iteminfo: {} as ItemInfo, error: (e as any).toString()};
+                }
+            })
+        );
 
-            if (paint) {
-                itemName = paint.name;
-                min = paint.min;
-                max = paint.max;
-            }
-
-            stickers = decoded.stickers.map((sticker) => {
-                const schemaSticker = schema.stickers[sticker.stickerId?.toString() ?? ''];
-                return {
-                    slot: sticker.slot ?? 0,
-                    stickerId: sticker.stickerId ?? 0,
-                    wear: sticker.wear,
-                    name: schemaSticker?.market_hash_name,
-                };
-            });
-
-            keychains = decoded.keychains.map((keychain) => {
-                const schemaKeychain = schema.keychains[keychain.stickerId?.toString() ?? ''];
-                return {
-                    slot: keychain.slot ?? 0,
-                    stickerId: keychain.stickerId ?? 0,
-                    wear: keychain.wear,
-                    pattern: keychain.pattern ?? 0,
-                    name: schemaKeychain?.market_hash_name,
-                };
-            });
-        } catch (error) {
-            console.error('Failed to fetch schema item metadata:', error);
-        }
-
-        return {
-            iteminfo: {
-                stickers,
-                keychains,
-                itemid: decoded.itemid?.toString() ?? '',
-                defindex,
-                paintindex,
-                rarity: decoded.rarity ?? 0,
-                quality: decoded.quality ?? 0,
-                paintseed: decoded.paintseed ?? 0,
-                inventory: decoded.inventory ?? 0,
-                origin: decoded.origin ?? 0,
-                floatvalue,
-                min,
-                max,
-                weapon_type: weaponType,
-                item_name: itemName,
-                rarity_name: rarityName,
-                wear_name: getWearName(floatvalue),
-            },
-        };
+        return {results};
     }
 );
 
