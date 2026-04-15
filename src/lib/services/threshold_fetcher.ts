@@ -6,7 +6,7 @@ const THRESHOLDS_URL = `${environment.floatdb_gateway_url}/v1/ranks/thresholds/b
 const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
 const RETRY_AFTER_FAILURE_MS = 15 * 60 * 1000; // 15 minutes
 
-interface ThresholdEntry {
+export interface ThresholdEntry {
     low: number;
     high: number;
 }

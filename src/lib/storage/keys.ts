@@ -3,6 +3,7 @@
  */
 import {SerializedFilter} from '../filter/types';
 import type {ItemSchema} from '../types/schema';
+import type {ThresholdEntry} from '../services/threshold_fetcher';
 
 export enum StorageKey {
     // Backwards compatible with <3.0.0
@@ -62,5 +63,5 @@ export const SCHEMA_CACHE = newRow<{
 }>(StorageKey.SCHEMA_CACHE);
 export const THRESHOLD_CACHE = newRow<{
     lastUpdated: number;
-    thresholds: Record<string, {low: number; high: number}>;
+    thresholds: Record<string, ThresholdEntry>;
 }>(StorageKey.THRESHOLD_CACHE);

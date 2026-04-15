@@ -132,7 +132,7 @@ async function processInspectItem(req: FetchInspectInfoRequest, schema: ItemSche
     try {
         if (decoded.itemid != null && decoded.paintwear != null) {
             const stattrak = decoded.killeaterscoretype !== undefined;
-            const souvenir = (decoded.quality ?? 0) === 12;
+            const souvenir = decoded.quality === 12;
 
             if (await gThresholdFetcher.qualifiesForRankCheck(defindex, paintindex, stattrak, souvenir, floatvalue)) {
                 const rankResult = await gRankBatcher.check(req.link, decoded.itemid.toString());
