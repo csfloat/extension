@@ -15,7 +15,7 @@
         "condition": {
             "urlFilter": "https://steamcommunity.com/tradeoffer/new/send",
             "resourceTypes": ["xmlhttprequest"],
-            "initiatorDomains": ["jjicbefpemnphinccgikpdaagjebbnhg"]
+            "initiatorDomains": ["jjicbefpemnphinccgikpdaagjebbnhg", "gdlioplmcfbdloeoojolmlijihfplcmk"]
         }
     }
 ]
