@@ -112,7 +112,8 @@ export async function pingCancelTrades(pendingTrades: SlimTrade[], tradeHistory:
             const rolledBackTrade = (tradeHistory || []).find(
                 (e) =>
                     e.status === TradeStatus.TradeProtectionRollback &&
-                    !!e.received_assets.find((a) => a.asset_id === trade.contract?.item?.asset_id)
+                    !!e.received_assets.find((a) => a.asset_id === trade.contract?.item?.asset_id) &&
+                    (e.other_party_id === trade.seller_id || e.other_party_id === trade.buyer_id)
             );
             if (!rolledBackTrade) {
                 // no rollback, trade offer was accepted, shouldn't cancel
