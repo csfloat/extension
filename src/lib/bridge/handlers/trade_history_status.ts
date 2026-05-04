@@ -11,6 +11,7 @@ export interface TradeHistoryStatus {
     trade_id: string;
     status: number;
     other_party_url: string;
+    other_party_id: string;
     received_assets: TradeHistoryAsset[];
     given_assets: TradeHistoryAsset[];
     time_init: number;

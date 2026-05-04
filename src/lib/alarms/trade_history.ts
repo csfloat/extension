@@ -147,6 +147,7 @@ export async function getTradeHistoryFromAPI(
         .map((e) => {
             return {
                 other_party_url: `https://steamcommunity.com/profiles/${e.steamid_other}`,
+                other_party_id: e.steamid_other,
                 received_assets: (e.assets_received || [])
                     .filter((e) => e.appid === AppId.CSGO)
                     .map((e) => {
@@ -193,6 +194,7 @@ function parseTradeHistoryHTML(body: string): TradeHistoryStatus[] {
     const statuses = [...links].map((e) => {
         return {
             other_party_url: `https://steamcommunity.com/${e[1]}`,
+            other_party_id: '',
             received_assets: [],
             given_assets: [],
             trade_id: '',
