@@ -30,7 +30,10 @@ function findRollbackTrades(pendingTrades: SlimTrade[], tradeHistory: TradeHisto
 
         // Does it correspond to an active CSFloat sale?
         const csfloatTrade = pendingTrades.find(
-            (e) => e.state === TradeState.PENDING && all_ids.includes(e.contract.item.asset_id)
+            (e) =>
+                e.state === TradeState.PENDING &&
+                all_ids.includes(e.contract.item.asset_id) &&
+                (trade.other_party_id === e.seller_id || trade.other_party_id === e.buyer_id)
         );
         if (!csfloatTrade) {
             continue;
