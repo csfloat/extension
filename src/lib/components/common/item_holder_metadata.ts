@@ -205,30 +205,28 @@ export abstract class ItemHolderMetadata extends FloatElement {
 
     async onInit() {
         if (!this.asset) return;
+        
+        if ((isSkin(this.asset) || isCharm(this.asset)) && this.inspectLink && this.assetId) {
+            try {
+                this.itemInfo = await gFloatFetcher.fetch({
+                    link: this.inspectLink,
+                    asset_id: this.assetId,
+                });
+            } catch (e: any) {
+                console.error(`Failed to fetch float for ${this.assetId}: ${e.toString()}`);
+            }
+        }
 
         if (isSellableOnCSFloat(this.asset)) {
             try {
                 const result = await ClientSend(FetchRecommendedPrice, {
                     market_hash_name: this.asset.market_hash_name,
+                    paint_index: this.itemInfo?.paintindex,
                 });
                 this.itemPrice = result.price;
             } catch (e: any) {
                 console.error(`Failed to fetch price for ${this.asset.market_hash_name}: ${e.toString()}`);
             }
-        }
-
-        if (!isSkin(this.asset) && !isCharm(this.asset)) return;
-
-        // Commodities won't have inspect links
-        if (!this.inspectLink || !this.assetId) return;
-
-        try {
-            this.itemInfo = await gFloatFetcher.fetch({
-                link: this.inspectLink,
-                asset_id: this.assetId,
-            });
-        } catch (e: any) {
-            console.error(`Failed to fetch float for ${this.assetId}: ${e.toString()}`);
         }
 
         if (this.itemInfo) {
