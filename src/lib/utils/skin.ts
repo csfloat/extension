@@ -52,6 +52,16 @@ export function formatFloatWithRank(info: ItemInfo, precisionDigits = 14): strin
     return r;
 }
 
+export function formatPrice(price: number): string {
+
+    const formattedPrice =
+        price >= 100
+            ? Math.round(price).toString()
+            : Number(price.toFixed(2)).toString();
+
+    return formattedPrice;
+}
+
 export function formatSeed(info: ItemInfo): string {
     let r = info.paintseed.toString();
 
