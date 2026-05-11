@@ -41,8 +41,13 @@ export function parseRank(info: ItemInfo): {order: OrderType; rank: number} | un
     }
 }
 
+function truncate(num: number, digits: number): string {
+    const factor = 10 ** digits;
+    return (Math.trunc(num * factor) / factor).toFixed(digits);
+  }
+
 export function formatFloatWithRank(info: ItemInfo, precisionDigits = 14): string {
-    let r = info.floatvalue.toFixed(precisionDigits);
+    let r = truncate(info.floatvalue, precisionDigits);
 
     const ranked = parseRank(info);
     if (ranked) {
@@ -57,7 +62,7 @@ export function formatPrice(price: number): string {
     const formattedPrice =
         price >= 100
             ? Math.round(price).toString()
-            : Number(price.toFixed(2)).toString();
+            : Number(truncate(price, 2)).toString();
 
     return formattedPrice;
 }
