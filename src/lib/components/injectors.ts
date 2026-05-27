@@ -1,6 +1,7 @@
 import {customElement} from 'lit/decorators.js';
 import {FloatElement} from './custom';
 import {inPageContext} from '../utils/snips';
+import {isSteamMarketMode, SteamMarketMode} from './market/mode';
 
 export enum InjectionMode {
     // Injects once at page load for elements matching the selector
@@ -22,6 +23,8 @@ interface InjectionConfig {
     exists: (ctx: JQuery<HTMLElement>, selector: string) => boolean;
     op: (ctx: JQuery<HTMLElement>, target: typeof FloatElement) => void;
 }
+
+type InjectionGuard = (() => boolean) | SteamMarketMode;
 
 const InjectionConfigs: {[key in InjectionType]: InjectionConfig} = {
     [InjectionType.Append]: {
@@ -53,11 +56,29 @@ export function CustomElement(): any {
     };
 }
 
-function Inject(selector: string, mode: InjectionMode, type: InjectionType): any {
+function canInject(guard?: InjectionGuard): boolean {
+    if (typeof $J !== 'function') {
+        return false;
+    }
+    if (!guard) {
+        return true;
+    }
+    if (typeof guard === 'function') {
+        return guard();
+    }
+
+    return isSteamMarketMode(guard);
+}
+
+function Inject(selector: string, mode: InjectionMode, type: InjectionType, guard?: InjectionGuard): any {
     return function (target: typeof FloatElement, propertyKey: string, descriptor: PropertyDescriptor) {
         if (!inPageContext()) {
             return;
         }
+        if (!canInject(guard)) {
+            return;
+        }
+
         switch (mode) {
             case InjectionMode.ONCE:
                 $J(selector).each(function () {
@@ -66,6 +87,10 @@ function Inject(selector: string, mode: InjectionMode, type: InjectionType): any
                 break;
             case InjectionMode.CONTINUOUS:
                 setInterval(() => {
+                    if (!canInject(guard)) {
+                        return;
+                    }
+
                     $J(selector).each(function () {
                         // Don't add the item again if we already have
                         if (InjectionConfigs[type].exists($J(this), target.tag())) return;
@@ -78,14 +103,14 @@ function Inject(selector: string, mode: InjectionMode, type: InjectionType): any
     };
 }
 
-export function InjectAppend(selector: string, mode: InjectionMode = InjectionMode.ONCE): any {
-    return Inject(selector, mode, InjectionType.Append);
+export function InjectAppend(selector: string, mode: InjectionMode = InjectionMode.ONCE, guard?: InjectionGuard): any {
+    return Inject(selector, mode, InjectionType.Append, guard);
 }
 
-export function InjectBefore(selector: string, mode: InjectionMode = InjectionMode.ONCE): any {
-    return Inject(selector, mode, InjectionType.Before);
+export function InjectBefore(selector: string, mode: InjectionMode = InjectionMode.ONCE, guard?: InjectionGuard): any {
+    return Inject(selector, mode, InjectionType.Before, guard);
 }
 
-export function InjectAfter(selector: string, mode: InjectionMode = InjectionMode.ONCE): any {
-    return Inject(selector, mode, InjectionType.After);
+export function InjectAfter(selector: string, mode: InjectionMode = InjectionMode.ONCE, guard?: InjectionGuard): any {
+    return Inject(selector, mode, InjectionType.After, guard);
 }

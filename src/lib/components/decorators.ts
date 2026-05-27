@@ -1,4 +1,5 @@
 import {inPageContext} from '../utils/snips';
+import {isSteamMarketMode, SteamMarketMode} from './market/mode';
 
 export enum ConflictingExtension {
     CS2_TRADER,
@@ -14,6 +15,19 @@ type CSSProperties = JQuery.PlainObject<
     string | number | ((this: HTMLElement, index: number, value: string) => string | number | void | undefined)
 >;
 
+type DecoratorGuard = (() => boolean) | SteamMarketMode;
+
+function matchesGuard(guard?: DecoratorGuard): boolean {
+    if (!guard) {
+        return true;
+    }
+    if (typeof guard === 'function') {
+        return guard();
+    }
+
+    return isSteamMarketMode(guard);
+}
+
 /**
  * Decorator that applies CSS to DOM elements from conflicting extensions
  * @param selector CSS selector for elements to style
@@ -24,10 +38,14 @@ export function StyleConflictingElement(
     extension: ConflictingExtension,
     selector: string,
     mode: ConflictingMode,
-    cssProps: CSSProperties
+    cssProps: CSSProperties,
+    guard?: DecoratorGuard
 ): any {
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
         if (!inPageContext()) {
+            return;
+        }
+        if (typeof $J !== 'function' || !matchesGuard(guard)) {
             return;
         }
 
@@ -46,6 +64,11 @@ export function StyleConflictingElement(
         };
 
         const interval = setInterval(async () => {
+            if (typeof $J !== 'function' || !matchesGuard(guard)) {
+                clearInterval(interval);
+                return;
+            }
+
             const result = await checkAndStyle();
             if (result && mode === ConflictingMode.ONCE) {
                 clearInterval(interval);
@@ -57,7 +80,8 @@ export function StyleConflictingElement(
 export function HideConflictingElement(
     extension: ConflictingExtension,
     selector: string,
-    mode: ConflictingMode = ConflictingMode.ONCE
+    mode: ConflictingMode = ConflictingMode.ONCE,
+    guard?: DecoratorGuard
 ) {
-    return StyleConflictingElement(extension, selector, mode, {display: 'none'});
+    return StyleConflictingElement(extension, selector, mode, {display: 'none'}, guard);
 }

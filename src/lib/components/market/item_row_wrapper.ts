@@ -8,6 +8,7 @@ import {rgAsset, ListingData} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
 import {getMarketInspectLink, inlineEasyInspect} from './helpers';
+import {SteamMarketMode} from './mode';
 import {
     formatSeed,
     getFadePercentage,
@@ -30,21 +31,29 @@ import {ClientSend} from '../../bridge/client';
 import {ConflictingExtension, ConflictingMode, HideConflictingElement, StyleConflictingElement} from '../decorators';
 
 @CustomElement()
-@InjectAppend('#searchResultsRows .market_listing_row .market_listing_item_name_block', InjectionMode.CONTINUOUS)
+@InjectAppend(
+    '#searchResultsRows .market_listing_row .market_listing_item_name_block',
+    InjectionMode.CONTINUOUS,
+    SteamMarketMode.LEGACY
+)
 @HideConflictingElement(
     ConflictingExtension.CS2_TRADER,
     '#searchResultsRows .market_listing_row .stickerHolderMarket, #searchResultsRows .market_listing_row .stickersTotal, #searchResultsRows .market_listing_row .floatBarMarket',
-    ConflictingMode.CONTINUOUS
+    ConflictingMode.CONTINUOUS,
+    SteamMarketMode.LEGACY
 )
 @HideConflictingElement(
     ConflictingExtension.SIH,
-    '#searchResultsRows .market_listing_row .sih-images, #searchResultsRows .market_listing_row .sih-keychains'
+    '#searchResultsRows .market_listing_row .sih-images, #searchResultsRows .market_listing_row .sih-keychains',
+    ConflictingMode.ONCE,
+    SteamMarketMode.LEGACY
 )
 @StyleConflictingElement(
     ConflictingExtension.SIH,
     '#searchResultsRows .market_listing_row .market_listing_item_name_block',
     ConflictingMode.ONCE,
-    {'max-width': '100%', 'margin-top': '8px'}
+    {'max-width': '100%', 'margin-top': '8px'},
+    SteamMarketMode.LEGACY
 )
 export class ItemRowWrapper extends FloatElement {
     static styles = [
