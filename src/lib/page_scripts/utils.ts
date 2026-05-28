@@ -65,7 +65,7 @@ export async function init(scriptPath: string, ifPage: () => any) {
 
         // Add Roboto font in the page context
         const fontLink = document.createElement('link');
-        fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@500;700&display=swap';
+        fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@500;700&display=swap'; // TODO: Remove this for the new market beta
         fontLink.rel = 'stylesheet';
         document.head.appendChild(fontLink);
 
