@@ -55,7 +55,7 @@ export function CustomElement(): any {
     };
 }
 
-const canInject = (guard?: InjectionGuard) => (guard ? guard() : true)
+const canInject = (guard?: InjectionGuard) => (guard ? guard() : true);
 
 function Inject(selector: string, mode: InjectionMode, type: InjectionType, guard?: InjectionGuard): any {
     return function (target: typeof FloatElement, propertyKey: string, descriptor: PropertyDescriptor) {
