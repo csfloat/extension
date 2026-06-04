@@ -23,6 +23,8 @@ interface InjectionConfig {
     op: (ctx: JQuery<HTMLElement>, target: typeof FloatElement) => void;
 }
 
+type InjectionGuard = () => boolean;
+
 const InjectionConfigs: {[key in InjectionType]: InjectionConfig} = {
     [InjectionType.Append]: {
         exists: (ctx, selector) => !!ctx.children(selector).length,
@@ -53,11 +55,17 @@ export function CustomElement(): any {
     };
 }
 
-function Inject(selector: string, mode: InjectionMode, type: InjectionType): any {
+const canInject = (guard?: InjectionGuard) => (guard ? guard() : true)
+
+function Inject(selector: string, mode: InjectionMode, type: InjectionType, guard?: InjectionGuard): any {
     return function (target: typeof FloatElement, propertyKey: string, descriptor: PropertyDescriptor) {
         if (!inPageContext()) {
             return;
         }
+        if (!canInject(guard)) {
+            return;
+        }
+
         switch (mode) {
             case InjectionMode.ONCE:
                 $J(selector).each(function () {
@@ -66,6 +74,10 @@ function Inject(selector: string, mode: InjectionMode, type: InjectionType): any
                 break;
             case InjectionMode.CONTINUOUS:
                 setInterval(() => {
+                    if (!canInject(guard)) {
+                        return;
+                    }
+
                     $J(selector).each(function () {
                         // Don't add the item again if we already have
                         if (InjectionConfigs[type].exists($J(this), target.tag())) return;
@@ -78,14 +90,14 @@ function Inject(selector: string, mode: InjectionMode, type: InjectionType): any
     };
 }
 
-export function InjectAppend(selector: string, mode: InjectionMode = InjectionMode.ONCE): any {
-    return Inject(selector, mode, InjectionType.Append);
+export function InjectAppend(selector: string, mode: InjectionMode = InjectionMode.ONCE, guard?: InjectionGuard): any {
+    return Inject(selector, mode, InjectionType.Append, guard);
 }
 
-export function InjectBefore(selector: string, mode: InjectionMode = InjectionMode.ONCE): any {
-    return Inject(selector, mode, InjectionType.Before);
+export function InjectBefore(selector: string, mode: InjectionMode = InjectionMode.ONCE, guard?: InjectionGuard): any {
+    return Inject(selector, mode, InjectionType.Before, guard);
 }
 
-export function InjectAfter(selector: string, mode: InjectionMode = InjectionMode.ONCE): any {
-    return Inject(selector, mode, InjectionType.After);
+export function InjectAfter(selector: string, mode: InjectionMode = InjectionMode.ONCE, guard?: InjectionGuard): any {
+    return Inject(selector, mode, InjectionType.After, guard);
 }
