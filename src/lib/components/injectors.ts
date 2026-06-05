@@ -19,24 +19,24 @@ enum InjectionType {
 }
 
 interface InjectionConfig {
-    exists: (ctx: JQuery<HTMLElement>, selector: string) => boolean;
-    op: (ctx: JQuery<HTMLElement>, target: typeof FloatElement) => void;
+    exists: (ctx: HTMLElement, selector: string) => boolean;
+    op: (ctx: HTMLElement, target: typeof FloatElement) => void;
 }
 
 type InjectionGuard = () => boolean;
 
 const InjectionConfigs: {[key in InjectionType]: InjectionConfig} = {
     [InjectionType.Append]: {
-        exists: (ctx, selector) => !!ctx.children(selector).length,
-        op: (ctx, target) => ctx.append(target.elem()),
+        exists: (anchor, selector) => anchor.lastElementChild?.matches(selector) ?? false,
+        op: (anchor, target) => anchor.appendChild(target.elem()),
     },
     [InjectionType.Before]: {
-        exists: (ctx, selector) => !!ctx.parent().children(selector).length,
-        op: (ctx, target) => ctx.before(target.elem()),
+        exists: (anchor, selector) => anchor.previousElementSibling?.matches(selector) ?? false,
+        op: (anchor, target) => anchor.parentElement?.insertBefore(target.elem(), anchor),
     },
     [InjectionType.After]: {
-        exists: (ctx, selector) => !!ctx.parent().children(selector).length,
-        op: (ctx, target) => ctx.after(target.elem()),
+        exists: (anchor, selector) => anchor.nextElementSibling?.matches(selector) ?? false,
+        op: (anchor, target) => anchor.parentElement?.insertBefore(target.elem(), anchor.nextSibling),
     },
 };
 
@@ -68,8 +68,8 @@ function Inject(selector: string, mode: InjectionMode, type: InjectionType, guar
 
         switch (mode) {
             case InjectionMode.ONCE:
-                $J(selector).each(function () {
-                    InjectionConfigs[type].op($J(this), target);
+                document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
+                    InjectionConfigs[type].op(el, target);
                 });
                 break;
             case InjectionMode.CONTINUOUS:
@@ -78,11 +78,11 @@ function Inject(selector: string, mode: InjectionMode, type: InjectionType, guar
                         return;
                     }
 
-                    $J(selector).each(function () {
+                    document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
                         // Don't add the item again if we already have
-                        if (InjectionConfigs[type].exists($J(this), target.tag())) return;
+                        if (InjectionConfigs[type].exists(el, target.tag())) return;
 
-                        InjectionConfigs[type].op($J(this), target);
+                        InjectionConfigs[type].op(el, target);
                     });
                 }, 250);
                 break;
