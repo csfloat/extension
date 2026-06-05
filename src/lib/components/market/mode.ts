@@ -25,3 +25,7 @@ export function isSteamMarketMode(mode: SteamMarketMode): boolean {
 export function isLegacySteamMarket(): boolean {
     return isSteamMarketMode(SteamMarketMode.LEGACY);
 }
+
+export function isReactSteamMarket(): boolean {
+    return isSteamMarketMode(SteamMarketMode.REACT);
+}
