@@ -5,7 +5,6 @@ import {ExecuteCssOnPage} from '../bridge/handlers/execute_css';
 import {FetchExtensionFile} from '../bridge/handlers/fetch_extension_file';
 import {isFirefox} from '../utils/detect';
 import {g_PostMessageBus} from '../bus/post_message_bus';
-import {isLegacySteamMarket} from '../components/market/mode';
 
 async function initiateChromium(scriptPath: string) {
     ClientSend(ExecuteCssOnPage, {
@@ -63,15 +62,6 @@ export async function init(scriptPath: string, ifPage: () => any) {
         window.csfloat = true;
         // @ts-ignore Deprecated name
         window.csgofloat = true;
-
-        // React sets default-src 'self' in the CSP, so we can't load external fonts in the beta
-        if (isLegacySteamMarket()) {
-            // Add Roboto font in the page context
-            const fontLink = document.createElement('link');
-            fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@500;700&display=swap';
-            fontLink.rel = 'stylesheet';
-            document.head.appendChild(fontLink);
-        }
 
         ifPage();
         return;
