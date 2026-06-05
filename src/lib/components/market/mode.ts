@@ -17,7 +17,3 @@ export function isLegacySteamMarket(): boolean {
 export function isReactSteamMarket(): boolean {
     return (window as any).SSR?.reactRoot !== undefined;
 }
-
-export function isReactSteamMarket(): boolean {
-    return isSteamMarketMode(SteamMarketMode.REACT);
-}
