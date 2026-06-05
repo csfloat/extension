@@ -1,8 +1,3 @@
-export enum SteamMarketMode {
-    REACT = 'react',
-    LEGACY = 'legacy',
-}
-
 export function isLegacySteamMarket(): boolean {
     return (
         typeof $J === 'function' &&
