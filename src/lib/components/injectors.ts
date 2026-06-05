@@ -27,18 +27,30 @@ type InjectionGuard = () => boolean;
 
 const InjectionConfigs: {[key in InjectionType]: InjectionConfig} = {
     [InjectionType.Append]: {
-        exists: (anchor, selector) => anchor.lastElementChild?.matches(selector) ?? false,
+        exists: (anchor, selector) => Array.from(anchor.children).some((child) => child.matches(selector)),
         op: (anchor, target) => anchor.appendChild(target.elem()),
     },
     [InjectionType.Before]: {
-        exists: (anchor, selector) => anchor.previousElementSibling?.matches(selector) ?? false,
+        exists: (anchor, selector) => hasSiblingMatching(anchor, 'previousElementSibling', selector),
         op: (anchor, target) => anchor.parentElement?.insertBefore(target.elem(), anchor),
     },
     [InjectionType.After]: {
-        exists: (anchor, selector) => anchor.nextElementSibling?.matches(selector) ?? false,
+        exists: (anchor, selector) => hasSiblingMatching(anchor, 'nextElementSibling', selector),
         op: (anchor, target) => anchor.parentElement?.insertBefore(target.elem(), anchor.nextSibling),
     },
 };
+
+/** Checks if any sibling of `anchor` in the given direction matches the selector. */
+function hasSiblingMatching(
+    anchor: HTMLElement,
+    direction: keyof Pick<HTMLElement, 'previousElementSibling' | 'nextElementSibling'>,
+    selector: string
+): boolean {
+    for (let el = anchor[direction]; el; el = el[direction]) {
+        if (el.matches(selector)) return true;
+    }
+    return false;
+}
 
 export function CustomElement(): any {
     return function (target: typeof FloatElement, propertyKey: string, descriptor: PropertyDescriptor) {
