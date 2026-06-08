@@ -8,71 +8,7 @@ import {gFloatFetcher} from '../../../services/float_fetcher';
 import {BetaListingRank} from './rank';
 
 import {getFiberProps} from '../../../utils/fiber';
-import {Action, rgAssetProperty, rgDescription, rgInternalDescription} from '../../../types/steam';
-
-interface EnhancedAppearance {
-    mime_type: string;
-    url: string;
-}
-
-interface BetaDescriptionLine extends rgInternalDescription {
-    color?: string;
-    name: string;
-}
-
-interface BetaDescription extends Omit<rgDescription, 'commodity' | 'tradable' | 'marketable' | 'tags'> {
-    commodity: boolean;
-    currency: boolean;
-    descriptions: BetaDescriptionLine[];
-    fraudwarnings: string[];
-    tradable: boolean;
-    market_marketable_restriction: number;
-    market_bucket_group_name: string;
-    market_bucket_group_id: string;
-    market_name_inside_group: string;
-    marketable: boolean;
-    owner_actions: Action[];
-    owner_descriptions: rgInternalDescription[];
-    sealed: boolean;
-    sealed_type: number;
-    tags: unknown[];
-}
-
-interface BetaAsset {
-    asset_properties: rgAssetProperty[];
-    amount: number;
-    appid: number;
-    accessory_properties: rgAssetProperty[];
-    assetid: string;
-    classid: string;
-    contextid: string;
-    id: string;
-    instanceid: string;
-}
-
-interface BetaListing {
-    asset: BetaAsset;
-    description: BetaDescription;
-    eCurrency: number;
-    enhanced_appearances: EnhancedAppearance[];
-    listingid: string;
-    publisherFeeApp: number;
-    publisherFeePct: number;
-    strSubtotal: string;
-    unFee: number;
-    unFeePerUnit: number;
-    unPrice: number;
-    unPricePerUnit: number;
-    unPublisherFee: number;
-    unPublisherFeePerUnit: number;
-    unSteamFee: number;
-    unSteamFeePerUnit: number;
-}
-
-interface FiberListingProps {
-    expectEnhancedAppearance: boolean;
-    listing: BetaListing;
-}
+import type {MarketListing, MarketListingProps} from './types';
 
 /**
  * Simple version of {@link ItemRowWrapper} with reduced functionality, adapted for the Steam Market beta.
@@ -101,11 +37,11 @@ export class BetaListingEnhancer extends FloatElement {
     }
 
     /** Steam implementation detail: the "key" property on the Fiber node is the listing ID. */
-    get fiberProps(): FiberListingProps | null {
-        return getFiberProps<FiberListingProps>(this.card, (fiber) => typeof fiber.key === 'string') ?? null;
+    get fiberProps(): MarketListingProps | null {
+        return getFiberProps<MarketListingProps>(this.card, (fiber) => typeof fiber.key === 'string') ?? null;
     }
 
-    get listing(): BetaListing | null {
+    get listing(): MarketListing | null {
         return this.fiberProps?.listing ?? null;
     }
 
