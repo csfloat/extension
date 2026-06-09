@@ -183,7 +183,7 @@ export function isBlueSkin(itemInfo: ItemInfo): boolean {
     );
 }
 
-export function getFadeParams(asset: rgAsset):
+export function getFadeParams(marketHashName: string):
     | {
           calculator: typeof FadeCalculator | typeof AcidFadeCalculator | typeof AmberFadeCalculator;
           weaponName: string;
@@ -198,7 +198,7 @@ export function getFadeParams(asset: rgAsset):
 
     for (const [fadeType, calculator] of Object.entries(FADE_TYPE_TO_CALCULATOR)) {
         for (const supportedWeapon of calculator.getSupportedWeapons()) {
-            if (asset.market_hash_name.includes(`${supportedWeapon} | ${fadeType}`)) {
+            if (marketHashName.includes(`${supportedWeapon} | ${fadeType}`)) {
                 return {
                     calculator,
                     weaponName: supportedWeapon.toString(),
@@ -210,10 +210,10 @@ export function getFadeParams(asset: rgAsset):
 }
 
 export function getFadePercentage(
-    asset: rgAsset,
+    marketHashName: string,
     itemInfo: ItemInfo
 ): {percentage: number; className: string} | undefined {
-    const fadeInfo = getFadeParams(asset);
+    const fadeInfo = getFadeParams(marketHashName);
 
     if (fadeInfo !== undefined) {
         const {calculator, weaponName, className} = fadeInfo;

@@ -247,7 +247,7 @@ export class ItemRowWrapper extends FloatElement {
         }
 
         if (this.itemInfo && isSkin(this.asset)) {
-            const fadePercentage = this.asset && getFadePercentage(this.asset, this.itemInfo)?.percentage;
+            const fadePercentage = this.asset && getFadePercentage(this.asset.market_hash_name, this.itemInfo)?.percentage;
 
             return html`
                 <div class="float-row-wrapper">

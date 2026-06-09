@@ -131,7 +131,7 @@ export class SelectedItemInfo extends FloatElement {
             containerChildren.push(html`<div>Paint Seed: ${formatSeed(this.itemInfo)}</div>`);
 
             // Fade skins
-            const fadePercentage = getFadePercentage(this.asset.description, this.itemInfo)?.percentage;
+            const fadePercentage = getFadePercentage(this.asset.description.market_hash_name, this.itemInfo)?.percentage;
             if (fadePercentage !== undefined) {
                 containerChildren.push(html`<div>Fade: ${floor(fadePercentage, 5)}%</div>`);
             }

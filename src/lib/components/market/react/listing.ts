@@ -6,6 +6,7 @@ import {CustomElement, InjectAppend, InjectionMode} from '../../injectors';
 import {isReactSteamMarket} from '../mode';
 import {gFloatFetcher} from '../../../services/float_fetcher';
 import {BetaListingRank} from './rank';
+import {BetaListingSeedInfo} from './seed_info';
 
 import {getFiberProps} from '../../../utils/fiber';
 import type {MarketListing, MarketListingProps} from './types';
@@ -21,6 +22,7 @@ import type {MarketListing, MarketListingProps} from './types';
 )
 export class BetaListingEnhancer extends FloatElement {
     private rankInjected = false;
+    private seedInfoInjected = false;
 
     static styles = [
         css`
@@ -70,6 +72,10 @@ export class BetaListingEnhancer extends FloatElement {
         return listing.asset.assetid;
     }
 
+    get marketHashName(): string | null {
+        return this.listing?.description.market_hash_name ?? null;
+    }
+
     get targetFloat(): number | null {
         const wearProp = this.listing?.asset.asset_properties?.find((p) => p.propertyid === 2);
         // this is a number in the React properties, but a string in the rgAsset properties
@@ -105,6 +111,7 @@ export class BetaListingEnhancer extends FloatElement {
         }
 
         this.injectRank(info);
+        this.injectSeedInfo(info);
     }
 
     private injectRank(info: ItemInfo): void {
@@ -117,5 +124,18 @@ export class BetaListingEnhancer extends FloatElement {
         rank.targetFloat = this.targetFloat;
         // Append into the card; the element repositions itself correctly.
         this.card.appendChild(rank);
+    }
+
+    private injectSeedInfo(info: ItemInfo): void {
+        if (this.seedInfoInjected) return;
+        this.seedInfoInjected = true;
+
+        const seedInfo = BetaListingSeedInfo.elem() as BetaListingSeedInfo;
+        seedInfo.itemInfo = info;
+        seedInfo.card = this.card;
+        seedInfo.targetPaintSeed = info.paintseed;
+        seedInfo.marketHashName = this.marketHashName ?? '';
+        // Append into the card; the element repositions itself correctly.
+        this.card.appendChild(seedInfo);
     }
 }

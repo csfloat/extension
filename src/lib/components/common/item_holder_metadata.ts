@@ -13,17 +13,19 @@ import {
     isCharm,
     isHighlightCharm,
 } from '../../utils/skin';
-import {isSkin, floor} from '../../utils/skin';
+import {isSkin} from '../../utils/skin';
 import {getRankColour} from '../../utils/ranks';
 import {Observe} from '../../utils/observers';
 import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
 import {ClientSend} from '../../bridge/client';
+import {renderBluegemPercentage, renderFadePercentage, patternDetailStyles} from './pattern_details';
 
 // Generic annotator of item holder metadata (float, seed, etc...)
 // Must be extended to use as a component
 export abstract class ItemHolderMetadata extends FloatElement {
     static styles = [
         ...FloatElement.styles,
+        patternDetailStyles,
         css`
             .float {
                 position: absolute;
@@ -40,31 +42,9 @@ export abstract class ItemHolderMetadata extends FloatElement {
                 font-size: 12px;
             }
 
-            .fade-base {
-                -webkit-background-clip: text;
-                background-clip: text;
-                -webkit-text-fill-color: transparent;
-            }
-
-            .fade {
-                background-image: -webkit-linear-gradient(0deg, #d9bba5 0%, #e5903b 33%, #db5977 66%, #6775e1 100%);
-            }
-
-            .amber-fade {
-                background-image: -webkit-linear-gradient(0deg, #627d66 0%, #896944 50%, #7e4201 100%);
-            }
-
-            .acid-fade {
-                background-image: -webkit-linear-gradient(0deg, #2b441b 0%, #3e6b2f 11%, #82a64a 66%, #c1a16c 100%);
-            }
-
             .csfloat-shine-fade-text {
                 font-weight: 1000;
                 -webkit-text-stroke: 1px black;
-            }
-
-            .bluegem {
-                color: deepskyblue;
             }
         `,
     ];
@@ -108,7 +88,7 @@ export abstract class ItemHolderMetadata extends FloatElement {
         if (!this.itemInfo || !this.asset) return html``;
 
         if (isSkin(this.asset)) {
-            const fadeDetails = this.asset && getFadePercentage(this.asset, this.itemInfo);
+            const fadeDetails = this.asset && getFadePercentage(this.asset.market_hash_name, this.itemInfo);
 
             if (fadeDetails?.percentage === 100) {
                 $J(this).parent().addClass('full-fade-border');
@@ -121,17 +101,10 @@ export abstract class ItemHolderMetadata extends FloatElement {
                     <span class="float">${formatFloatWithRank(this.itemInfo, 6)}</span>
                     <span class="seed">
                         ${formatSeed(this.itemInfo)}
-                        ${fadeDetails !== undefined
-                            ? html`<span
-                                  class="fade-base ${fadeDetails.className} ${rank && rank <= 5
-                                      ? 'csfloat-shine-fade-text'
-                                      : ''}"
-                                  >(${floor(fadeDetails.percentage, 1)}%)</span
-                              >`
+                        ${fadeDetails
+                            ? renderFadePercentage(fadeDetails, 1, rank && rank <= 5 ? 'csfloat-shine-fade-text' : '')
                             : nothing}
-                        ${this.bluegemData
-                            ? html`<span class="bluegem">(${floor(this.bluegemData.playside_blue, 1)}%)</span>`
-                            : nothing}
+                        ${this.bluegemData ? renderBluegemPercentage(this.bluegemData) : nothing}
                     </span>
                 </span>
             `;
