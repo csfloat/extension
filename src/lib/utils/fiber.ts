@@ -1,5 +1,5 @@
 /**
- * Subset of React's internal Fiber instance shape. These are internal implementation details of React, 
+ * Subset of React's internal Fiber instance shape. These are internal implementation details of React,
  * so they may change between React versions.
  *
  * See React's source for the authoritative definition for Steam's React version (v19.1.1):
