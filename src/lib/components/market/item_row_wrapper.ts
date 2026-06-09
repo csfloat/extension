@@ -28,9 +28,14 @@ import './sticker_display';
 import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
 import {ClientSend} from '../../bridge/client';
 import {ConflictingExtension, ConflictingMode, HideConflictingElement, StyleConflictingElement} from '../decorators';
+import {isLegacySteamMarket} from './mode';
 
 @CustomElement()
-@InjectAppend('#searchResultsRows .market_listing_row .market_listing_item_name_block', InjectionMode.CONTINUOUS)
+@InjectAppend(
+    '#searchResultsRows .market_listing_row .market_listing_item_name_block',
+    InjectionMode.CONTINUOUS,
+    isLegacySteamMarket
+)
 @HideConflictingElement(
     ConflictingExtension.CS2_TRADER,
     '#searchResultsRows .market_listing_row .stickerHolderMarket, #searchResultsRows .market_listing_row .stickersTotal, #searchResultsRows .market_listing_row .floatBarMarket',

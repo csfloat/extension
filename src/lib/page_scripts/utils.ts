@@ -63,12 +63,6 @@ export async function init(scriptPath: string, ifPage: () => any) {
         // @ts-ignore Deprecated name
         window.csgofloat = true;
 
-        // Add Roboto font in the page context
-        const fontLink = document.createElement('link');
-        fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@500;700&display=swap';
-        fontLink.rel = 'stylesheet';
-        document.head.appendChild(fontLink);
-
         ifPage();
         return;
     }

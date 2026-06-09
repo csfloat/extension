@@ -96,7 +96,6 @@ export const listItemModalStyles = [
             padding: 20px;
             width: 500px;
             max-width: 90%;
-            font-family: Roboto, 'Helvetica Neue', sans-serif;
             border-width: 2px;
             border-style: solid;
             border-color: rgba(193, 206, 255, 0.07);

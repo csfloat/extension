@@ -9,9 +9,10 @@ import '../filter/filter_container';
 import {Observe} from '../../utils/observers';
 import {isBuggedSkin} from '../../utils/skin';
 import {AppId, ContextId} from '../../types/steam_constants';
+import {isLegacySteamMarket} from './mode';
 
 @CustomElement()
-@InjectBefore('#searchResultsRows', InjectionMode.ONCE)
+@InjectBefore('#searchResultsRows', InjectionMode.ONCE, isLegacySteamMarket)
 export class UtilityBelt extends FloatElement {
     @state()
     private buggedSkinCount = 0;

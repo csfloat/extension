@@ -19,24 +19,38 @@ enum InjectionType {
 }
 
 interface InjectionConfig {
-    exists: (ctx: JQuery<HTMLElement>, selector: string) => boolean;
-    op: (ctx: JQuery<HTMLElement>, target: typeof FloatElement) => void;
+    exists: (ctx: HTMLElement, selector: string) => boolean;
+    op: (ctx: HTMLElement, target: typeof FloatElement) => void;
 }
+
+type InjectionGuard = () => boolean;
 
 const InjectionConfigs: {[key in InjectionType]: InjectionConfig} = {
     [InjectionType.Append]: {
-        exists: (ctx, selector) => !!ctx.children(selector).length,
-        op: (ctx, target) => ctx.append(target.elem()),
+        exists: (anchor, selector) => Array.from(anchor.children).some((child) => child.matches(selector)),
+        op: (anchor, target) => anchor.appendChild(target.elem()),
     },
     [InjectionType.Before]: {
-        exists: (ctx, selector) => !!ctx.parent().children(selector).length,
-        op: (ctx, target) => ctx.before(target.elem()),
+        exists: (anchor, selector) => hasSiblingMatching(anchor, 'previousElementSibling', selector),
+        op: (anchor, target) => anchor.before(target.elem()),
     },
     [InjectionType.After]: {
-        exists: (ctx, selector) => !!ctx.parent().children(selector).length,
-        op: (ctx, target) => ctx.after(target.elem()),
+        exists: (anchor, selector) => hasSiblingMatching(anchor, 'nextElementSibling', selector),
+        op: (anchor, target) => anchor.after(target.elem()),
     },
 };
+
+/** Checks if any sibling of `anchor` in the given direction matches the selector. */
+function hasSiblingMatching(
+    anchor: HTMLElement,
+    direction: keyof Pick<HTMLElement, 'previousElementSibling' | 'nextElementSibling'>,
+    selector: string
+): boolean {
+    for (let el = anchor[direction]; el; el = el[direction]) {
+        if (el.matches(selector)) return true;
+    }
+    return false;
+}
 
 export function CustomElement(): any {
     return function (target: typeof FloatElement, propertyKey: string, descriptor: PropertyDescriptor) {
@@ -53,24 +67,34 @@ export function CustomElement(): any {
     };
 }
 
-function Inject(selector: string, mode: InjectionMode, type: InjectionType): any {
+const canInject = (guard?: InjectionGuard) => (guard ? guard() : true);
+
+function Inject(selector: string, mode: InjectionMode, type: InjectionType, guard?: InjectionGuard): any {
     return function (target: typeof FloatElement, propertyKey: string, descriptor: PropertyDescriptor) {
         if (!inPageContext()) {
             return;
         }
+        if (!canInject(guard)) {
+            return;
+        }
+
         switch (mode) {
             case InjectionMode.ONCE:
-                $J(selector).each(function () {
-                    InjectionConfigs[type].op($J(this), target);
+                document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
+                    InjectionConfigs[type].op(el, target);
                 });
                 break;
             case InjectionMode.CONTINUOUS:
                 setInterval(() => {
-                    $J(selector).each(function () {
-                        // Don't add the item again if we already have
-                        if (InjectionConfigs[type].exists($J(this), target.tag())) return;
+                    if (!canInject(guard)) {
+                        return;
+                    }
 
-                        InjectionConfigs[type].op($J(this), target);
+                    document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
+                        // Don't add the item again if we already have
+                        if (InjectionConfigs[type].exists(el, target.tag())) return;
+
+                        InjectionConfigs[type].op(el, target);
                     });
                 }, 250);
                 break;
@@ -78,14 +102,14 @@ function Inject(selector: string, mode: InjectionMode, type: InjectionType): any
     };
 }
 
-export function InjectAppend(selector: string, mode: InjectionMode = InjectionMode.ONCE): any {
-    return Inject(selector, mode, InjectionType.Append);
+export function InjectAppend(selector: string, mode: InjectionMode = InjectionMode.ONCE, guard?: InjectionGuard): any {
+    return Inject(selector, mode, InjectionType.Append, guard);
 }
 
-export function InjectBefore(selector: string, mode: InjectionMode = InjectionMode.ONCE): any {
-    return Inject(selector, mode, InjectionType.Before);
+export function InjectBefore(selector: string, mode: InjectionMode = InjectionMode.ONCE, guard?: InjectionGuard): any {
+    return Inject(selector, mode, InjectionType.Before, guard);
 }
 
-export function InjectAfter(selector: string, mode: InjectionMode = InjectionMode.ONCE): any {
-    return Inject(selector, mode, InjectionType.After);
+export function InjectAfter(selector: string, mode: InjectionMode = InjectionMode.ONCE, guard?: InjectionGuard): any {
+    return Inject(selector, mode, InjectionType.After, guard);
 }

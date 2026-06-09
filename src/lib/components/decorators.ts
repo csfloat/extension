@@ -10,9 +10,7 @@ export enum ConflictingMode {
     CONTINUOUS, // Continuously check and hide conflicting elements
 }
 
-type CSSProperties = JQuery.PlainObject<
-    string | number | ((this: HTMLElement, index: number, value: string) => string | number | void | undefined)
->;
+type CSSProperties = Record<string, string | number>;
 
 /**
  * Decorator that applies CSS to DOM elements from conflicting extensions
@@ -31,23 +29,18 @@ export function StyleConflictingElement(
             return;
         }
 
-        const styleElements = () => {
-            $J(selector).each(function () {
-                $J(this).css(cssProps);
-            });
-        };
-
-        const checkAndStyle = async () => {
-            const found = $J(selector).length > 0;
-            if (found) {
-                styleElements();
+        const checkAndStyle = () => {
+            const elements = document.querySelectorAll<HTMLElement>(selector);
+            for (const el of elements) {
+                for (const [prop, value] of Object.entries(cssProps)) {
+                    el.style.setProperty(prop, String(value));
+                }
             }
-            return found;
+            return elements.length > 0;
         };
 
-        const interval = setInterval(async () => {
-            const result = await checkAndStyle();
-            if (result && mode === ConflictingMode.ONCE) {
+        const interval = setInterval(() => {
+            if (checkAndStyle() && mode === ConflictingMode.ONCE) {
                 clearInterval(interval);
             }
         }, 250);
