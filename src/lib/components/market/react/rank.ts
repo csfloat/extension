@@ -40,7 +40,7 @@ export class BetaListingRank extends FloatElement {
     }
 
     private findWearSpan(): HTMLSpanElement | null {
-        if (this.targetFloat === null) return null;
+        if (!this.targetFloat) return null;
 
         const spans = this.card.querySelectorAll<HTMLSpanElement>('span[style*="pre-wrap"]');
         for (const span of spans) {
@@ -53,7 +53,7 @@ export class BetaListingRank extends FloatElement {
     }
 
     protected render() {
-        if (!this.itemInfo) return nothing;
+        if (!this.itemInfo || !this.targetFloat || !this.card) return nothing;
 
         return html`<span @click=${(e: Event) => e.stopPropagation()}>${renderClickableRank(this.itemInfo)}</span>`;
     }
