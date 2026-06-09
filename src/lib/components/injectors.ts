@@ -32,11 +32,11 @@ const InjectionConfigs: {[key in InjectionType]: InjectionConfig} = {
     },
     [InjectionType.Before]: {
         exists: (anchor, selector) => hasSiblingMatching(anchor, 'previousElementSibling', selector),
-        op: (anchor, target) => anchor.parentElement?.insertBefore(target.elem(), anchor),
+        op: (anchor, target) => anchor.before(target.elem()),
     },
     [InjectionType.After]: {
         exists: (anchor, selector) => hasSiblingMatching(anchor, 'nextElementSibling', selector),
-        op: (anchor, target) => anchor.parentElement?.insertBefore(target.elem(), anchor.nextSibling),
+        op: (anchor, target) => anchor.after(target.elem()),
     },
 };
 
