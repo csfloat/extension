@@ -1,10 +1,11 @@
-import {css, nothing} from 'lit';
+import {css, html, nothing} from 'lit';
 import {property, state} from 'lit/decorators.js';
 
 import {CustomElement} from '../../injectors';
 import {FloatElement} from '../../custom';
 import {ItemInfo} from '../../../bridge/handlers/fetch_inspect_info';
 import {getFadePercentage, isBlueSkin} from '../../../utils/skin';
+import {getDopplerPhase, hasDopplerPhase} from '../../../utils/dopplers';
 import {ClientSend} from '../../../bridge/client';
 import {FetchBluegem, FetchBluegemResponse} from '../../../bridge/handlers/fetch_bluegem';
 import {renderBluegemPercentage, renderFadePercentage, patternDetailStyles} from '../../common/pattern_details';
@@ -54,9 +55,15 @@ export class BetaListingSeedInfo extends FloatElement {
         return this.marketHashName ? getFadePercentage(this.marketHashName, this.itemInfo) : undefined;
     }
 
+    private get dopplerPhase(): string | undefined {
+        return this.itemInfo && hasDopplerPhase(this.itemInfo.paintindex)
+            ? getDopplerPhase(this.itemInfo.paintindex)
+            : undefined;
+    }
+
     private placeNextToSeed(): void {
         if (this.injected || !this.itemInfo || !this.card) return;
-        if (this.fadeDetails === undefined && !this.bluegemData) return;
+        if (this.fadeDetails === undefined && !this.bluegemData && !this.dopplerPhase) return;
 
         const seedSpan = this.findSeedSpan();
         if (!seedSpan) return;
@@ -82,13 +89,17 @@ export class BetaListingSeedInfo extends FloatElement {
     protected render() {
         if (!this.itemInfo || !this.card) return nothing;
 
-        const fade = this.fadeDetails;
-        if (fade) {
-            return renderFadePercentage(fade, 2);
+        if (this.fadeDetails) {
+            return renderFadePercentage(this.fadeDetails, 2);
         }
 
         if (this.bluegemData) {
             return renderBluegemPercentage(this.bluegemData, true);
+        }
+
+        const phase = this.dopplerPhase;
+        if (phase) {
+            return html`<span>(${phase})</span>`;
         }
 
         return nothing;
