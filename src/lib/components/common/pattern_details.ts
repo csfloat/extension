@@ -36,17 +36,16 @@ export function renderFadePercentage(
     precision = 1,
     extraClasses = ''
 ): TemplateResult<1> {
-    return html`<span class="fade-base ${fade.className} ${extraClasses}">(${floor(fade.percentage, precision)}%)</span>`;
+    return html`<span class="fade-base ${fade.className} ${extraClasses}"
+        >(${floor(fade.percentage, precision)}%)</span
+    >`;
 }
 
 /**
  * Renders HTML for the blue gem percentage.
  * Requires the component to include {@link patternDetailStyles} in its static styles.
  */
-export function renderBluegemPercentage(
-    bluegemData: FetchBluegemResponse,
-    showBackside = false
-): TemplateResult<1> {
+export function renderBluegemPercentage(bluegemData: FetchBluegemResponse, showBackside = false): TemplateResult<1> {
     // Some skins got only one blue value
     if (showBackside && bluegemData.backside_blue !== undefined) {
         return html`<span class="bluegem"
