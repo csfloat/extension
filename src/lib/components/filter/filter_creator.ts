@@ -1,4 +1,4 @@
-import {css, html, HTMLTemplateResult, nothing} from 'lit';
+import {css, html, nothing} from 'lit';
 import {styleMap} from 'lit-html/directives/style-map.js';
 
 import {state, query} from 'lit/decorators.js';

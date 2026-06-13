@@ -1,10 +1,13 @@
 import {css, nothing} from 'lit';
+import type {Subscription} from 'rxjs';
 
 import {ItemInfo} from '../../../bridge/handlers/fetch_inspect_info';
 import {FloatElement} from '../../custom';
 import {CustomElement, InjectAppend, InjectionMode} from '../../injectors';
 import {isReactSteamMarket} from '../mode';
 import {gFloatFetcher} from '../../../services/float_fetcher';
+import {gFilterService} from '../../../services/filter';
+import {pickTextColour} from '../../../utils/colours';
 import {BetaListingRank} from './rank';
 import {BetaListingSeedInfo} from './seed_info';
 
@@ -23,6 +26,7 @@ import type {MarketListing, MarketListingProps} from './types';
 export class BetaListingEnhancer extends FloatElement {
     private rankInjected = false;
     private seedInfoInjected = false;
+    private filterSubscription?: Subscription;
 
     static styles = [
         css`
@@ -84,6 +88,15 @@ export class BetaListingEnhancer extends FloatElement {
         return Number(rawFloat);
     }
 
+    get convertedPrice(): number | undefined {
+        const listing = this.listing;
+        if (!listing || !listing.unPrice) {
+            return;
+        }
+
+        return (listing.unPrice + listing.unFee) / 100;
+    }
+
     connectedCallback(): void {
         super.connectedCallback();
 
@@ -94,6 +107,8 @@ export class BetaListingEnhancer extends FloatElement {
 
     disconnectedCallback(): void {
         super.disconnectedCallback();
+        this.filterSubscription?.unsubscribe();
+        this.filterSubscription = undefined;
     }
 
     protected render(): typeof nothing {
@@ -112,6 +127,18 @@ export class BetaListingEnhancer extends FloatElement {
 
         this.injectRank(info);
         this.injectSeedInfo(info);
+        this.applyFilterColour(info);
+    }
+
+    private applyFilterColour(info: ItemInfo): void {
+        this.filterSubscription?.unsubscribe();
+        this.filterSubscription = gFilterService.onUpdate$.subscribe(() => {
+            if (!this.isConnected) return;
+
+            const colour = gFilterService.matchColour(info, this.convertedPrice) || '';
+            this.card.style.backgroundColor = colour;
+            this.card.style.color = colour ? pickTextColour(colour, '#8F98A0', '#484848') : '';
+        });
     }
 
     private injectRank(info: ItemInfo): void {
