@@ -27,7 +27,6 @@ export async function ClientSend<Req, Resp>(handler: RequestHandler<Req, Resp>, 
             runtimeNamespace().runtime.sendMessage(
                 window.CSFLOAT_EXTENSION_ID || chrome.runtime.id,
                 bundle,
-                // @ts-ignore Bad types
                 (resp: InternalResponseBundle) => {
                     if (resp?.error) {
                         reject(resp.error);
