@@ -74,12 +74,12 @@ function Inject(selector: string, mode: InjectionMode, type: InjectionType, guar
         if (!inPageContext()) {
             return;
         }
-        if (!canInject(guard)) {
-            return;
-        }
 
         switch (mode) {
             case InjectionMode.ONCE:
+                if (!canInject(guard)) {
+                    return;
+                }
                 document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
                     InjectionConfigs[type].op(el, target);
                 });
