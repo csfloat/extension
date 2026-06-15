@@ -29,10 +29,10 @@ export async function ClientSend<Req, Resp>(handler: RequestHandler<Req, Resp>, 
                 bundle,
                 // @ts-ignore Bad types
                 (resp: InternalResponseBundle) => {
-                    if (resp?.response) {
-                        resolve(resp.response);
+                    if (resp?.error) {
+                        reject(resp.error);
                     } else {
-                        reject(resp?.error);
+                        resolve(resp?.response);
                     }
                 }
             );
