@@ -5,13 +5,13 @@ import {FloatElement} from '../../custom';
 import {CustomElement, InjectAppend, InjectionMode} from '../../injectors';
 import {isReactSteamMarket} from '../mode';
 import {gFloatFetcher} from '../../../services/float_fetcher';
-import {BetaListingRank} from './rank';
+import {ReactListingRank} from './rank';
 
 import {getFiberProps} from '../../../utils/fiber';
 import type {MarketListing, MarketListingProps} from './types';
 
 /**
- * Simple version of {@link ItemRowWrapper} with reduced functionality, adapted for the Steam Market beta.
+ * Simple version of {@link ItemRowWrapper} with reduced functionality, adapted for the React version of the Steam Market.
  */
 @CustomElement()
 @InjectAppend(
@@ -19,9 +19,7 @@ import type {MarketListing, MarketListingProps} from './types';
     InjectionMode.CONTINUOUS,
     isReactSteamMarket
 )
-export class BetaListingEnhancer extends FloatElement {
-    private rankInjected = false;
-
+export class ReactListingEnhancer extends FloatElement {
     static styles = [
         css`
             :host {
@@ -43,10 +41,6 @@ export class BetaListingEnhancer extends FloatElement {
 
     get listing(): MarketListing | null {
         return this.fiberProps?.listing ?? null;
-    }
-
-    get listingId(): string | null {
-        return this.fiberProps?.listing?.listingid ?? null;
     }
 
     get inspectLink(): string | null {
@@ -108,10 +102,7 @@ export class BetaListingEnhancer extends FloatElement {
     }
 
     private injectRank(info: ItemInfo): void {
-        if (this.rankInjected) return;
-        this.rankInjected = true;
-
-        const rank = BetaListingRank.elem() as BetaListingRank;
+        const rank = ReactListingRank.elem() as ReactListingRank;
         rank.itemInfo = info;
         rank.card = this.card;
         rank.targetFloat = this.targetFloat;

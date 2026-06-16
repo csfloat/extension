@@ -7,7 +7,7 @@ import {ItemInfo} from '../../../bridge/handlers/fetch_inspect_info';
 import {parseRank, renderClickableRank} from '../../../utils/skin';
 
 @CustomElement()
-export class BetaListingRank extends FloatElement {
+export class ReactListingRank extends FloatElement {
     @property({type: Object}) itemInfo!: ItemInfo;
     @property({attribute: false}) card!: HTMLElement;
     @property({attribute: false}) targetFloat!: number | null;
