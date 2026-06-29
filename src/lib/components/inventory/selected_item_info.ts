@@ -261,13 +261,27 @@ export class SelectedItemInfo extends FloatElement {
                 (isCharm(this.asset.description) && !isHighlightCharm(this.asset.description)))
         ) {
             try {
-                this.itemInfo = await gFloatFetcher.fetch({
-                    asset_id: this.asset.assetid,
-                    link: this.inspectLink,
+                const asset = this.asset;
+                if (!asset) return;
+
+                const inspectLink = this.inspectLink;
+                if (!inspectLink) return;
+
+                const fetched = await gFloatFetcher.fetch({
+                    asset_id: asset.assetid,
+                    link: inspectLink,
                 });
-                this.itemInfo.full_item_name = this.asset.description.market_hash_name;
+
+                if (this.asset?.assetid !== asset.assetid) {
+                    return;
+                }
+
+                this.itemInfo = {
+                    ...fetched,
+                    full_item_name: asset.description.market_hash_name,
+                };
             } catch (e: any) {
-                console.error(`Failed to fetch float for ${this.asset.assetid}: ${e.toString()}`);
+                console.error(`Failed to fetch float for ${this.asset?.assetid}: ${e.toString()}`);
             }
 
             // Fetch bluegem data if needed
