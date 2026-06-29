@@ -265,6 +265,7 @@ export class SelectedItemInfo extends FloatElement {
                     asset_id: this.asset.assetid,
                     link: this.inspectLink,
                 });
+                this.itemInfo.full_item_name = this.asset.description.market_hash_name;
             } catch (e: any) {
                 console.error(`Failed to fetch float for ${this.asset.assetid}: ${e.toString()}`);
             }
