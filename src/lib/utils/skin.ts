@@ -3,6 +3,7 @@ import {ItemInfo} from '../bridge/handlers/fetch_inspect_info';
 import {getDopplerPhase, hasDopplerPhase} from './dopplers';
 import {html, TemplateResult} from 'lit';
 import {AcidFadeCalculator, AmberFadeCalculator, FadeCalculator} from 'csgo-fade-percentage-calculator';
+import {decodeLink, CEconItemPreviewDataBlock} from '@csfloat/cs2-inspect-serializer';
 
 export function rangeFromWear(wear: number): [number, number] | null {
     const wearRanges: [number, number][] = [
@@ -72,32 +73,45 @@ enum OrderType {
  * @param info item properties dict
  * @param order 1 for low float, -1 for high float ordering
  */
-function getFloatDbLink(info: ItemInfo, order: OrderType): string {
-    function getFloatDbCategory(item: ItemInfo): number {
-        if (item.full_item_name?.includes('StatTrak')) {
+function getFloatDbLink(info: ItemInfo, order: OrderType, inspectLink: string | undefined): string {
+    function getFloatDbCategory(item: ItemInfo, inspectLink: string | undefined): number {
+        if (!inspectLink) {
+            return 0; //unfiltered
+        }
+
+        let decoded: CEconItemPreviewDataBlock;
+        try {
+            decoded = decodeLink(inspectLink);
+        } catch (error) {
+            return 0; //unfiltered
+        }
+
+        const stattrak = decoded.killeaterscoretype !== undefined;
+        const souvenir = decoded.quality === 12;
+
+        if (stattrak) {
             return 2;
-        } else if (item.full_item_name?.includes('Souvenir')) {
+        } else if (souvenir) {
             return 3;
         } else {
-            // "Normal"
-            return 1;
+            return 1; // "Normal""
         }
     }
 
     return `https://csfloat.com/db?defIndex=${info.defindex}&paintIndex=${
         info.paintindex
-    }&order=${order}&category=${getFloatDbCategory(info)}`;
+    }&order=${order}&category=${getFloatDbCategory(info, inspectLink)}`;
 }
 
-export function renderClickableRank(info: ItemInfo): TemplateResult<1> {
+export function renderClickableRank(info: ItemInfo, inspectLink: string | undefined): TemplateResult<1> {
     const parsedRank = parseRank(info);
     if (!parsedRank) {
         return html``;
     }
-
+    
     return html` <a
         style="color: #ebebeb; text-decoration: none; cursor: pointer;"
-        href="${getFloatDbLink(info, parsedRank.order)}"
+        href="${getFloatDbLink(info, parsedRank.order, inspectLink)}"
         target="_blank"
     >
         (Rank #${parsedRank.rank})

@@ -125,7 +125,7 @@ export class SelectedItemInfo extends FloatElement {
         if (isSkin(this.asset.description) && this.itemInfo) {
             containerChildren.push(this.renderFloatBar());
             containerChildren.push(
-                html`<div>Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}</div>`
+                html`<div>Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo, this.inspectLink)}</div>`
             );
 
             containerChildren.push(html`<div>Paint Seed: ${formatSeed(this.itemInfo)}</div>`);
@@ -261,27 +261,12 @@ export class SelectedItemInfo extends FloatElement {
                 (isCharm(this.asset.description) && !isHighlightCharm(this.asset.description)))
         ) {
             try {
-                const asset = this.asset;
-                if (!asset) return;
-
-                const inspectLink = this.inspectLink;
-                if (!inspectLink) return;
-
-                const fetched = await gFloatFetcher.fetch({
-                    asset_id: asset.assetid,
-                    link: inspectLink,
+                this.itemInfo = await gFloatFetcher.fetch({
+                    asset_id: this.asset.assetid,
+                    link: this.inspectLink,
                 });
-
-                if (this.asset?.assetid !== asset.assetid) {
-                    return;
-                }
-
-                this.itemInfo = {
-                    ...fetched,
-                    full_item_name: asset.description.market_hash_name,
-                };
             } catch (e: any) {
-                console.error(`Failed to fetch float for ${this.asset?.assetid}: ${e.toString()}`);
+                console.error(`Failed to fetch float for ${this.asset.assetid}: ${e.toString()}`);
             }
 
             // Fetch bluegem data if needed

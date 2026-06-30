@@ -253,7 +253,7 @@ export class ItemRowWrapper extends FloatElement {
                 <div class="float-row-wrapper">
                     ${this.renderFloatBar()}
                     <span style="display: block;">
-                        Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}
+                        Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo, this.inspectLink)}
                     </span>
                     Paint Seed:
                     ${formatSeed(this.itemInfo)}${fadePercentage !== undefined
