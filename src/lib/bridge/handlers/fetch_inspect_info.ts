@@ -40,6 +40,8 @@ export interface ItemInfo {
     full_item_name?: string;
     low_rank?: number;
     high_rank?: number;
+    is_souvenir?: boolean;
+    is_stattrak?: boolean;
 }
 
 export interface FetchInspectInfoRequest {
@@ -127,6 +129,8 @@ async function processInspectItem(req: FetchInspectInfoRequest, schema: ItemSche
         item_name: itemName,
         rarity_name: rarityName,
         wear_name: getWearName(floatvalue),
+        is_souvenir: decoded.quality === 12,
+        is_stattrak: decoded.killeaterscoretype !== undefined,
     };
 
     try {

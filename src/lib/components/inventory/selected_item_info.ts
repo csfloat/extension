@@ -125,7 +125,7 @@ export class SelectedItemInfo extends FloatElement {
         if (isSkin(this.asset.description) && this.itemInfo) {
             containerChildren.push(this.renderFloatBar());
             containerChildren.push(
-                html`<div>Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo, this.inspectLink)}</div>`
+                html`<div>Float: ${this.itemInfo.floatvalue.toFixed(14)} ${renderClickableRank(this.itemInfo)}</div>`
             );
 
             containerChildren.push(html`<div>Paint Seed: ${formatSeed(this.itemInfo)}</div>`);
