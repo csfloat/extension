@@ -41,7 +41,6 @@ export function findSeedSpan({
         if (!text) continue;
 
         const value = parseInt(text, 10);
-        // String(value) === text avoids matching the decimal float span.
         if (!Number.isNaN(value) && String(value) === text && value === context.itemInfo.paintseed) return span;
     }
 
