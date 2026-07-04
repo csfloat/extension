@@ -8,7 +8,7 @@ export function isLegacySteamMarket(): boolean {
     );
 }
 
-/** True only if current page is part of the Steam Market AND the beta is being used */
+/** True only if current page is part of the Steam Market AND the React version is being used */
 export function isReactSteamMarket(): boolean {
     return (window as any).SSR?.reactRoot !== undefined;
 }

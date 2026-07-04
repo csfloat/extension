@@ -1,7 +1,7 @@
 import type {Action, rgAssetProperty, rgDescription, rgInternalDescription} from '../../../types/steam';
 
 /**
- * Shapes of the props Steam's React (beta) market renders into its listing components. We read these
+ * Shapes of the props Steam's React version of the Steam Market renders into its listing components. We read these
  * off the React Fiber node's `memoizedProps` (see {@link getFiberProps}), but the types describe the
  * market listing domain data, not React internals.
  */
