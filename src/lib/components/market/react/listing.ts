@@ -1,168 +1,66 @@
-import {css, nothing} from 'lit';
-import type {Subscription} from 'rxjs';
-
 import {ItemInfo} from '../../../bridge/handlers/fetch_inspect_info';
-import {FloatElement} from '../../custom';
-import {CustomElement, InjectAppend, InjectionMode} from '../../injectors';
-import {isReactSteamMarket} from '../mode';
 import {gFloatFetcher} from '../../../services/float_fetcher';
-import {gFilterService} from '../../../services/filter';
-import {pickTextColour} from '../../../utils/colours';
-import {BetaListingRank} from './rank';
-import {BetaListingSeedInfo} from './seed_info';
-
 import {getFiberProps} from '../../../utils/fiber';
+import {defineInjectionScope, InjectionMode} from '../../injectors';
+import {isReactSteamMarket} from '../mode';
 import type {MarketListing, MarketListingProps} from './types';
 
-/**
- * Simple version of {@link ItemRowWrapper} with reduced functionality, adapted for the Steam Market beta.
- */
-@CustomElement()
-@InjectAppend(
-    'div[style*="--grid-rows"]:has([style*="market_listings/"])',
-    InjectionMode.CONTINUOUS,
-    isReactSteamMarket
-)
-export class BetaListingEnhancer extends FloatElement {
-    private rankInjected = false;
-    private seedInfoInjected = false;
-    private filterSubscription?: Subscription;
+export interface ReactListingContext {
+    listing: MarketListing;
+    inspectLink: string;
+    assetId: string;
+    targetFloat: number | null;
+    itemInfo: ItemInfo;
+}
 
-    static styles = [
-        css`
-            :host {
-                display: none;
-            }
-        `,
-    ];
+export const ReactMarketListingScope = defineInjectionScope<ReactListingContext>({
+    selector: 'div[style*="--grid-rows"]:has([style*="market_listings/"])',
+    mode: InjectionMode.CONTINUOUS,
+    guard: isReactSteamMarket,
+    context: buildReactListingContext,
+});
 
-    private get card(): HTMLElement {
-        const parent = this.parentElement;
-        if (!parent) throw new Error('Card element not found');
-        return parent;
+function getInspectLink(listing: MarketListing): string | null {
+    const link = listing.description.actions?.[0]?.link;
+    if (!link) return null;
+
+    if (link.includes('%propid:6%')) {
+        const propId = listing.asset.asset_properties?.find((p) => p.propertyid === 6)?.string_value;
+        if (!propId) return null;
+        return link.replace('%propid:6%', propId);
     }
 
-    /** Steam implementation detail: the "key" property on the Fiber node is the listing ID. */
-    get fiberProps(): MarketListingProps | null {
-        return getFiberProps<MarketListingProps>(this.card, (fiber) => typeof fiber.key === 'string') ?? null;
-    }
+    return link;
+}
 
-    get listing(): MarketListing | null {
-        return this.fiberProps?.listing ?? null;
-    }
+function getTargetFloat(listing: MarketListing): number | null {
+    const wearProp = listing.asset.asset_properties?.find((p) => p.propertyid === 2);
+    // This is a number in the React properties, but a string in the rgAsset properties.
+    const rawFloat = wearProp?.float_value;
+    if (rawFloat === undefined || rawFloat === null) return null;
 
-    get listingId(): string | null {
-        return this.fiberProps?.listing?.listingid ?? null;
-    }
+    const targetFloat = Number(rawFloat);
+    return Number.isNaN(targetFloat) ? null : targetFloat;
+}
 
-    get inspectLink(): string | null {
-        const listing = this.listing;
-        if (!listing) return null;
+async function buildReactListingContext(scope: HTMLElement): Promise<ReactListingContext | null | undefined> {
+    const listing = getFiberProps<MarketListingProps>(scope, (fiber) => typeof fiber.key === 'string')?.listing;
+    if (!listing) return undefined;
 
-        const link = listing.description.actions?.[0]?.link;
-        if (!link) return null;
+    const inspectLink = getInspectLink(listing);
+    const assetId = listing.asset.assetid;
+    if (!inspectLink || !assetId) return null;
 
-        if (link.includes('%propid:6%')) {
-            const propId = listing.asset.asset_properties?.find((p) => p.propertyid === 6)?.string_value;
-            if (!propId || !link) return null;
-            return link.replace('%propid:6%', propId);
-        }
-        return link;
-    }
-
-    get assetId(): string | null {
-        const listing = this.listing;
-        if (!listing) return null;
-        return listing.asset.assetid;
-    }
-
-    get marketHashName(): string | null {
-        return this.listing?.description.market_hash_name ?? null;
-    }
-
-    get targetFloat(): number | null {
-        const wearProp = this.listing?.asset.asset_properties?.find((p) => p.propertyid === 2);
-        // this is a number in the React properties, but a string in the rgAsset properties
-        const rawFloat = wearProp?.float_value;
-        if (rawFloat === undefined || rawFloat === null) return null;
-        return Number(rawFloat);
-    }
-
-    get convertedPrice(): number | undefined {
-        const listing = this.listing;
-        if (!listing || !listing.unPrice) {
-            return;
-        }
-
-        return (listing.unPrice + listing.unFee) / 100;
-    }
-
-    connectedCallback(): void {
-        super.connectedCallback();
-
-        if (this.inspectLink && this.assetId) {
-            void this.processListing(this.inspectLink, this.assetId);
-        }
-    }
-
-    disconnectedCallback(): void {
-        super.disconnectedCallback();
-        this.filterSubscription?.unsubscribe();
-        this.filterSubscription = undefined;
-    }
-
-    protected render(): typeof nothing {
-        return nothing;
-    }
-
-    private async processListing(inspectLink: string, assetId: string): Promise<void> {
-        if (!inspectLink || !assetId || !this.isConnected || !this.card) return;
-
-        let info: ItemInfo;
-        try {
-            info = await gFloatFetcher.fetch({link: inspectLink, asset_id: assetId});
-        } catch (e) {
-            return;
-        }
-
-        this.injectRank(info);
-        this.injectSeedInfo(info);
-        this.applyFilterColour(info);
-    }
-
-    private applyFilterColour(info: ItemInfo): void {
-        this.filterSubscription?.unsubscribe();
-        this.filterSubscription = gFilterService.onUpdate$.subscribe(() => {
-            if (!this.isConnected) return;
-
-            const colour = gFilterService.matchColour(info, this.convertedPrice) || '';
-            this.card.style.backgroundColor = colour;
-            this.card.style.color = colour ? pickTextColour(colour, '#8F98A0', '#484848') : '';
-        });
-    }
-
-    private injectRank(info: ItemInfo): void {
-        if (this.rankInjected) return;
-        this.rankInjected = true;
-
-        const rank = BetaListingRank.elem() as BetaListingRank;
-        rank.itemInfo = info;
-        rank.card = this.card;
-        rank.targetFloat = this.targetFloat;
-        // Append into the card; the element repositions itself correctly.
-        this.card.appendChild(rank);
-    }
-
-    private injectSeedInfo(info: ItemInfo): void {
-        if (this.seedInfoInjected) return;
-        this.seedInfoInjected = true;
-
-        const seedInfo = BetaListingSeedInfo.elem() as BetaListingSeedInfo;
-        seedInfo.itemInfo = info;
-        seedInfo.card = this.card;
-        seedInfo.targetPaintSeed = info.paintseed;
-        seedInfo.marketHashName = this.marketHashName ?? '';
-        // Append into the card; the element repositions itself correctly.
-        this.card.appendChild(seedInfo);
+    try {
+        const itemInfo = await gFloatFetcher.fetch({link: inspectLink, asset_id: assetId});
+        return {
+            listing,
+            inspectLink,
+            assetId,
+            targetFloat: getTargetFloat(listing),
+            itemInfo,
+        };
+    } catch (e) {
+        return null;
     }
 }
