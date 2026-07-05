@@ -14,7 +14,7 @@ import '../../filter/filter_container';
     InjectionMode.CONTINUOUS,
     isReactSteamMarket
 )
-export class BetaFilterPanel extends FloatElement {
+export class ReactFilterPanel extends FloatElement {
     static styles = [
         ...FloatElement.styles,
         css`
