@@ -41,7 +41,7 @@ export class ReactFilterPanel extends FloatElement {
     ];
 
     private get key(): string {
-        return marketHashName() ?? '';
+        return getSteamMarketID() || '';
     }
 
     protected render(): HTMLTemplateResult | typeof nothing {
@@ -55,7 +55,7 @@ export class ReactFilterPanel extends FloatElement {
     }
 }
 
-/** Use the title of the page to get the market hash name */
-function marketHashName(): string | undefined {
-    return document.title.match(/^(.+?) - Steam Community Market$/)?.[1] ?? undefined;
+/** Example: G18FD03209F033003 */
+function getSteamMarketID(): string | undefined {
+    return location.pathname.split('/').pop();
 }
