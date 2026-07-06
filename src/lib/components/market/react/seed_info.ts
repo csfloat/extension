@@ -10,6 +10,7 @@ import {FetchBluegem, FetchBluegemResponse} from '../../../bridge/handlers/fetch
 import {renderBluegemPercentage, renderFadePercentage, patternDetailStyles} from '../../common/pattern_details';
 import {ReactMarketListingScope, type ReactListingContext} from './listing';
 import {findSeedSpan} from './placement';
+import type {ItemInfo} from '../../../bridge/handlers/fetch_inspect_info';
 
 /**
  * Renders the fade percentage and blue-gem percentage next to the paint seed in the Steam Market beta,
@@ -34,19 +35,22 @@ export class ReactListingSeedInfo extends FloatElement {
         `,
     ];
 
-    connectedCallback(): void {
+    async connectedCallback(): Promise<void> {
         super.connectedCallback();
-        void this.fetchBluegem();
+
+        const itemInfo = this.injectionContext?.itemInfo;
+        if (itemInfo) {
+            this.bluegemData = await this.fetchBluegem(itemInfo);
+        }
     }
 
-    private async fetchBluegem(): Promise<void> {
-        const itemInfo = this.injectionContext?.itemInfo;
-        if (!itemInfo || !isBlueSkin(itemInfo)) return;
+    private async fetchBluegem(itemInfo: ItemInfo): Promise<FetchBluegemResponse | undefined> {
+        if (!isBlueSkin(itemInfo)) return undefined;
 
         try {
-            this.bluegemData = await ClientSend(FetchBluegem, {iteminfo: itemInfo});
+            return await ClientSend(FetchBluegem, {iteminfo: itemInfo});
         } catch (e) {
-            this.bluegemData = undefined;
+            return undefined;
         }
     }
 
