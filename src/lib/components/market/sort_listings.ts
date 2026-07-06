@@ -59,7 +59,7 @@ export class SortListings extends FloatElement {
 
         const asset = g_rgAssets[AppId.CSGO][ContextId.PRIMARY][listingInfo.asset.id];
 
-        return getFadeParams(asset) !== undefined;
+        return getFadeParams(asset.market_hash_name) !== undefined;
     }
 
     connectedCallback() {
@@ -130,7 +130,7 @@ export class SortListings extends FloatElement {
                         info,
                         listingId: listingId!,
                         converted_price: listingInfo?.converted_price || 0,
-                        fadePercentage: (asset && getFadePercentage(asset, info)?.percentage) || 0,
+                        fadePercentage: (asset && getFadePercentage(asset.market_hash_name, info)?.percentage) || 0,
                     };
                 } catch (error) {
                     console.error(`CSFloat: Failed to fetch float for listing ${listingId}:`, error);
