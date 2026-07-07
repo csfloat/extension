@@ -433,18 +433,16 @@ class Parser {
         throw new Error(`unexpected token "${token.value}" at ${token.position}`);
     }
 
-    /** Parses the `(...)` operand of `in` / `not in` into a list node. Allows an empty list `()`. */
+    /** Parses the `(...)` operand of `in` / `not in` into a list node. Requires at least one element. */
     private parseList(): AstNode {
         this.expect('paren', '(');
         const values: AstNode[] = [];
 
-        if (!this.match('paren', ')')) {
-            do {
-                values.push(this.parseOr());
-            } while (this.match('comma'));
+        do {
+            values.push(this.parseOr());
+        } while (this.match('comma'));
 
-            this.expect('paren', ')');
-        }
+        this.expect('paren', ')');
 
         return {type: 'list', values};
     }

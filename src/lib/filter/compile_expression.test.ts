@@ -99,6 +99,10 @@ describe('membership', () => {
         expect(run('seed not in (1, 2, 3)')).toBe(true);
         expect(run("phase in ('Emerald', 'Ruby')")).toBe(true);
     });
+
+    it('rejects an empty list', () => {
+        expect(run('seed in ()')).toBeInstanceOf(Error);
+    });
 });
 
 describe('functions', () => {
