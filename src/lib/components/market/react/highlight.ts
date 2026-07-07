@@ -16,8 +16,14 @@ export class ReactListingHighlight extends FloatElement {
 
     private filterSubscription?: Subscription;
 
+    private originalStyle: {backgroundColor: string; color: string} = {backgroundColor: '', color: ''};
+
     connectedCallback(): void {
         super.connectedCallback();
+        const card = this.parentElement;
+        if (card) {
+            this.originalStyle = {backgroundColor: card.style.backgroundColor, color: card.style.color};
+        }
         this.filterSubscription = gFilterService.onUpdate$.subscribe(() => this.applyColour());
     }
 
@@ -38,9 +44,9 @@ export class ReactListingHighlight extends FloatElement {
         const context = this.injectionContext;
         if (!card || !context) return;
 
-        const colour = gFilterService.matchColour(context.itemInfo, this.convertedPrice) || '';
-        card.style.backgroundColor = colour;
-        card.style.color = colour ? pickTextColour(colour, '#8F98A0', '#484848') : '';
+        const colour = gFilterService.matchColour(context.itemInfo, this.convertedPrice);
+        card.style.backgroundColor = colour ?? this.originalStyle.backgroundColor;
+        card.style.color = colour ? pickTextColour(colour, '#8F98A0', '#484848') : this.originalStyle.color;
     }
 
     protected render() {
