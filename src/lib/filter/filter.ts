@@ -1,8 +1,8 @@
 import {InternalInputVars, SerializedFilter} from './types';
 import {match, percentile, percentileRange} from './custom_functions';
-import {compileExpression} from 'filtrex';
+import {compileExpression, type FilterValue} from './compile_expression';
 
-type ExpressionRunner = (data: InternalInputVars) => boolean;
+type ExpressionRunner = (data: InternalInputVars) => FilterValue;
 
 /**
  * Encapsulates a filter, with mechanisms for running expressions
@@ -69,7 +69,7 @@ export class Filter {
         };
     }
 
-    run(vars: InternalInputVars): any {
+    run(vars: InternalInputVars): FilterValue {
         // Update vars in use for the functions
         this.currentVars = vars;
 
@@ -86,12 +86,9 @@ export class Filter {
     /**
      * Whether the return value from {@link run} is "valid" or usable
      * for comparison purposes.
-     *
-     * For instance, will return false if `result` is an error indicating
-     * a property is undefined.
      */
-    static isValidReturnValue(result: any): boolean {
-        return typeof result === 'boolean' || result === 0 || result === 1;
+    static isValidReturnValue(result: FilterValue): boolean {
+        return result !== undefined && result !== null && !(result instanceof Error);
     }
 
     /**
