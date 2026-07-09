@@ -95,7 +95,7 @@ export function renderClickableRank(info: ItemInfo): TemplateResult<1> {
     if (!parsedRank) {
         return html``;
     }
-    
+
     return html` <a
         style="color: #ebebeb; text-decoration: none; cursor: pointer;"
         href="${getFloatDbLink(info, parsedRank.order)}"
