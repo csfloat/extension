@@ -1,8 +1,8 @@
 export const environment = {
     csfloat_base_api_url: 'http://localhost:8080/api',
     notary: {
-        tlsn: 'https://notary.csfloat.com',
-        ws: 'wss://notary.csfloat.com/proxy',
+        tlsn: 'http://localhost:7047',
+        ws: 'ws://localhost:7047/proxy',
         loggingLevel: 'Error',
     },
     reverse_watch_base_api_url: 'http://localhost:3434/api',

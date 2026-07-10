@@ -1,5 +1,7 @@
 import {NetworkSetting} from '@csfloat/tlsn-wasm';
 
+export type NotaryProverMode = 'proxy' | 'mpc';
+
 export enum ProofType {
     TRADE_OFFERS = 'trade_offers',
     TRADE_OFFER = 'trade_offer',
@@ -71,6 +73,9 @@ export type NotaryProveRequest = {
 
             // Optionally override the network setting for proving
             network_setting?: NetworkSetting;
+
+            // Proxy-TLS is the default. MPC retains the legacy browser TCP-proxy flow.
+            prover_mode?: NotaryProverMode;
         };
     } & ProveRequestPayloads[T];
 }[ProofType];

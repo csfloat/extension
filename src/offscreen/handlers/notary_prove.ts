@@ -7,10 +7,11 @@ import {
 import {getSteamRequestURL} from '../../lib/notary/utils';
 import * as Comlink from 'comlink';
 import {environment} from '../../environment';
-import type {LoggingLevel, Method, Prover as TProver, Reveal} from '@csfloat/tlsn-wasm';
+import type {IoChannel, LoggingLevel, Method, Prover as TProver, ProverMode, Reveal} from '@csfloat/tlsn-wasm';
 import {NotarySessionClient} from './notary_session_client';
 import {Remote} from 'comlink';
 import {wait} from '../../lib/utils/snips';
+import {WebSocketIoChannel} from '../io_channel';
 
 const {init, Prover}: any = Comlink.wrap(new Worker(new URL('../worker.ts', import.meta.url)));
 
@@ -65,14 +66,24 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
 
         const session = await NotarySessionClient.create(maxRecvData, maxSentData, maybeNotaryToken);
 
+        let verifierChannel: WebSocketIoChannel | undefined;
+        let serverChannel: WebSocketIoChannel | undefined;
         try {
+            const proverMode: ProverMode = request.notary_request.meta?.prover_mode === 'mpc' ? 'Mpc' : 'Proxy';
+
             // Create and setup prover
             const prover = (await new Prover({
                 server_name: 'api.steampowered.com',
+                mode: proverMode,
                 max_recv_data: maxRecvData,
                 max_sent_data: maxSentData,
+                max_sent_records: undefined,
+                max_recv_data_online: undefined,
+                max_recv_records_online: undefined,
                 network: request.notary_request.meta?.network_setting ?? 'Latency',
                 defer_decryption_from_start: true,
+                client_auth: undefined,
+                root_certs: undefined,
             })) as Remote<TProver>;
 
             let verifierUrl = `${environment.notary.tlsn}/verifier?sessionId=${session.getID()}`;
@@ -80,7 +91,8 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
                 verifierUrl += `&token=${maybeNotaryToken}`;
             }
 
-            await prover.setup(verifierUrl);
+            verifierChannel = await WebSocketIoChannel.connect(toWebSocketUrl(verifierUrl));
+            await prover.setup(Comlink.proxy(verifierChannel));
 
             // Convert headers to Map<string, number[]> for WASM
             const headerMap = new Map<string, number[]>();
@@ -88,13 +100,17 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
                 headerMap.set(key, Buffer.from(value).toJSON().data);
             }
 
-            let wsUrl = `${environment.notary.ws}`;
-            if (maybeNotaryToken) {
-                wsUrl += `?token=${maybeNotaryToken}`;
+            let serverIo: IoChannel | undefined;
+            if (proverMode === 'Mpc') {
+                let wsUrl = `${environment.notary.ws}`;
+                if (maybeNotaryToken) {
+                    wsUrl += `?token=${maybeNotaryToken}`;
+                }
+                serverChannel = await WebSocketIoChannel.connect(wsUrl);
+                serverIo = Comlink.proxy(serverChannel);
             }
 
-            // Send HTTP request via proxy
-            await prover.send_request(wsUrl, {
+            await prover.send_request(serverIo, {
                 uri: serverURL,
                 method: 'GET' as Method,
                 headers: headerMap,
@@ -118,6 +134,7 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
 
             return await completedPromise;
         } finally {
+            await Promise.allSettled([verifierChannel?.close(), serverChannel?.close()]);
             session.close();
         }
     },
@@ -128,6 +145,10 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
         return totalProveRequests >= 5;
     }
 );
+
+function toWebSocketUrl(url: string): string {
+    return url.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:');
+}
 
 /**
  * Estimates the total request byte size over the wire if sent over HTTP 1.1
