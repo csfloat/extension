@@ -12,6 +12,7 @@ concurrency:
 
 jobs:
   deploy-staging:
+    if: github.repository == 'csfloat/extension'
     runs-on: ubuntu-latest
     strategy:
       matrix:
