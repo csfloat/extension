@@ -72,7 +72,7 @@
     },
     "dependencies": {
         "@csfloat/cs2-inspect-serializer": "^1.1.0",
-        "@csfloat/tlsn-wasm": "file:vendor/csfloat-tlsn-wasm-0.1.0-alpha.15.tgz",
+        "@csfloat/tlsn-wasm": "0.1.0-alpha.15",
         "buffer": "^6.0.3",
         "comlink": "^4.4.2"
     }
