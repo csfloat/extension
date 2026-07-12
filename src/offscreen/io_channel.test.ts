@@ -57,6 +57,15 @@ describe('WebSocketIoChannel', () => {
         globalThis.WebSocket = originalWebSocket;
     });
 
+    it('rejects when the socket closes before opening', async () => {
+        const channelPromise = WebSocketIoChannel.connect('wss://notary.test/verifier');
+        const socket = FakeWebSocket.latest!;
+
+        socket.close();
+
+        await expect(channelPromise).rejects.toThrow('closed before opening');
+    });
+
     it('queues binary messages and returns EOF on close', async () => {
         const channelPromise = WebSocketIoChannel.connect('wss://notary.test/verifier');
         const socket = FakeWebSocket.latest!;

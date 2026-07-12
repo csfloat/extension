@@ -39,13 +39,19 @@ export class WebSocketIoChannel implements IoChannel {
                 socket.close();
                 reject(new Error(`Failed to open WebSocket I/O channel: ${url}`));
             };
+            const onClose = () => {
+                cleanup();
+                reject(new Error(`WebSocket I/O channel closed before opening: ${url}`));
+            };
             const cleanup = () => {
                 socket.removeEventListener('open', onOpen);
                 socket.removeEventListener('error', onError);
+                socket.removeEventListener('close', onClose);
             };
 
             socket.addEventListener('open', onOpen);
             socket.addEventListener('error', onError);
+            socket.addEventListener('close', onClose);
         });
     }
 
