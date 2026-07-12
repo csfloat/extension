@@ -74,13 +74,12 @@ enum OrderType {
  */
 function getFloatDbLink(info: ItemInfo, order: OrderType): string {
     function getFloatDbCategory(item: ItemInfo): number {
-        if (item.full_item_name?.includes('StatTrak')) {
+        if (item.is_stattrak) {
             return 2;
-        } else if (item.full_item_name?.includes('Souvenir')) {
+        } else if (item.is_souvenir) {
             return 3;
         } else {
-            // "Normal"
-            return 1;
+            return 1; // "Normal""
         }
     }
 
