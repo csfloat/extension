@@ -320,6 +320,7 @@ export class SelectedItemInfo extends FloatElement {
             inspect: this.skinCraftInspect,
             name: this.asset.description.market_hash_name,
             iconUrl: icon ? `https://community.akamai.steamstatic.com/economy/image/${icon}/330x192` : undefined,
+            assetId: this.asset.assetid,
         });
     }
 

@@ -3,6 +3,7 @@ export type SkinCraftViewerTarget = {
     name: string;
     iconUrl?: string;
     itemUrl: string;
+    assetId?: string;
 };
 
 const MODAL_TRANSITION_MS = 200;
@@ -56,6 +57,10 @@ const MODAL_STYLES = `
         pointer-events: none;
     }
 
+    .modal-body {
+        min-width: 0;
+    }
+
     .modal-header {
         display: flex;
         align-items: center;
@@ -102,6 +107,106 @@ const MODAL_STYLES = `
     .close-button:hover {
         color: #fff;
         background: rgba(255, 255, 255, 0.09);
+    }
+
+    .inventory-panel {
+        display: none;
+        min-width: 0;
+        min-height: 0;
+        background: #181b21;
+    }
+
+    .inventory-panel-header {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 0 14px;
+        color: rgba(245, 248, 255, 0.82);
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .inventory-count {
+        color: rgba(245, 248, 255, 0.42);
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
+        font-weight: 500;
+    }
+
+    .inventory-grid {
+        min-width: 0;
+        min-height: 0;
+        scrollbar-color: rgba(193, 206, 255, 0.2) transparent;
+        scrollbar-width: thin;
+    }
+
+    .inventory-grid::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .inventory-grid::-webkit-scrollbar-thumb {
+        background: rgba(193, 206, 255, 0.2);
+        border: 2px solid transparent;
+        border-radius: 999px;
+        background-clip: padding-box;
+    }
+
+    .inventory-card {
+        position: relative;
+        box-sizing: border-box;
+        min-width: 0;
+        padding: 5px;
+        overflow: hidden;
+        color: inherit;
+        background-color: rgba(42, 47, 58, 0.82);
+        border: 1px solid rgba(193, 206, 255, 0.08);
+        border-radius: 7px;
+        cursor: pointer;
+        transition:
+            background-color 140ms ease,
+            border-color 140ms ease,
+            box-shadow 140ms ease,
+            transform 100ms ease;
+    }
+
+    .inventory-card:hover {
+        background-color: rgba(54, 61, 76, 0.92);
+        border-color: rgba(193, 206, 255, 0.22);
+    }
+
+    .inventory-card:focus-visible {
+        outline: 2px solid rgba(132, 136, 255, 0.95);
+        outline-offset: 1px;
+    }
+
+    .inventory-card:active {
+        transform: scale(0.97);
+    }
+
+    .inventory-card.selected {
+        background-color: rgba(62, 65, 134, 0.72);
+        border-color: rgba(132, 136, 255, 0.9);
+        box-shadow:
+            0 0 0 1px rgba(81, 85, 235, 0.38),
+            0 6px 18px rgba(0, 0, 0, 0.28);
+    }
+
+    .inventory-card img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        opacity: 0.78;
+        pointer-events: none;
+        transition: opacity 140ms ease;
+    }
+
+    .inventory-card:hover img,
+    .inventory-card.selected img {
+        opacity: 1;
     }
 
     .viewer-stage {
@@ -267,6 +372,83 @@ const MODAL_STYLES = `
         to { transform: translateX(320%); }
     }
 
+    @media (min-width: 1168px) and (max-width: 1519px) and (min-height: 840px) {
+        dialog.has-inventory {
+            width: 1120px;
+        }
+
+        dialog.has-inventory .modal-body {
+            display: grid;
+            grid-template-rows: 122px auto;
+        }
+
+        dialog.has-inventory .inventory-panel {
+            display: grid;
+            grid-template-columns: 122px minmax(0, 1fr);
+            border-bottom: 1px solid rgba(193, 206, 255, 0.1);
+        }
+
+        dialog.has-inventory .inventory-panel-header {
+            border-right: 1px solid rgba(193, 206, 255, 0.08);
+        }
+
+        dialog.has-inventory .inventory-grid {
+            display: flex;
+            gap: 8px;
+            padding: 11px;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        dialog.has-inventory .inventory-card {
+            flex: 0 0 98px;
+            height: 98px;
+        }
+    }
+
+    @media (min-width: 1520px) {
+        dialog.has-inventory {
+            width: min(1440px, calc(100vw - 48px));
+        }
+
+        dialog.has-inventory .modal-body {
+            display: grid;
+            grid-template-columns: minmax(280px, 320px) 1120px;
+        }
+
+        dialog.has-inventory .inventory-panel {
+            display: flex;
+            flex-direction: column;
+            height: min(630px, calc(100vh - 104px));
+            border-right: 1px solid rgba(193, 206, 255, 0.1);
+        }
+
+        dialog.has-inventory .inventory-panel-header {
+            height: 48px;
+            border-bottom: 1px solid rgba(193, 206, 255, 0.08);
+        }
+
+        dialog.has-inventory .inventory-grid {
+            display: grid;
+            flex: 1;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-auto-rows: 92px;
+            align-content: start;
+            gap: 8px;
+            padding: 10px;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        dialog.has-inventory .inventory-card {
+            height: 92px;
+        }
+
+        dialog.has-inventory .viewer-stage {
+            width: 1120px;
+        }
+    }
+
     @media (max-width: 640px) {
         dialog {
             width: calc(100vw - 20px);
@@ -310,6 +492,11 @@ export class SkinCraftViewerModal {
     private readonly errorStatus = createElement('div', 'error-status hidden');
     private readonly errorMessage = createElement('div', 'error-message');
     private readonly itemLink = createElement('a');
+    private readonly inventoryCount = createElement('span', 'inventory-count');
+    private readonly inventoryGrid = createElement('div', 'inventory-grid');
+    private readonly inventoryButtons = new Map<string, HTMLButtonElement>();
+    private inventoryTargets: SkinCraftViewerTarget[] = [];
+    private activeInventoryButton?: HTMLButtonElement;
     private entryFrame?: number;
     private closeTimer?: number;
     private iconRequest = 0;
@@ -317,7 +504,8 @@ export class SkinCraftViewerModal {
     constructor(
         embedSrc: string,
         private readonly onClose: () => void,
-        private readonly onRetry: () => void
+        private readonly onRetry: () => void,
+        private readonly onSelect: (target: SkinCraftViewerTarget) => void
     ) {
         const shadow = this.element.attachShadow({mode: 'closed'});
         const style = document.createElement('style');
@@ -347,6 +535,15 @@ export class SkinCraftViewerModal {
         closeButton.textContent = '×';
         closeButton.addEventListener('click', this.onClose);
         header.append(titleContainer, closeButton);
+
+        const inventoryPanel = createElement('aside', 'inventory-panel');
+        inventoryPanel.setAttribute('aria-label', 'Loaded inventory items');
+        const inventoryHeader = createElement('div', 'inventory-panel-header');
+        const inventoryLabel = createElement('span');
+        inventoryLabel.textContent = 'Inventory';
+        inventoryHeader.append(inventoryLabel, this.inventoryCount);
+        inventoryPanel.append(inventoryHeader, this.inventoryGrid);
+        this.inventoryGrid.addEventListener('click', (event) => this.handleInventoryClick(event));
 
         const stage = createElement('div', 'viewer-stage');
         this.iframe.src = embedSrc;
@@ -380,7 +577,9 @@ export class SkinCraftViewerModal {
 
         this.loadingCover.append(this.loadingStatus, this.errorStatus);
         stage.append(this.iframe, this.loadingCover);
-        this.dialog.append(header, stage);
+        const modalBody = createElement('div', 'modal-body');
+        modalBody.append(inventoryPanel, stage);
+        this.dialog.append(header, modalBody);
         shadow.appendChild(this.dialog);
     }
 
@@ -388,13 +587,50 @@ export class SkinCraftViewerModal {
         return this.iframe.contentWindow;
     }
 
+    get isOpen(): boolean {
+        return this.dialog.open;
+    }
+
+    setInventory(targets: SkinCraftViewerTarget[]): void {
+        this.inventoryTargets = targets;
+        this.inventoryButtons.clear();
+        this.activeInventoryButton = undefined;
+        const fragment = document.createDocumentFragment();
+
+        for (const [index, target] of targets.entries()) {
+            const button = createElement('button', 'inventory-card');
+            button.type = 'button';
+            button.title = target.name;
+            button.dataset.index = String(index);
+            button.setAttribute('aria-label', `View ${target.name} in 3D`);
+            button.setAttribute('aria-pressed', 'false');
+
+            if (target.iconUrl) {
+                const icon = createElement('img');
+                icon.src = target.iconUrl;
+                icon.alt = '';
+                icon.loading = 'lazy';
+                icon.decoding = 'async';
+                icon.draggable = false;
+                button.appendChild(icon);
+            }
+
+            this.inventoryButtons.set(this.getTargetKey(target), button);
+            fragment.appendChild(button);
+        }
+
+        this.inventoryGrid.replaceChildren(fragment);
+        this.inventoryCount.textContent = String(targets.length);
+        this.dialog.classList.toggle('has-inventory', targets.length > 1);
+    }
+
     show(target: SkinCraftViewerTarget): void {
         this.title.textContent = target.name;
         this.itemName.textContent = target.name;
         this.itemLink.href = target.itemUrl;
         this.setItemIcon(target.iconUrl);
+        this.setActiveInventoryItem(target);
 
-        this.setLoading(null);
         this.cancelClose();
 
         if (!this.dialog.open) {
@@ -407,10 +643,7 @@ export class SkinCraftViewerModal {
                     this.iframe.focus({preventScroll: true});
                 });
             });
-            return;
         }
-
-        requestAnimationFrame(() => this.iframe.focus({preventScroll: true}));
     }
 
     hide(): void {
@@ -448,7 +681,11 @@ export class SkinCraftViewerModal {
     setLoaded(): void {
         this.iframe.classList.add('loaded');
         this.loadingCover.classList.add('loaded');
-        requestAnimationFrame(() => this.iframe.focus({preventScroll: true}));
+    }
+
+    continueLoadingInFrame(): void {
+        this.iframe.classList.add('loaded');
+        this.loadingCover.classList.add('loaded');
     }
 
     setError(message: string): void {
@@ -469,6 +706,18 @@ export class SkinCraftViewerModal {
             event.clientY >= rect.top &&
             event.clientY <= rect.bottom;
         if (!inside) this.onClose();
+    }
+
+    private handleInventoryClick(event: MouseEvent): void {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+
+        const button = target.closest<HTMLButtonElement>('.inventory-card');
+        const index = Number(button?.dataset.index);
+        if (!button || !Number.isInteger(index)) return;
+
+        const inventoryTarget = this.inventoryTargets[index];
+        if (inventoryTarget) this.onSelect(inventoryTarget);
     }
 
     private setItemIcon(iconUrl?: string): void {
@@ -492,6 +741,26 @@ export class SkinCraftViewerModal {
                 });
             })
             .catch(() => undefined);
+    }
+
+    private getTargetKey(target: SkinCraftViewerTarget): string {
+        return target.assetId || target.inspect;
+    }
+
+    private setActiveInventoryItem(target: SkinCraftViewerTarget): void {
+        this.activeInventoryButton?.classList.remove('selected');
+        this.activeInventoryButton?.setAttribute('aria-pressed', 'false');
+
+        const button = this.inventoryButtons.get(this.getTargetKey(target));
+        if (!button) {
+            this.activeInventoryButton = undefined;
+            return;
+        }
+
+        button.classList.add('selected');
+        button.setAttribute('aria-pressed', 'true');
+        this.activeInventoryButton = button;
+        requestAnimationFrame(() => button.scrollIntoView({block: 'nearest', inline: 'nearest'}));
     }
 
     private cancelEntry(): void {
