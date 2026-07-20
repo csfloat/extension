@@ -5,6 +5,8 @@ export type SkinCraftViewerTarget = {
     itemUrl: string;
 };
 
+const MODAL_TRANSITION_MS = 200;
+
 const MODAL_STYLES = `
     :host {
         color: #f5f8ff;
@@ -21,11 +23,37 @@ const MODAL_STYLES = `
         color: inherit;
         background: #15171c;
         box-shadow: 0 24px 80px rgba(0, 0, 0, 0.68);
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        transform-origin: center;
+        transition:
+            opacity 180ms ease,
+            transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     dialog::backdrop {
         background: rgba(5, 7, 12, 0.78);
         backdrop-filter: blur(6px);
+        opacity: 1;
+        transition:
+            opacity 180ms ease,
+            backdrop-filter 200ms ease;
+    }
+
+    dialog.entering,
+    dialog.closing {
+        opacity: 0;
+        transform: translateY(10px) scale(0.97);
+    }
+
+    dialog.entering::backdrop,
+    dialog.closing::backdrop {
+        backdrop-filter: blur(0);
+        opacity: 0;
+    }
+
+    dialog.closing {
+        pointer-events: none;
     }
 
     .modal-header {
@@ -273,6 +301,8 @@ export class SkinCraftViewerModal {
     private readonly errorStatus = createElement('div', 'error-status hidden');
     private readonly errorMessage = createElement('div', 'error-message');
     private readonly itemLink = createElement('a');
+    private entryFrame?: number;
+    private closeTimer?: number;
 
     constructor(
         embedSrc: string,
@@ -290,6 +320,9 @@ export class SkinCraftViewerModal {
             this.onClose();
         });
         this.dialog.addEventListener('click', (event) => this.handleDialogClick(event));
+        this.dialog.addEventListener('transitionend', (event) => {
+            if (event.target === this.dialog && event.propertyName === 'transform') this.finishClose();
+        });
 
         const header = createElement('header', 'modal-header');
         const titleContainer = createElement('div', 'modal-title');
@@ -309,7 +342,7 @@ export class SkinCraftViewerModal {
         this.iframe.src = embedSrc;
         this.iframe.title = 'SkinCraft 3D viewer';
         this.iframe.referrerPolicy = 'no-referrer';
-        this.iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-fullscreen allow-downloads');
+        this.iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-downloads');
         this.iframe.setAttribute('allow', 'fullscreen');
 
         this.itemIcon.alt = '';
@@ -359,12 +392,31 @@ export class SkinCraftViewerModal {
         }
 
         this.setLoading(null);
-        if (!this.dialog.open) this.dialog.showModal();
+        this.cancelClose();
+
+        if (!this.dialog.open) {
+            this.dialog.classList.add('entering');
+            this.dialog.showModal();
+            this.entryFrame = requestAnimationFrame(() => {
+                this.entryFrame = requestAnimationFrame(() => {
+                    this.entryFrame = undefined;
+                    this.dialog.classList.remove('entering');
+                    this.iframe.focus({preventScroll: true});
+                });
+            });
+            return;
+        }
+
         requestAnimationFrame(() => this.iframe.focus({preventScroll: true}));
     }
 
     hide(): void {
-        if (this.dialog.open) this.dialog.close();
+        if (!this.dialog.open || this.dialog.classList.contains('closing')) return;
+
+        this.cancelEntry();
+        this.dialog.classList.remove('entering');
+        this.dialog.classList.add('closing');
+        this.closeTimer = window.setTimeout(() => this.finishClose(), MODAL_TRANSITION_MS);
     }
 
     setLoading(value: number | null): void {
@@ -414,5 +466,27 @@ export class SkinCraftViewerModal {
             event.clientY >= rect.top &&
             event.clientY <= rect.bottom;
         if (!inside) this.onClose();
+    }
+
+    private cancelEntry(): void {
+        if (this.entryFrame === undefined) return;
+        cancelAnimationFrame(this.entryFrame);
+        this.entryFrame = undefined;
+    }
+
+    private cancelClose(): void {
+        if (this.closeTimer !== undefined) {
+            window.clearTimeout(this.closeTimer);
+            this.closeTimer = undefined;
+        }
+        this.dialog.classList.remove('closing');
+    }
+
+    private finishClose(): void {
+        if (!this.dialog.classList.contains('closing')) return;
+
+        this.cancelClose();
+        this.dialog.classList.remove('entering');
+        if (this.dialog.open) this.dialog.close();
     }
 }
