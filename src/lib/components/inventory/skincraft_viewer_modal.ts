@@ -157,11 +157,20 @@ const MODAL_STYLES = `
     }
 
     .item-icon {
+        width: 330px;
         max-width: 58%;
         max-height: 42%;
+        aspect-ratio: 330 / 192;
         object-fit: contain;
         filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.5));
+        opacity: 1;
+        transition: opacity 160ms ease-out;
         user-select: none;
+    }
+
+    .item-icon.pending {
+        opacity: 0;
+        transition: none;
     }
 
     .item-name {
@@ -303,6 +312,7 @@ export class SkinCraftViewerModal {
     private readonly itemLink = createElement('a');
     private entryFrame?: number;
     private closeTimer?: number;
+    private iconRequest = 0;
 
     constructor(
         embedSrc: string,
@@ -382,14 +392,7 @@ export class SkinCraftViewerModal {
         this.title.textContent = target.name;
         this.itemName.textContent = target.name;
         this.itemLink.href = target.itemUrl;
-
-        if (target.iconUrl) {
-            this.itemIcon.src = target.iconUrl;
-            this.itemIcon.classList.remove('hidden');
-        } else {
-            this.itemIcon.removeAttribute('src');
-            this.itemIcon.classList.add('hidden');
-        }
+        this.setItemIcon(target.iconUrl);
 
         this.setLoading(null);
         this.cancelClose();
@@ -466,6 +469,29 @@ export class SkinCraftViewerModal {
             event.clientY >= rect.top &&
             event.clientY <= rect.bottom;
         if (!inside) this.onClose();
+    }
+
+    private setItemIcon(iconUrl?: string): void {
+        const request = ++this.iconRequest;
+        this.itemIcon.classList.add('pending');
+
+        if (!iconUrl) {
+            this.itemIcon.removeAttribute('src');
+            this.itemIcon.classList.add('hidden');
+            return;
+        }
+
+        this.itemIcon.classList.remove('hidden');
+        this.itemIcon.src = iconUrl;
+        void this.itemIcon
+            .decode()
+            .then(() => {
+                if (request !== this.iconRequest || this.itemIcon.src !== iconUrl) return;
+                requestAnimationFrame(() => {
+                    if (request === this.iconRequest) this.itemIcon.classList.remove('pending');
+                });
+            })
+            .catch(() => undefined);
     }
 
     private cancelEntry(): void {
