@@ -23,6 +23,7 @@ import {Contract} from '../../types/float_market';
 import '../common/ui/floatbar';
 import {ClientSend} from '../../bridge/client';
 import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
+import {gSkinCraftEmbed} from '../../services/skincraft_embed';
 import './list_item_modal';
 
 /**
@@ -72,8 +73,6 @@ export class SelectedItemInfo extends FloatElement {
                 text-decoration: none;
             }
 
-            /* SkinCraft classic-theme primary button (mirrors the viewer's
-               top-island "Inspect" button so it stands out beside List). */
             .view-3d-btn {
                 display: inline-flex;
                 align-items: center;
@@ -84,8 +83,10 @@ export class SelectedItemInfo extends FloatElement {
                 font-weight: 600;
                 color: #f5f8ff;
                 background-color: #5155eb;
+                border: 0;
                 border-radius: 8px;
                 cursor: pointer;
+                font-family: inherit;
                 text-decoration: none;
                 transition: all 180ms ease;
                 box-shadow:
@@ -94,8 +95,6 @@ export class SelectedItemInfo extends FloatElement {
                     inset 0 1px 0 rgba(255, 255, 255, 0.22);
             }
 
-            /* icon.svg is the colored brand mark; render it solid white so it
-               reads on the primary fill. */
             .view-3d-btn img {
                 filter: brightness(0) invert(1);
             }
@@ -263,28 +262,31 @@ export class SelectedItemInfo extends FloatElement {
         `;
     }
 
-    /** Whether the signed-in user can list this exact item — gates both the
-     *  "List on CSFloat" action and the "View in 3D" button beside it. */
     private get canListOnCSFloat(): boolean {
         return (
-            // Not already listed, owned by the signed-in user, and tradable.
             !this.stallListing &&
             g_ActiveInventory?.m_owner?.strSteamId === g_steamID &&
             !!this.asset?.description?.tradable
         );
     }
 
+    private get skinCraftInspect(): string | undefined {
+        return (
+            this.asset?.asset_properties?.find((property) => property.propertyid === 6)?.string_value?.trim() ||
+            undefined
+        );
+    }
+
     renderViewIn3D(): TemplateResult<1> {
-        if (!this.canListOnCSFloat) {
+        if (!this.canListOnCSFloat || !this.asset || !isSkin(this.asset.description) || !this.skinCraftInspect) {
             return html``;
         }
 
-        // Placeholder: opens the SkinCraft 3D embed in a follow-up.
         return html`
-            <a class="view-3d-btn" @click="${this.handleViewIn3D}">
-                <img src="https://skincraft.gg/icon.svg" height="22" />
+            <button class="view-3d-btn" type="button" @click="${this.handleViewIn3D}">
+                <img src="https://skincraft.gg/icon.svg" height="22" alt="" />
                 <span>View in 3D</span>
-            </a>
+            </button>
         `;
     }
 
@@ -310,8 +312,15 @@ export class SelectedItemInfo extends FloatElement {
         `;
     }
 
-    private handleViewIn3D() {
-        // No-op for now — SkinCraft 3D embed wiring lands in a follow-up.
+    private handleViewIn3D(): void {
+        if (!this.asset || !this.skinCraftInspect) return;
+
+        const icon = this.asset.description.icon_url_large || this.asset.description.icon_url;
+        gSkinCraftEmbed.open({
+            inspect: this.skinCraftInspect,
+            name: this.asset.description.market_hash_name,
+            iconUrl: icon ? `https://community.akamai.steamstatic.com/economy/image/${icon}/330x192` : undefined,
+        });
     }
 
     async processSelectChange() {
