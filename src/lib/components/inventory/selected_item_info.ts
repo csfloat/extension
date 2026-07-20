@@ -48,6 +48,13 @@ export class SelectedItemInfo extends FloatElement {
                 margin-bottom: 10px;
             }
 
+            .market-btn-row {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 10px;
+            }
+
             .market-btn-container {
                 margin: 10px 0 10px 0;
                 padding: 5px;
@@ -63,6 +70,43 @@ export class SelectedItemInfo extends FloatElement {
                 align-items: center;
                 color: #ebebeb;
                 text-decoration: none;
+            }
+
+            /* SkinCraft classic-theme primary button (mirrors the viewer's
+               top-island "Inspect" button so it stands out beside List). */
+            .view-3d-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                height: 32px;
+                padding: 0 12px;
+                font-size: 13px;
+                font-weight: 600;
+                color: #f5f8ff;
+                background-color: #5155eb;
+                border-radius: 8px;
+                cursor: pointer;
+                text-decoration: none;
+                transition: all 180ms ease;
+                box-shadow:
+                    0 4px 12px hsl(0 0% 0% / 0.22),
+                    0 1px 2px hsl(0 0% 0% / 0.16),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+            }
+
+            /* icon.svg is the colored brand mark; render it solid white so it
+               reads on the primary fill. */
+            .view-3d-btn img {
+                filter: brightness(0) invert(1);
+            }
+
+            .view-3d-btn:hover {
+                filter: brightness(1.1);
+            }
+
+            .view-3d-btn:active {
+                transform: scale(0.98);
+                filter: brightness(0.95);
             }
         `,
     ];
@@ -152,7 +196,10 @@ export class SelectedItemInfo extends FloatElement {
         }
 
         if (isSellableOnCSFloat(this.asset.description)) {
-            containerChildren.push(html`${this.renderListOnCSFloat()} ${this.renderFloatMarketListing()}`);
+            containerChildren.push(
+                html`<div class="market-btn-row">${this.renderListOnCSFloat()} ${this.renderViewIn3D()}</div>
+                    ${this.renderFloatMarketListing()}`
+            );
         }
 
         if (containerChildren.length === 0) {
@@ -216,19 +263,33 @@ export class SelectedItemInfo extends FloatElement {
         `;
     }
 
+    /** Whether the signed-in user can list this exact item — gates both the
+     *  "List on CSFloat" action and the "View in 3D" button beside it. */
+    private get canListOnCSFloat(): boolean {
+        return (
+            // Not already listed, owned by the signed-in user, and tradable.
+            !this.stallListing &&
+            g_ActiveInventory?.m_owner?.strSteamId === g_steamID &&
+            !!this.asset?.description?.tradable
+        );
+    }
+
+    renderViewIn3D(): TemplateResult<1> {
+        if (!this.canListOnCSFloat) {
+            return html``;
+        }
+
+        // Placeholder: opens the SkinCraft 3D embed in a follow-up.
+        return html`
+            <a class="view-3d-btn" @click="${this.handleViewIn3D}">
+                <img src="https://skincraft.gg/icon.svg" height="22" />
+                <span>View in 3D</span>
+            </a>
+        `;
+    }
+
     renderListOnCSFloat(): TemplateResult<1> {
-        if (this.stallListing) {
-            // Don't tell them to list it if it's already listed...
-            return html``;
-        }
-
-        if (g_ActiveInventory?.m_owner?.strSteamId !== g_steamID) {
-            // Not the signed-in user, don't show
-            return html``;
-        }
-
-        if (!this.asset?.description?.tradable) {
-            // Don't show if item isn't tradable
+        if (!this.canListOnCSFloat) {
             return html``;
         }
 
@@ -247,6 +308,10 @@ export class SelectedItemInfo extends FloatElement {
                   ></csfloat-list-item-modal>`
                 : ''}
         `;
+    }
+
+    private handleViewIn3D() {
+        // No-op for now — SkinCraft 3D embed wiring lands in a follow-up.
     }
 
     async processSelectChange() {
