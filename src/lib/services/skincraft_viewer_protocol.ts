@@ -6,6 +6,10 @@ export type OpenSkinCraftViewerTarget = {
     name: string;
     iconUrl?: string;
     assetId?: string;
+    seed?: string;
+    float?: string;
+    rarityColor?: string;
+    backgroundColor?: string;
 };
 
 export type OpenSkinCraftViewerMessage = {
@@ -25,6 +29,12 @@ function isViewerTarget(data: unknown): data is OpenSkinCraftViewerTarget {
         typeof target.name === 'string' &&
         target.name.length <= 512 &&
         (target.assetId === undefined || (typeof target.assetId === 'string' && /^\d{1,32}$/.test(target.assetId))) &&
+        (target.seed === undefined || (typeof target.seed === 'string' && target.seed.length <= 64)) &&
+        (target.float === undefined || (typeof target.float === 'string' && target.float.length <= 64)) &&
+        (target.rarityColor === undefined ||
+            (typeof target.rarityColor === 'string' && /^[0-9a-f]{6}$/i.test(target.rarityColor))) &&
+        (target.backgroundColor === undefined ||
+            (typeof target.backgroundColor === 'string' && /^[0-9a-f]{6}$/i.test(target.backgroundColor))) &&
         (target.iconUrl === undefined ||
             (typeof target.iconUrl === 'string' &&
                 target.iconUrl.length <= 4096 &&

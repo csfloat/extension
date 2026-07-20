@@ -64,6 +64,7 @@ export interface rgDescription {
     type: string;
     tags?: {
         category: string;
+        color?: string;
         name?: string;
         internal_name: string;
         localized_category_name?: string;

@@ -4,6 +4,10 @@ export type SkinCraftViewerTarget = {
     iconUrl?: string;
     itemUrl: string;
     assetId?: string;
+    seed?: string;
+    float?: string;
+    rarityColor?: string;
+    backgroundColor?: string;
 };
 
 const MODAL_TRANSITION_MS = 200;
@@ -161,8 +165,8 @@ const MODAL_STYLES = `
         padding: 5px;
         overflow: hidden;
         color: inherit;
-        background-color: rgba(42, 47, 58, 0.82);
-        border: 1px solid rgba(193, 206, 255, 0.08);
+        background-color: var(--inventory-card-background, #2a2f3a);
+        border: 1px solid var(--inventory-card-rarity, rgba(193, 206, 255, 0.18));
         border-radius: 7px;
         cursor: pointer;
         transition:
@@ -173,8 +177,7 @@ const MODAL_STYLES = `
     }
 
     .inventory-card:hover {
-        background-color: rgba(54, 61, 76, 0.92);
-        border-color: rgba(193, 206, 255, 0.22);
+        background-color: var(--inventory-card-hover, #363d4c);
     }
 
     .inventory-card:focus-visible {
@@ -187,10 +190,9 @@ const MODAL_STYLES = `
     }
 
     .inventory-card.selected {
-        background-color: rgba(62, 65, 134, 0.72);
-        border-color: rgba(132, 136, 255, 0.9);
+        background-color: var(--inventory-card-selected, #3e4186);
         box-shadow:
-            0 0 0 1px rgba(81, 85, 235, 0.38),
+            0 0 0 2px rgba(132, 136, 255, 0.92),
             0 6px 18px rgba(0, 0, 0, 0.28);
     }
 
@@ -207,6 +209,32 @@ const MODAL_STYLES = `
     .inventory-card:hover img,
     .inventory-card.selected img {
         opacity: 1;
+    }
+
+    .inventory-card-seed,
+    .inventory-card-float {
+        position: absolute;
+        right: 5px;
+        z-index: 1;
+        max-width: calc(100% - 10px);
+        overflow: hidden;
+        color: rgba(225, 230, 239, 0.66);
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+        text-overflow: ellipsis;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+        white-space: nowrap;
+        pointer-events: none;
+    }
+
+    .inventory-card-seed {
+        top: 5px;
+    }
+
+    .inventory-card-float {
+        bottom: 5px;
     }
 
     .viewer-stage {
@@ -475,6 +503,16 @@ function createElement<K extends keyof HTMLElementTagNameMap>(tag: K, className?
     return element;
 }
 
+function mixHexColors(base: string, tint: string, tintAmount: number): string {
+    const mixChannel = (offset: number): number => {
+        const baseChannel = Number.parseInt(base.slice(offset, offset + 2), 16);
+        const tintChannel = Number.parseInt(tint.slice(offset, offset + 2), 16);
+        return Math.round(baseChannel + (tintChannel - baseChannel) * tintAmount);
+    };
+
+    return `rgb(${mixChannel(0)} ${mixChannel(2)} ${mixChannel(4)})`;
+}
+
 export class SkinCraftViewerModal {
     readonly element = document.createElement('div');
 
@@ -604,6 +642,7 @@ export class SkinCraftViewerModal {
             button.dataset.index = String(index);
             button.setAttribute('aria-label', `View ${target.name} in 3D`);
             button.setAttribute('aria-pressed', 'false');
+            this.setInventoryCardColors(button, target);
 
             if (target.iconUrl) {
                 const icon = createElement('img');
@@ -613,6 +652,18 @@ export class SkinCraftViewerModal {
                 icon.decoding = 'async';
                 icon.draggable = false;
                 button.appendChild(icon);
+            }
+
+            if (target.seed) {
+                const seed = createElement('span', 'inventory-card-seed');
+                seed.textContent = target.seed;
+                button.appendChild(seed);
+            }
+
+            if (target.float) {
+                const float = createElement('span', 'inventory-card-float');
+                float.textContent = target.float;
+                button.appendChild(float);
             }
 
             this.inventoryButtons.set(this.getTargetKey(target), button);
@@ -718,6 +769,16 @@ export class SkinCraftViewerModal {
 
         const inventoryTarget = this.inventoryTargets[index];
         if (inventoryTarget) this.onSelect(inventoryTarget);
+    }
+
+    private setInventoryCardColors(button: HTMLButtonElement, target: SkinCraftViewerTarget): void {
+        const base = target.backgroundColor || '2a2f3a';
+        const rarity = target.rarityColor || 'c1ceff';
+        const background = target.backgroundColor ? `#${base}` : mixHexColors(base, rarity, 0.1);
+        button.style.setProperty('--inventory-card-background', background);
+        button.style.setProperty('--inventory-card-rarity', `#${rarity}`);
+        button.style.setProperty('--inventory-card-hover', mixHexColors(base, rarity, 0.16));
+        button.style.setProperty('--inventory-card-selected', mixHexColors(base, rarity, 0.26));
     }
 
     private setItemIcon(iconUrl?: string): void {

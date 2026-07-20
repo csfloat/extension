@@ -103,6 +103,10 @@ class SkinCraftEmbedService {
             iconUrl: target.iconUrl,
             itemUrl: `${this.embedOrigin}/i/${encodeURIComponent(target.inspect)}`,
             assetId: target.assetId,
+            seed: target.seed,
+            float: target.float,
+            rarityColor: target.rarityColor,
+            backgroundColor: target.backgroundColor,
         };
     }
 

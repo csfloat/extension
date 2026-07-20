@@ -11,6 +11,10 @@ const target: OpenSkinCraftViewerTarget = {
     name: 'AK-47 | Redline',
     iconUrl: 'https://community.akamai.steamstatic.com/economy/image/example/330x192',
     assetId: '12345678901234567890',
+    seed: '977',
+    float: '0.295375',
+    rarityColor: '8847ff',
+    backgroundColor: '20242d',
 };
 
 describe('SkinCraft viewer open messages', () => {
@@ -40,6 +44,14 @@ describe('SkinCraft viewer open messages', () => {
                 type: 'open',
                 target,
                 inventory: [{...target, iconUrl: 'https://example.com/item.png'}],
+            })
+        ).toBe(false);
+        expect(
+            isOpenSkinCraftViewerMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'open',
+                target,
+                inventory: [{...target, rarityColor: 'not-a-color'}],
             })
         ).toBe(false);
     });

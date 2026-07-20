@@ -24,6 +24,7 @@ import '../common/ui/floatbar';
 import {ClientSend} from '../../bridge/client';
 import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
 import {gSkinCraftEmbed} from '../../services/skincraft_embed';
+import {getSkinCraftInspect} from '../../services/skincraft_inventory_targets';
 import './list_item_modal';
 
 /**
@@ -194,11 +195,15 @@ export class SelectedItemInfo extends FloatElement {
             );
         }
 
-        if (isSellableOnCSFloat(this.asset.description)) {
+        const isMarketItem = isSellableOnCSFloat(this.asset.description);
+        if ((isMarketItem && this.canListOnCSFloat) || this.canViewInSkinCraft) {
             containerChildren.push(
-                html`<div class="market-btn-row">${this.renderListOnCSFloat()} ${this.renderViewIn3D()}</div>
-                    ${this.renderFloatMarketListing()}`
+                html`<div class="market-btn-row">${this.renderListOnCSFloat()} ${this.renderViewIn3D()}</div>`
             );
+        }
+
+        if (isMarketItem) {
+            containerChildren.push(this.renderFloatMarketListing());
         }
 
         if (containerChildren.length === 0) {
@@ -271,14 +276,15 @@ export class SelectedItemInfo extends FloatElement {
     }
 
     private get skinCraftInspect(): string | undefined {
-        return (
-            this.asset?.asset_properties?.find((property) => property.propertyid === 6)?.string_value?.trim() ||
-            undefined
-        );
+        return getSkinCraftInspect(this.asset);
+    }
+
+    private get canViewInSkinCraft(): boolean {
+        return !!this.skinCraftInspect;
     }
 
     renderViewIn3D(): TemplateResult<1> {
-        if (!this.canListOnCSFloat || !this.asset || !isSkin(this.asset.description) || !this.skinCraftInspect) {
+        if (!this.canViewInSkinCraft) {
             return html``;
         }
 
