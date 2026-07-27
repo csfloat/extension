@@ -1,6 +1,5 @@
 import {environment} from '../../environment';
 import {SkinCraftViewerModal} from '../components/inventory/skincraft_viewer_modal';
-import type {SkinCraftViewerTarget} from '../components/inventory/skincraft_viewer_modal';
 import {inPageContext} from '../utils/snips';
 import {
     isSkinCraftEmbedEvent,
@@ -11,7 +10,7 @@ import {
 import type {SkinCraftEmbedCommand} from './skincraft_embed_protocol';
 import {getLoadedInventoryTargets} from './skincraft_inventory_targets';
 import {isOpenSkinCraftViewerMessage, SKINCRAFT_VIEWER_MESSAGE_SOURCE} from './skincraft_viewer_protocol';
-import type {OpenSkinCraftViewerMessage, OpenSkinCraftViewerTarget} from './skincraft_viewer_protocol';
+import type {OpenSkinCraftViewerMessage, SkinCraftItem, SkinCraftViewerTarget} from './skincraft_viewer_protocol';
 
 const LOAD_TIMEOUT_MS = 20_000;
 type LoadPhase = 'idle' | 'loading' | 'loaded' | 'error';
@@ -37,7 +36,7 @@ class SkinCraftEmbedService {
         if (!this.runsInPage) window.addEventListener('message', this.handleOpenRequest);
     }
 
-    open(target: OpenSkinCraftViewerTarget): void {
+    open(target: SkinCraftItem): void {
         if (!target.inspect) return;
 
         if (this.runsInPage) {
@@ -80,10 +79,10 @@ class SkinCraftEmbedService {
         this.openEmbeddedViewer(event.data.target, event.data.inventory);
     };
 
-    private openEmbeddedViewer(target: OpenSkinCraftViewerTarget, inventory: OpenSkinCraftViewerTarget[]): void {
+    private openEmbeddedViewer(target: SkinCraftItem, inventory: SkinCraftItem[]): void {
         const modal = this.ensureModal();
-        modal.setInventory(inventory.map((item) => this.toModalTarget(item)));
-        this.selectEmbeddedTarget(this.toModalTarget(target));
+        modal.setInventory(inventory.map((item) => this.toViewerTarget(item)));
+        this.selectEmbeddedTarget(this.toViewerTarget(target));
     }
 
     private selectEmbeddedTarget(target: SkinCraftViewerTarget): void {
@@ -96,17 +95,11 @@ class SkinCraftEmbedService {
         document.addEventListener('visibilitychange', this.handleVisibilityChange);
     }
 
-    private toModalTarget(target: OpenSkinCraftViewerTarget): SkinCraftViewerTarget {
+    private toViewerTarget(target: SkinCraftItem): SkinCraftViewerTarget {
         return {
-            inspect: target.inspect,
+            ...target,
             name: target.name.trim() || 'SkinCraft 3D Viewer',
-            iconUrl: target.iconUrl,
             itemUrl: `${this.embedOrigin}/i/${encodeURIComponent(target.inspect)}`,
-            assetId: target.assetId,
-            seed: target.seed,
-            float: target.float,
-            rarityColor: target.rarityColor,
-            backgroundColor: target.backgroundColor,
         };
     }
 
@@ -136,7 +129,7 @@ class SkinCraftEmbedService {
         if (showLoadingCover) {
             this.modal?.setLoading(null);
         } else {
-            this.modal?.continueLoadingInFrame();
+            this.modal?.showFrame();
         }
         this.startLoadTimeout();
 
@@ -182,7 +175,7 @@ class SkinCraftEmbedService {
                 this.clearLoadTimeout();
                 this.loadPhase = 'loaded';
                 this.showLoadingCover = false;
-                this.modal?.setLoaded();
+                this.modal?.showFrame();
                 break;
             case 'error':
                 if (!this.acceptsTerminalEvent(message.id)) return;

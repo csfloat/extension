@@ -4,9 +4,9 @@ import {
     MAX_SKINCRAFT_INVENTORY_TARGETS,
     SKINCRAFT_VIEWER_MESSAGE_SOURCE,
 } from './skincraft_viewer_protocol';
-import type {OpenSkinCraftViewerTarget} from './skincraft_viewer_protocol';
+import type {SkinCraftItem} from './skincraft_viewer_protocol';
 
-const target: OpenSkinCraftViewerTarget = {
+const target: SkinCraftItem = {
     inspect: 'a'.repeat(80),
     name: 'AK-47 | Redline',
     iconUrl: 'https://community.akamai.steamstatic.com/economy/image/example/330x192',

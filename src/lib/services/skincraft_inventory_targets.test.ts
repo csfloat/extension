@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import type {ItemInfo} from '../bridge/handlers/fetch_inspect_info';
 import type {CInventory, InventoryAsset} from '../types/steam';
-import {getLoadedInventoryTargets, getSkinCraftInspect} from './skincraft_inventory_targets';
+import {getLoadedInventoryTargets, toSkinCraftItem} from './skincraft_inventory_targets';
 
 function createInventory(assets: InventoryAsset[]): CInventory {
     return {
@@ -10,7 +10,7 @@ function createInventory(assets: InventoryAsset[]): CInventory {
         m_rgAssets: Object.fromEntries(assets.map((asset) => [asset.assetid, asset])),
         m_parentInventory: null,
         rgInventory: {},
-    };
+    } as unknown as CInventory;
 }
 
 describe('SkinCraft inventory targets', () => {
@@ -25,7 +25,7 @@ describe('SkinCraft inventory targets', () => {
             },
         } as unknown as InventoryAsset;
 
-        expect(getSkinCraftInspect(asset)).toBe('a'.repeat(80));
+        expect(toSkinCraftItem(asset)?.inspect).toBe('a'.repeat(80));
     });
 
     it('skips Steam assets whose descriptions are not initialized yet', () => {

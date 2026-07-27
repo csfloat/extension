@@ -3,9 +3,18 @@ import type {ItemInfo} from '../bridge/handlers/fetch_inspect_info';
 import {ContextId} from '../types/steam_constants';
 import {isCAppwideInventory} from '../utils/checkers';
 import {formatFloatWithRank, formatSeed, isSkin} from '../utils/skin';
+import {steamEconomyImageUrl} from '../utils/steam_images';
 import {gFloatFetcher} from './float_fetcher';
-import {MAX_SKINCRAFT_INVENTORY_TARGETS} from './skincraft_viewer_protocol';
-import type {OpenSkinCraftViewerTarget} from './skincraft_viewer_protocol';
+import {
+    HEX_COLOR_PATTERN,
+    MAX_SKINCRAFT_INVENTORY_TARGETS,
+    SKINCRAFT_INSPECT_PATTERN,
+} from './skincraft_viewer_protocol';
+import type {SkinCraftItem} from './skincraft_viewer_protocol';
+
+type CachedItemInfoLookup = (assetId: string) => ItemInfo | undefined;
+
+const cachedItemInfo: CachedItemInfoLookup = (assetId) => gFloatFetcher.getCached(assetId);
 
 function getAssetProperties(asset: InventoryAsset, fallbackProperties: rgAssetProperty[]): rgAssetProperty[] {
     if (asset.asset_properties?.length) return asset.asset_properties;
@@ -13,9 +22,9 @@ function getAssetProperties(asset: InventoryAsset, fallbackProperties: rgAssetPr
     return fallbackProperties;
 }
 
-export function getSkinCraftInspect(
+function getSkinCraftInspect(
     asset: InventoryAsset | undefined,
-    fallbackProperties: rgAssetProperty[] = []
+    fallbackProperties: rgAssetProperty[]
 ): string | undefined {
     if (!asset?.description || !isSkin(asset.description)) return;
 
@@ -26,15 +35,15 @@ export function getSkinCraftInspect(
     );
 }
 
-function toViewerTarget(
-    inventory: CInventory,
-    asset: InventoryAsset,
-    getCachedItemInfo: (assetId: string) => ItemInfo | undefined
-): OpenSkinCraftViewerTarget | undefined {
-    if (!asset.description || typeof asset.description.market_hash_name !== 'string') return;
+export function toSkinCraftItem(
+    asset: InventoryAsset | undefined,
+    fallbackProperties: rgAssetProperty[] = [],
+    getCachedItemInfo: CachedItemInfoLookup = cachedItemInfo
+): SkinCraftItem | undefined {
+    if (!asset?.description || typeof asset.description.market_hash_name !== 'string') return;
 
-    const inspect = getSkinCraftInspect(asset, inventory.m_rgAssetProperties[asset.assetid]);
-    if (!inspect || !/^[0-9a-f]{40,8192}$/i.test(inspect)) return;
+    const inspect = getSkinCraftInspect(asset, fallbackProperties);
+    if (!inspect || !SKINCRAFT_INSPECT_PATTERN.test(inspect)) return;
 
     const icon = asset.description.icon_url_large || asset.description.icon_url;
     const itemInfo = getCachedItemInfo(asset.assetid);
@@ -43,26 +52,26 @@ function toViewerTarget(
     return {
         inspect,
         name: asset.description.market_hash_name,
-        iconUrl: icon ? `https://community.akamai.steamstatic.com/economy/image/${icon}/330x192` : undefined,
+        iconUrl: icon ? steamEconomyImageUrl(icon) : undefined,
         assetId: asset.assetid,
         seed: itemInfo ? formatSeed(itemInfo) : undefined,
         float: itemInfo ? formatFloatWithRank(itemInfo, 6) : undefined,
-        rarityColor: rarityColor && /^[0-9a-f]{6}$/i.test(rarityColor) ? rarityColor : undefined,
-        backgroundColor: backgroundColor && /^[0-9a-f]{6}$/i.test(backgroundColor) ? backgroundColor : undefined,
+        rarityColor: rarityColor && HEX_COLOR_PATTERN.test(rarityColor) ? rarityColor : undefined,
+        backgroundColor: backgroundColor && HEX_COLOR_PATTERN.test(backgroundColor) ? backgroundColor : undefined,
     };
 }
 
 export function getLoadedInventoryTargets(
     activeInventory: CInventory | CAppwideInventory,
-    getCachedItemInfo: (assetId: string) => ItemInfo | undefined = (assetId) => gFloatFetcher.getCached(assetId)
-): OpenSkinCraftViewerTarget[] {
+    getCachedItemInfo: CachedItemInfoLookup = cachedItemInfo
+): SkinCraftItem[] {
     const inventories = isCAppwideInventory(activeInventory)
         ? [
               activeInventory.m_rgChildInventories[ContextId.PRIMARY],
               activeInventory.m_rgChildInventories[ContextId.PROTECTED],
           ]
         : [activeInventory];
-    const targets: OpenSkinCraftViewerTarget[] = [];
+    const targets: SkinCraftItem[] = [];
     const seenAssets = new Set<string>();
 
     for (const inventory of inventories) {
@@ -71,7 +80,7 @@ export function getLoadedInventoryTargets(
         for (const asset of Object.values(inventory.m_rgAssets)) {
             if (seenAssets.has(asset.assetid)) continue;
 
-            const target = toViewerTarget(inventory, asset, getCachedItemInfo);
+            const target = toSkinCraftItem(asset, inventory.m_rgAssetProperties[asset.assetid], getCachedItemInfo);
             if (!target) continue;
 
             seenAssets.add(asset.assetid);

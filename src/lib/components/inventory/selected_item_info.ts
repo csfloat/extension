@@ -23,8 +23,10 @@ import {Contract} from '../../types/float_market';
 import '../common/ui/floatbar';
 import {ClientSend} from '../../bridge/client';
 import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
+import {environment} from '../../../environment';
 import {gSkinCraftEmbed} from '../../services/skincraft_embed';
-import {getSkinCraftInspect} from '../../services/skincraft_inventory_targets';
+import {toSkinCraftItem} from '../../services/skincraft_inventory_targets';
+import type {SkinCraftItem} from '../../services/skincraft_viewer_protocol';
 import './list_item_modal';
 
 /**
@@ -89,7 +91,9 @@ export class SelectedItemInfo extends FloatElement {
                 cursor: pointer;
                 font-family: inherit;
                 text-decoration: none;
-                transition: all 180ms ease;
+                transition:
+                    filter 180ms ease,
+                    transform 180ms ease;
                 box-shadow:
                     0 4px 12px hsl(0 0% 0% / 0.22),
                     0 1px 2px hsl(0 0% 0% / 0.16),
@@ -195,14 +199,13 @@ export class SelectedItemInfo extends FloatElement {
             );
         }
 
-        const isMarketItem = isSellableOnCSFloat(this.asset.description);
-        if ((isMarketItem && this.canListOnCSFloat) || this.canViewInSkinCraft) {
+        if (this.canListOnCSFloat || this.canViewInSkinCraft) {
             containerChildren.push(
                 html`<div class="market-btn-row">${this.renderListOnCSFloat()} ${this.renderViewIn3D()}</div>`
             );
         }
 
-        if (isMarketItem) {
+        if (isSellableOnCSFloat(this.asset.description)) {
             containerChildren.push(this.renderFloatMarketListing());
         }
 
@@ -269,18 +272,20 @@ export class SelectedItemInfo extends FloatElement {
 
     private get canListOnCSFloat(): boolean {
         return (
+            !!this.asset?.description &&
+            isSellableOnCSFloat(this.asset.description) &&
             !this.stallListing &&
             g_ActiveInventory?.m_owner?.strSteamId === g_steamID &&
-            !!this.asset?.description?.tradable
+            !!this.asset.description.tradable
         );
     }
 
-    private get skinCraftInspect(): string | undefined {
-        return getSkinCraftInspect(this.asset);
+    private get skinCraftItem(): SkinCraftItem | undefined {
+        return toSkinCraftItem(this.asset);
     }
 
     private get canViewInSkinCraft(): boolean {
-        return !!this.skinCraftInspect;
+        return !!this.skinCraftItem;
     }
 
     renderViewIn3D(): TemplateResult<1> {
@@ -290,7 +295,7 @@ export class SelectedItemInfo extends FloatElement {
 
         return html`
             <button class="view-3d-btn" type="button" @click="${this.handleViewIn3D}">
-                <img src="https://skincraft.gg/icon.svg" height="22" alt="" />
+                <img src="${environment.skincraft_embed_origin}/icon.svg" height="22" alt="" />
                 <span>View in 3D</span>
             </button>
         `;
@@ -319,15 +324,8 @@ export class SelectedItemInfo extends FloatElement {
     }
 
     private handleViewIn3D(): void {
-        if (!this.asset || !this.skinCraftInspect) return;
-
-        const icon = this.asset.description.icon_url_large || this.asset.description.icon_url;
-        gSkinCraftEmbed.open({
-            inspect: this.skinCraftInspect,
-            name: this.asset.description.market_hash_name,
-            iconUrl: icon ? `https://community.akamai.steamstatic.com/economy/image/${icon}/330x192` : undefined,
-            assetId: this.asset.assetid,
-        });
+        const item = this.skinCraftItem;
+        if (item) gSkinCraftEmbed.open(item);
     }
 
     async processSelectChange() {
