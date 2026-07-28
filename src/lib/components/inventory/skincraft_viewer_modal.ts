@@ -136,7 +136,7 @@ export class SkinCraftViewerModal {
     }
 
     private template(): TemplateResult {
-        const revealed = this.phase !== 'loading';
+        const revealed = this.phase === 'revealed';
 
         return html`
             <dialog
