@@ -142,7 +142,12 @@ export async function getTradeHistoryFromAPI(
 
     const data = (await resp.json()) as TradeHistoryAPIResponse;
     return (data.response?.trades || [])
-        .filter((e) => e.status === TradeStatus.Complete || e.status === TradeStatus.TradeProtectionRollback) // Ensure we only count _complete_ trades (k_ETradeStatus_Complete) or rolled back (for reporting)
+        .filter(
+            (e) =>
+                e.status === TradeStatus.Committed ||
+                e.status === TradeStatus.Complete ||
+                e.status === TradeStatus.TradeProtectionRollback
+        ) // Only report exchanged/completed trades or trade-protection rollbacks
         .filter((e) => !e.time_escrow_end || new Date(parseInt(e.time_escrow_end) * 1000).getTime() < Date.now())
         .map((e) => {
             return {
