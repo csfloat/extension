@@ -31,6 +31,7 @@ class SkinCraftEmbedService {
     private loadProgress: number | null = null;
     private loadPhase: LoadPhase = 'idle';
     private showLoadingCover = false;
+    private frameHasContent = false;
 
     constructor() {
         if (!this.runsInPage) window.addEventListener('message', this.handleOpenRequest);
@@ -67,6 +68,7 @@ class SkinCraftEmbedService {
         this.loadProgress = null;
         this.loadPhase = 'idle';
         this.showLoadingCover = false;
+        this.frameHasContent = false;
         this.clearLoadTimeout();
         this.post({type: 'clear'});
         this.modal?.hide();
@@ -87,7 +89,9 @@ class SkinCraftEmbedService {
 
     private selectEmbeddedTarget(target: SkinCraftViewerTarget): void {
         const modal = this.ensureModal();
-        const showLoadingCover = !modal.isOpen;
+        // Switch in place only when the frame is showing a model; otherwise dropping the cover
+        // would leave an empty or errored iframe on screen until the next terminal event.
+        const showLoadingCover = !modal.isOpen || !this.frameHasContent;
         this.active = true;
         this.activeTarget = target;
         modal.show(this.activeTarget);
@@ -107,6 +111,7 @@ class SkinCraftEmbedService {
         if (this.modal?.element.isConnected) return this.modal;
 
         this.ready = false;
+        this.frameHasContent = false;
         const modal = new SkinCraftViewerModal(
             this.embedSrc,
             () => this.close(),
@@ -175,6 +180,7 @@ class SkinCraftEmbedService {
                 this.clearLoadTimeout();
                 this.loadPhase = 'loaded';
                 this.showLoadingCover = false;
+                this.frameHasContent = true;
                 this.modal?.showFrame();
                 break;
             case 'error':
@@ -217,6 +223,9 @@ class SkinCraftEmbedService {
             if (!this.active) return;
             this.loadPhase = 'error';
             this.showLoadingCover = false;
+            // Drop the queued load so a late `ready` can't start it under the error UI — recovery
+            // goes through the Retry button.
+            this.pendingInspect = undefined;
             this.modal?.setError('The 3D viewer took too long to load.');
         }, LOAD_TIMEOUT_MS);
     }
