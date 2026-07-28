@@ -76,7 +76,7 @@ class SkinCraftEmbedService {
     }
 
     private handleOpenRequest = (event: MessageEvent): void => {
-        if (event.origin !== window.location.origin) return;
+        if (event.source !== window || event.origin !== window.location.origin) return;
         if (!isOpenSkinCraftViewerMessage(event.data)) return;
         this.openEmbeddedViewer(event.data.target, event.data.inventory);
     };
@@ -160,11 +160,19 @@ class SkinCraftEmbedService {
         const message = event.data;
         switch (message.type) {
             case 'ready': {
+                // A repeat `ready` means the embed rebooted (crash or self-navigation) and lost
+                // its model — reload the current item behind the cover.
+                const rebooted = this.ready;
                 this.ready = true;
+                if (rebooted) this.frameHasContent = false;
                 if (this.active && this.pendingInspect) {
                     const inspect = this.pendingInspect;
                     this.pendingInspect = undefined;
                     this.sendLoad(inspect);
+                } else if (rebooted && this.active && this.activeTarget) {
+                    this.showLoadingCover = true;
+                    this.modal?.setLoading(null);
+                    this.sendLoad(this.activeTarget.inspect);
                 }
                 break;
             }
@@ -184,10 +192,11 @@ class SkinCraftEmbedService {
                 this.modal?.showFrame();
                 break;
             case 'error':
-                if (!this.acceptsTerminalEvent(message.id)) return;
+                if (!this.acceptsErrorEvent(message.id)) return;
                 this.clearLoadTimeout();
                 this.loadPhase = 'error';
                 this.showLoadingCover = false;
+                this.frameHasContent = false;
                 this.modal?.setError(message.message || 'SkinCraft could not load this item.');
                 break;
         }
@@ -201,9 +210,21 @@ class SkinCraftEmbedService {
         return (this.loadPhase === 'loading' || this.loadPhase === 'error') && this.acceptsLoadEvent(id);
     }
 
+    /** Unlike `loaded`, an error can also invalidate a model that already loaded (e.g. a lost GPU device). */
+    private acceptsErrorEvent(id?: string): boolean {
+        return this.loadPhase !== 'idle' && this.acceptsLoadEvent(id);
+    }
+
     private handleVisibilityChange = (): void => {
         if (!this.active) return;
-        this.post({type: document.hidden ? 'pause' : 'resume'});
+        // A paused embed emits no progress, so hold the load watchdog while the tab is hidden.
+        if (document.hidden) {
+            this.clearLoadTimeout();
+            this.post({type: 'pause'});
+        } else {
+            if (this.loadPhase === 'loading') this.startLoadTimeout();
+            this.post({type: 'resume'});
+        }
     };
 
     private post(command: SkinCraftEmbedCommand): void {
@@ -223,6 +244,7 @@ class SkinCraftEmbedService {
             if (!this.active) return;
             this.loadPhase = 'error';
             this.showLoadingCover = false;
+            this.frameHasContent = false;
             // Drop the queued load so a late `ready` can't start it under the error UI — recovery
             // goes through the Retry button.
             this.pendingInspect = undefined;
