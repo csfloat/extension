@@ -80,7 +80,7 @@ export function getLoadedInventoryTargets(
         for (const asset of Object.values(inventory.m_rgAssets)) {
             if (seenAssets.has(asset.assetid)) continue;
 
-            const target = toSkinCraftItem(asset, inventory.m_rgAssetProperties[asset.assetid], getCachedItemInfo);
+            const target = toSkinCraftItem(asset, inventory.m_rgAssetProperties?.[asset.assetid], getCachedItemInfo);
             if (!target) continue;
 
             seenAssets.add(asset.assetid);
