@@ -56,6 +56,7 @@ export class SkinCraftViewerModal {
     private entering = false;
     private closing = false;
     private iconReady = false;
+    private backdropPressed = false;
     private closeTimer?: number;
     private entryFrame?: number;
     private iconRequest = 0;
@@ -148,6 +149,7 @@ export class SkinCraftViewerModal {
                 })}"
                 aria-labelledby="skincraft-viewer-title"
                 @cancel="${this.handleCancel}"
+                @pointerdown="${this.handleDialogPointerDown}"
                 @click="${this.handleDialogClick}"
                 @transitionend="${this.handleTransitionEnd}"
             >
@@ -322,17 +324,29 @@ export class SkinCraftViewerModal {
         this.onClose();
     }
 
-    private handleDialogClick(event: MouseEvent): void {
+    // A backdrop hit lands on the <dialog> itself with coordinates outside its rect.
+    private isBackdropEvent(event: MouseEvent): boolean {
         const dialog = this.dialogRef.value;
-        if (!dialog || event.target !== dialog) return;
+        if (!dialog || event.target !== dialog) return false;
 
         const rect = dialog.getBoundingClientRect();
-        const inside =
-            event.clientX >= rect.left &&
-            event.clientX <= rect.right &&
-            event.clientY >= rect.top &&
-            event.clientY <= rect.bottom;
-        if (!inside) this.onClose();
+        return (
+            event.clientX < rect.left ||
+            event.clientX > rect.right ||
+            event.clientY < rect.top ||
+            event.clientY > rect.bottom
+        );
+    }
+
+    private handleDialogPointerDown(event: PointerEvent): void {
+        this.backdropPressed = this.isBackdropEvent(event);
+    }
+
+    private handleDialogClick(event: MouseEvent): void {
+        const pressed = this.backdropPressed;
+        this.backdropPressed = false;
+        // The press must start on the backdrop too, so a drag that merely ends there doesn't dismiss.
+        if (pressed && this.isBackdropEvent(event)) this.onClose();
     }
 
     private handleTransitionEnd(event: TransitionEvent): void {
