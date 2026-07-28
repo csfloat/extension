@@ -27,6 +27,8 @@ import {environment} from '../../../environment';
 import {gSkinCraftEmbed} from '../../services/skincraft_embed';
 import {toSkinCraftItem} from '../../services/skincraft_inventory_targets';
 import type {SkinCraftItem} from '../../services/skincraft_viewer_protocol';
+import {gWebGpuAvailability} from '../../services/webgpu_availability';
+import type {WebGpuAvailability} from '../../services/webgpu_availability';
 import './list_item_modal';
 
 /**
@@ -126,6 +128,9 @@ export class SelectedItemInfo extends FloatElement {
 
     @state()
     private showListModal: boolean = false;
+
+    @state()
+    private webGpuStatus: WebGpuAvailability = gWebGpuAvailability.status;
 
     private bluegemData: FetchBluegemResponse | undefined;
 
@@ -285,7 +290,7 @@ export class SelectedItemInfo extends FloatElement {
     }
 
     private get canViewInSkinCraft(): boolean {
-        return !!this.skinCraftItem;
+        return this.webGpuStatus === 'available' && !!this.skinCraftItem;
     }
 
     renderViewIn3D(): TemplateResult<1> {
@@ -368,8 +373,15 @@ export class SelectedItemInfo extends FloatElement {
         this.loading = false;
     }
 
+    private async resolveWebGpuStatus(): Promise<void> {
+        if (this.webGpuStatus === 'checking') this.webGpuStatus = await gWebGpuAvailability.settled();
+    }
+
     connectedCallback() {
         super.connectedCallback();
+
+        // Settles once per session; the 3D button stays hidden until it does
+        void this.resolveWebGpuStatus();
 
         // For the initial load, in case an item is pre-selected
         this.processSelectChange();
