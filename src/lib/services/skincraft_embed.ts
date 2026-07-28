@@ -245,9 +245,10 @@ class SkinCraftEmbedService {
             this.loadPhase = 'error';
             this.showLoadingCover = false;
             this.frameHasContent = false;
-            // Drop the queued load so a late `ready` can't start it under the error UI — recovery
-            // goes through the Retry button.
+            // Drop the queued load and forget the in-flight id so neither a late `ready` nor a
+            // late `loaded` can act under the error UI — recovery goes through the Retry button.
             this.pendingInspect = undefined;
+            this.latestLoadId = undefined;
             this.modal?.setError('The 3D viewer took too long to load.');
         }, LOAD_TIMEOUT_MS);
     }
