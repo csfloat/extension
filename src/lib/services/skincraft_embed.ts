@@ -202,17 +202,25 @@ class SkinCraftEmbedService {
         }
     };
 
+    // Id-less events stay accepted here because the embed's boot-time progress predates our first
+    // `load` command and so carries no id.
     private acceptsLoadEvent(id?: string): boolean {
         return this.active && (!id || id === this.latestLoadId);
     }
 
+    // Terminal events echo our load id, so they must correlate — a stale or timed-out load can't
+    // dismiss newer UI.
+    private isLatestLoad(id?: string): boolean {
+        return this.active && id !== undefined && id === this.latestLoadId;
+    }
+
     private acceptsTerminalEvent(id?: string): boolean {
-        return (this.loadPhase === 'loading' || this.loadPhase === 'error') && this.acceptsLoadEvent(id);
+        return (this.loadPhase === 'loading' || this.loadPhase === 'error') && this.isLatestLoad(id);
     }
 
     /** Unlike `loaded`, an error can also invalidate a model that already loaded (e.g. a lost GPU device). */
     private acceptsErrorEvent(id?: string): boolean {
-        return this.loadPhase !== 'idle' && this.acceptsLoadEvent(id);
+        return this.loadPhase !== 'idle' && this.isLatestLoad(id);
     }
 
     private handleVisibilityChange = (): void => {
