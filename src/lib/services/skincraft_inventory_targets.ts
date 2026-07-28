@@ -61,6 +61,28 @@ export function toSkinCraftItem(
     };
 }
 
+/** Property lookup for a single active-inventory asset, covering appwide child inventories. */
+export function getActiveInventoryAssetProperties(
+    activeInventory: CInventory | CAppwideInventory | undefined,
+    assetId: string | undefined
+): rgAssetProperty[] | undefined {
+    if (!activeInventory || !assetId) return;
+
+    const inventories = isCAppwideInventory(activeInventory)
+        ? [
+              activeInventory.m_rgChildInventories[ContextId.PRIMARY],
+              activeInventory.m_rgChildInventories[ContextId.PROTECTED],
+              activeInventory,
+          ]
+        : [activeInventory];
+
+    for (const inventory of inventories) {
+        const properties = inventory?.m_rgAssetProperties?.[assetId];
+        if (properties?.length) return properties;
+    }
+    return undefined;
+}
+
 export function getLoadedInventoryTargets(
     activeInventory: CInventory | CAppwideInventory,
     getCachedItemInfo: CachedItemInfoLookup = cachedItemInfo

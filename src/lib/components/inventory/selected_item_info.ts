@@ -25,7 +25,7 @@ import {ClientSend} from '../../bridge/client';
 import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
 import {environment} from '../../../environment';
 import {gSkinCraftEmbed} from '../../services/skincraft_embed';
-import {toSkinCraftItem} from '../../services/skincraft_inventory_targets';
+import {getActiveInventoryAssetProperties, toSkinCraftItem} from '../../services/skincraft_inventory_targets';
 import type {SkinCraftItem} from '../../services/skincraft_viewer_protocol';
 import {gWebGpuAvailability} from '../../services/webgpu_availability';
 import type {WebGpuAvailability} from '../../services/webgpu_availability';
@@ -286,7 +286,7 @@ export class SelectedItemInfo extends FloatElement {
     }
 
     private get skinCraftItem(): SkinCraftItem | undefined {
-        return toSkinCraftItem(this.asset);
+        return toSkinCraftItem(this.asset, getActiveInventoryAssetProperties(g_ActiveInventory, this.asset?.assetid));
     }
 
     private get canViewInSkinCraft(): boolean {
