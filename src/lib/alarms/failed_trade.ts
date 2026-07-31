@@ -11,10 +11,7 @@ interface FailedTradeInfo {
     csfloatTrade: SlimTrade;
 }
 
-export function findFailedTrades(
-    pendingTrades: SlimTrade[],
-    tradeHistory: TradeHistoryStatus[]
-): FailedTradeInfo[] {
+export function findFailedTrades(pendingTrades: SlimTrade[], tradeHistory: TradeHistoryStatus[]): FailedTradeInfo[] {
     const results: FailedTradeInfo[] = [];
 
     for (const trade of tradeHistory) {
@@ -32,8 +29,7 @@ export function findFailedTrades(
                 pendingTrade.steam_offer?.state === TradeOfferState.Active &&
                 pendingTrade.steam_trade_failed_id !== trade.trade_id &&
                 assetIDs.includes(pendingTrade.contract.item.asset_id) &&
-                (trade.other_party_id === pendingTrade.seller_id ||
-                    trade.other_party_id === pendingTrade.buyer_id)
+                (trade.other_party_id === pendingTrade.seller_id || trade.other_party_id === pendingTrade.buyer_id)
         );
         if (!csfloatTrade) {
             continue;
