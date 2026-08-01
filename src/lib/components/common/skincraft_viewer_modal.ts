@@ -5,9 +5,20 @@ import {guard} from 'lit/directives/guard.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import {styleMap} from 'lit/directives/style-map.js';
 import type {SkinCraftViewerTarget} from '../../services/skincraft_viewer_protocol';
+import {skinCraftLogoMark} from './skincraft_logo';
 import {MODAL_TRANSITION_MS, skinCraftViewerModalStyles} from './skincraft_viewer_modal_styles';
 
 type LoadPhase = 'loading' | 'revealed' | 'error';
+
+export type SkinCraftViewerModalOptions = {
+    /** URL loaded once into the persistent embed iframe. */
+    embedSrc: string;
+    /** Heading for the item strip, e.g. "Inventory" — the modal itself is surface-agnostic. */
+    itemsTitle: string;
+    onClose: () => void;
+    onRetry: () => void;
+    onSelect: (target: SkinCraftViewerTarget) => void;
+};
 
 function mixHexColors(base: string, tint: string, tintAmount: number): string {
     const mixChannel = (offset: number): number => {
@@ -19,15 +30,15 @@ function mixHexColors(base: string, tint: string, tintAmount: number): string {
     return `rgb(${mixChannel(0)} ${mixChannel(2)} ${mixChannel(4)})`;
 }
 
-function inventoryCardColors(target: SkinCraftViewerTarget): Record<string, string> {
+function itemCardColors(target: SkinCraftViewerTarget): Record<string, string> {
     const base = target.backgroundColor || '2a2f3a';
     const rarity = target.rarityColor || 'c1ceff';
 
     return {
-        '--inventory-card-background': target.backgroundColor ? `#${base}` : mixHexColors(base, rarity, 0.1),
-        '--inventory-card-rarity': `#${rarity}`,
-        '--inventory-card-hover': mixHexColors(base, rarity, 0.16),
-        '--inventory-card-selected': mixHexColors(base, rarity, 0.26),
+        '--item-card-background': target.backgroundColor ? `#${base}` : mixHexColors(base, rarity, 0.1),
+        '--item-card-rarity': `#${rarity}`,
+        '--item-card-hover': mixHexColors(base, rarity, 0.16),
+        '--item-card-selected': mixHexColors(base, rarity, 0.26),
     };
 }
 
@@ -49,7 +60,7 @@ export class SkinCraftViewerModal {
     private readonly frameRef = createRef<HTMLIFrameElement>();
 
     private target?: SkinCraftViewerTarget;
-    private inventoryTargets: SkinCraftViewerTarget[] = [];
+    private items: SkinCraftViewerTarget[] = [];
     private phase: LoadPhase = 'loading';
     private progress: number | null = null;
     private errorMessage = '';
@@ -61,12 +72,7 @@ export class SkinCraftViewerModal {
     private entryFrame?: number;
     private iconRequest = 0;
 
-    constructor(
-        private readonly embedSrc: string,
-        private readonly onClose: () => void,
-        private readonly onRetry: () => void,
-        private readonly onSelect: (target: SkinCraftViewerTarget) => void
-    ) {
+    constructor(private readonly options: SkinCraftViewerModalOptions) {
         // Closed so page scripts can't reach into the viewer we host on their document.
         this.root = this.element.attachShadow({mode: 'closed'});
         const style = document.createElement('style');
@@ -83,8 +89,8 @@ export class SkinCraftViewerModal {
         return this.dialogRef.value?.open ?? false;
     }
 
-    setInventory(targets: SkinCraftViewerTarget[]): void {
-        this.inventoryTargets = targets;
+    setItems(items: SkinCraftViewerTarget[]): void {
+        this.items = items;
         this.update();
     }
 
@@ -143,7 +149,7 @@ export class SkinCraftViewerModal {
             <dialog
                 ${ref(this.dialogRef)}
                 class="${classMap({
-                    'has-inventory': this.inventoryTargets.length > 1,
+                    'has-items': this.items.length > 1,
                     entering: this.entering,
                     closing: this.closing,
                 })}"
@@ -154,29 +160,43 @@ export class SkinCraftViewerModal {
                 @transitionend="${this.handleTransitionEnd}"
             >
                 <header class="modal-header">
-                    <div class="modal-title" id="skincraft-viewer-title">
-                        <span>${this.target?.name ?? ''}</span>
-                        <span class="modal-brand"> — SkinCraft 3D Viewer</span>
+                    <div class="modal-title" id="skincraft-viewer-title">${this.target?.name ?? ''}</div>
+                    <div class="modal-header-actions">
+                        <a
+                            class="skincraft-attribution"
+                            href="${this.target?.itemUrl ?? ''}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="Open on SkinCraft"
+                        >
+                            ${skinCraftLogoMark}
+                            <span class="skincraft-wordmark">skincraft<span>.gg</span></span>
+                        </a>
+                        <button
+                            class="close-button"
+                            type="button"
+                            aria-label="Close 3D viewer"
+                            @click="${this.options.onClose}"
+                        >
+                            ×
+                        </button>
                     </div>
-                    <button class="close-button" type="button" aria-label="Close 3D viewer" @click="${this.onClose}">
-                        ×
-                    </button>
                 </header>
                 <div class="modal-body">
-                    <aside class="inventory-panel" aria-label="Loaded inventory items">
-                        <div class="inventory-panel-header">
-                            <span>Inventory</span>
-                            <span class="inventory-count">${this.inventoryTargets.length}</span>
+                    <aside class="item-panel" aria-label="${this.options.itemsTitle}">
+                        <div class="item-panel-header">
+                            <span>${this.options.itemsTitle}</span>
+                            <span class="item-count">${this.items.length}</span>
                         </div>
-                        <div class="inventory-grid" @click="${this.handleInventoryClick}">
-                            ${guard([this.inventoryTargets, this.selectedKey], () => this.renderInventoryCards())}
+                        <div class="item-grid" @click="${this.handleItemsClick}">
+                            ${guard([this.items, this.selectedKey], () => this.renderItemCards())}
                         </div>
                     </aside>
                     <div class="viewer-stage">
                         <iframe
                             ${ref(this.frameRef)}
                             class="${revealed ? 'loaded' : ''}"
-                            src="${this.embedSrc}"
+                            src="${this.options.embedSrc}"
                             title="SkinCraft 3D viewer"
                             referrerpolicy="no-referrer"
                             sandbox="allow-scripts allow-same-origin allow-downloads"
@@ -240,7 +260,7 @@ export class SkinCraftViewerModal {
             <div class="error-status ${this.phase === 'error' ? '' : 'hidden'}">
                 <div class="error-message">${this.errorMessage}</div>
                 <div class="error-actions">
-                    <button type="button" @click="${this.onRetry}">Retry</button>
+                    <button type="button" @click="${this.options.onRetry}">Retry</button>
                     <a href="${this.target?.itemUrl ?? ''}" target="_blank" rel="noopener noreferrer">
                         Open on SkinCraft
                     </a>
@@ -249,27 +269,27 @@ export class SkinCraftViewerModal {
         `;
     }
 
-    private renderInventoryCards(): TemplateResult[] {
+    private renderItemCards(): TemplateResult[] {
         const selectedKey = this.selectedKey;
 
-        return this.inventoryTargets.map((target, index) => {
+        return this.items.map((target, index) => {
             const selected = targetKey(target) === selectedKey;
 
             return html`
                 <button
-                    class="inventory-card ${selected ? 'selected' : ''}"
+                    class="item-card ${selected ? 'selected' : ''}"
                     type="button"
                     title="${target.name}"
                     data-index="${index}"
                     aria-label="View ${target.name} in 3D"
                     aria-pressed="${selected}"
-                    style="${styleMap(inventoryCardColors(target))}"
+                    style="${styleMap(itemCardColors(target))}"
                 >
                     ${target.iconUrl
                         ? html`<img src="${target.iconUrl}" alt="" loading="lazy" decoding="async" draggable="false" />`
                         : nothing}
-                    ${target.seed ? html`<span class="inventory-card-seed">${target.seed}</span>` : nothing}
-                    ${target.float ? html`<span class="inventory-card-float">${target.float}</span>` : nothing}
+                    ${target.seed ? html`<span class="item-card-seed">${target.seed}</span>` : nothing}
+                    ${target.float ? html`<span class="item-card-float">${target.float}</span>` : nothing}
                 </button>
             `;
         });
@@ -311,7 +331,7 @@ export class SkinCraftViewerModal {
     }
 
     private scrollSelectedIntoView(): void {
-        const card = this.root.querySelector('.inventory-card.selected');
+        const card = this.root.querySelector('.item-card.selected');
         if (card) requestAnimationFrame(() => card.scrollIntoView({block: 'nearest', inline: 'nearest'}));
     }
 
@@ -321,7 +341,7 @@ export class SkinCraftViewerModal {
 
     private handleCancel(event: Event): void {
         event.preventDefault();
-        this.onClose();
+        this.options.onClose();
     }
 
     // A backdrop hit lands on the <dialog> itself with coordinates outside its rect.
@@ -346,25 +366,25 @@ export class SkinCraftViewerModal {
         const pressed = this.backdropPressed;
         this.backdropPressed = false;
         // The press must start on the backdrop too, so a drag that merely ends there doesn't dismiss.
-        if (pressed && this.isBackdropEvent(event)) this.onClose();
+        if (pressed && this.isBackdropEvent(event)) this.options.onClose();
     }
 
     private handleTransitionEnd(event: TransitionEvent): void {
         if (event.target === this.dialogRef.value && event.propertyName === 'transform') this.finishClose();
     }
 
-    private handleInventoryClick(event: MouseEvent): void {
+    private handleItemsClick(event: MouseEvent): void {
         const node = event.target;
         if (!(node instanceof Element)) return;
 
-        const button = node.closest<HTMLButtonElement>('.inventory-card');
+        const button = node.closest<HTMLButtonElement>('.item-card');
         const index = Number(button?.dataset.index);
         if (!button || !Number.isInteger(index)) return;
 
-        const target = this.inventoryTargets[index];
+        const target = this.items[index];
         if (!target) return;
 
-        this.onSelect(target);
+        this.options.onSelect(target);
         this.focusViewer();
     }
 

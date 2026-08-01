@@ -1,5 +1,5 @@
 import {environment} from '../../environment';
-import {SkinCraftViewerModal} from '../components/inventory/skincraft_viewer_modal';
+import {SkinCraftViewerModal} from '../components/common/skincraft_viewer_modal';
 import {inPageContext} from '../utils/snips';
 import {
     isSkinCraftEmbedEvent,
@@ -83,7 +83,7 @@ class SkinCraftEmbedService {
 
     private openEmbeddedViewer(target: SkinCraftItem, inventory: SkinCraftItem[]): void {
         const modal = this.ensureModal();
-        modal.setInventory(inventory.map((item) => this.toViewerTarget(item)));
+        modal.setItems(inventory.map((item) => this.toViewerTarget(item)));
         this.selectEmbeddedTarget(this.toViewerTarget(target));
     }
 
@@ -112,14 +112,15 @@ class SkinCraftEmbedService {
 
         this.ready = false;
         this.frameHasContent = false;
-        const modal = new SkinCraftViewerModal(
-            this.embedSrc,
-            () => this.close(),
-            () => {
+        const modal = new SkinCraftViewerModal({
+            embedSrc: this.embedSrc,
+            itemsTitle: 'Inventory',
+            onClose: () => this.close(),
+            onRetry: () => {
                 if (this.activeTarget) this.requestLoad(this.activeTarget.inspect, true);
             },
-            (target) => this.selectEmbeddedTarget(target)
-        );
+            onSelect: (target) => this.selectEmbeddedTarget(target),
+        });
         document.body.appendChild(modal.element);
         window.addEventListener('message', this.handleEmbedMessage);
         this.modal = modal;

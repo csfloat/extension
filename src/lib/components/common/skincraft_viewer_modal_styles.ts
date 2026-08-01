@@ -74,9 +74,48 @@ export const skinCraftViewerModalStyles = `
         white-space: nowrap;
     }
 
-    .modal-brand {
-        color: rgba(245, 248, 255, 0.58);
-        font-weight: 400;
+    .modal-header-actions {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .skincraft-attribution {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: inherit;
+        text-decoration: none;
+        opacity: 0.88;
+        transition: opacity 150ms ease;
+    }
+
+    .skincraft-attribution:hover {
+        opacity: 1;
+    }
+
+    .skincraft-attribution:focus-visible {
+        border-radius: 4px;
+        outline: 2px solid rgba(132, 136, 255, 0.95);
+        outline-offset: 2px;
+    }
+
+    .skincraft-logo-mark {
+        display: block;
+        width: 19px;
+        height: 19px;
+    }
+
+    .skincraft-wordmark {
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
+    .skincraft-wordmark span {
+        color: #7769f2;
     }
 
     .close-button {
@@ -102,14 +141,14 @@ export const skinCraftViewerModalStyles = `
         background: rgba(255, 255, 255, 0.09);
     }
 
-    .inventory-panel {
+    .item-panel {
         display: none;
         min-width: 0;
         min-height: 0;
         background: #181b21;
     }
 
-    .inventory-panel-header {
+    .item-panel-header {
         display: flex;
         flex: 0 0 auto;
         align-items: center;
@@ -121,41 +160,41 @@ export const skinCraftViewerModalStyles = `
         font-weight: 600;
     }
 
-    .inventory-count {
+    .item-count {
         color: rgba(245, 248, 255, 0.42);
         font-size: 11px;
         font-variant-numeric: tabular-nums;
         font-weight: 500;
     }
 
-    .inventory-grid {
+    .item-grid {
         min-width: 0;
         min-height: 0;
         scrollbar-color: rgba(193, 206, 255, 0.2) transparent;
         scrollbar-width: thin;
     }
 
-    .inventory-grid::-webkit-scrollbar {
+    .item-grid::-webkit-scrollbar {
         width: 8px;
         height: 8px;
     }
 
-    .inventory-grid::-webkit-scrollbar-thumb {
+    .item-grid::-webkit-scrollbar-thumb {
         background: rgba(193, 206, 255, 0.2);
         border: 2px solid transparent;
         border-radius: 999px;
         background-clip: padding-box;
     }
 
-    .inventory-card {
+    .item-card {
         position: relative;
         box-sizing: border-box;
         min-width: 0;
         padding: 5px;
         overflow: hidden;
         color: inherit;
-        background-color: var(--inventory-card-background, #2a2f3a);
-        border: 1px solid var(--inventory-card-rarity, rgba(193, 206, 255, 0.18));
+        background-color: var(--item-card-background, #2a2f3a);
+        border: 1px solid var(--item-card-rarity, rgba(193, 206, 255, 0.18));
         border-radius: 7px;
         cursor: pointer;
         transition:
@@ -165,27 +204,27 @@ export const skinCraftViewerModalStyles = `
             transform 100ms ease;
     }
 
-    .inventory-card:hover {
-        background-color: var(--inventory-card-hover, #363d4c);
+    .item-card:hover {
+        background-color: var(--item-card-hover, #363d4c);
     }
 
-    .inventory-card:focus-visible {
+    .item-card:focus-visible {
         outline: 2px solid rgba(132, 136, 255, 0.95);
         outline-offset: 1px;
     }
 
-    .inventory-card:active {
+    .item-card:active {
         transform: scale(0.97);
     }
 
-    .inventory-card.selected {
-        background-color: var(--inventory-card-selected, #3e4186);
+    .item-card.selected {
+        background-color: var(--item-card-selected, #3e4186);
         box-shadow:
             0 0 0 2px rgba(132, 136, 255, 0.92),
             0 6px 18px rgba(0, 0, 0, 0.28);
     }
 
-    .inventory-card img {
+    .item-card img {
         display: block;
         width: 100%;
         height: 100%;
@@ -195,13 +234,13 @@ export const skinCraftViewerModalStyles = `
         transition: opacity 140ms ease;
     }
 
-    .inventory-card:hover img,
-    .inventory-card.selected img {
+    .item-card:hover img,
+    .item-card.selected img {
         opacity: 1;
     }
 
-    .inventory-card-seed,
-    .inventory-card-float {
+    .item-card-seed,
+    .item-card-float {
         position: absolute;
         right: 5px;
         z-index: 1;
@@ -218,11 +257,11 @@ export const skinCraftViewerModalStyles = `
         pointer-events: none;
     }
 
-    .inventory-card-seed {
+    .item-card-seed {
         top: 5px;
     }
 
-    .inventory-card-float {
+    .item-card-float {
         bottom: 5px;
     }
 
@@ -390,26 +429,26 @@ export const skinCraftViewerModalStyles = `
     }
 
     @media (min-width: 1168px) and (max-width: 1519px) and (min-height: 840px) {
-        dialog.has-inventory {
+        dialog.has-items {
             width: 1120px;
         }
 
-        dialog.has-inventory .modal-body {
+        dialog.has-items .modal-body {
             display: grid;
             grid-template-rows: 122px auto;
         }
 
-        dialog.has-inventory .inventory-panel {
+        dialog.has-items .item-panel {
             display: grid;
             grid-template-columns: 122px minmax(0, 1fr);
             border-bottom: 1px solid rgba(193, 206, 255, 0.1);
         }
 
-        dialog.has-inventory .inventory-panel-header {
+        dialog.has-items .item-panel-header {
             border-right: 1px solid rgba(193, 206, 255, 0.08);
         }
 
-        dialog.has-inventory .inventory-grid {
+        dialog.has-items .item-grid {
             display: flex;
             gap: 8px;
             padding: 11px;
@@ -417,35 +456,35 @@ export const skinCraftViewerModalStyles = `
             overflow-y: hidden;
         }
 
-        dialog.has-inventory .inventory-card {
+        dialog.has-items .item-card {
             flex: 0 0 98px;
             height: 98px;
         }
     }
 
     @media (min-width: 1520px) {
-        dialog.has-inventory {
+        dialog.has-items {
             width: min(1440px, calc(100vw - 48px));
         }
 
-        dialog.has-inventory .modal-body {
+        dialog.has-items .modal-body {
             display: grid;
             grid-template-columns: minmax(280px, 320px) 1120px;
         }
 
-        dialog.has-inventory .inventory-panel {
+        dialog.has-items .item-panel {
             display: flex;
             flex-direction: column;
             height: min(630px, calc(100vh - 104px));
             border-right: 1px solid rgba(193, 206, 255, 0.1);
         }
 
-        dialog.has-inventory .inventory-panel-header {
+        dialog.has-items .item-panel-header {
             height: 48px;
             border-bottom: 1px solid rgba(193, 206, 255, 0.08);
         }
 
-        dialog.has-inventory .inventory-grid {
+        dialog.has-items .item-grid {
             display: grid;
             flex: 1;
             grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -457,11 +496,11 @@ export const skinCraftViewerModalStyles = `
             overflow-y: auto;
         }
 
-        dialog.has-inventory .inventory-card {
+        dialog.has-items .item-card {
             height: 92px;
         }
 
-        dialog.has-inventory .viewer-stage {
+        dialog.has-items .viewer-stage {
             width: 1120px;
         }
     }
@@ -476,8 +515,13 @@ export const skinCraftViewerModalStyles = `
             padding-left: 12px;
         }
 
-        .modal-brand {
-            display: none;
+        .skincraft-logo-mark {
+            width: 17px;
+            height: 17px;
+        }
+
+        .skincraft-wordmark {
+            font-size: 11px;
         }
 
         .viewer-stage {
