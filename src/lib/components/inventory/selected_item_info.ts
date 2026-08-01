@@ -29,6 +29,7 @@ import {getActiveInventoryAssetProperties, toSkinCraftItem} from '../../services
 import type {SkinCraftItem} from '../../services/skincraft_viewer_protocol';
 import {gWebGpuAvailability} from '../../services/webgpu_availability';
 import type {WebGpuAvailability} from '../../services/webgpu_availability';
+import {webGpuGuidance} from '../../utils/webgpu_guidance';
 import './list_item_modal';
 
 /**
@@ -112,6 +113,20 @@ export class SelectedItemInfo extends FloatElement {
                 &:active {
                     transform: scale(0.98);
                     filter: brightness(0.95);
+                }
+
+                &.unavailable {
+                    cursor: not-allowed;
+                    opacity: 0.55;
+
+                    &:hover {
+                        filter: none;
+                    }
+
+                    &:active {
+                        transform: none;
+                        filter: none;
+                    }
                 }
             }
         `,
@@ -204,7 +219,7 @@ export class SelectedItemInfo extends FloatElement {
             );
         }
 
-        if (this.canListOnCSFloat || this.canViewInSkinCraft) {
+        if (this.canListOnCSFloat || this.show3dButton) {
             // The modal lives outside the flex row: as a flex item its host would add a gap and
             // nudge the 3D button whenever it mounts.
             containerChildren.push(
@@ -292,13 +307,38 @@ export class SelectedItemInfo extends FloatElement {
         return toSkinCraftItem(this.asset, getActiveInventoryAssetProperties(g_ActiveInventory, this.asset?.assetid));
     }
 
-    private get canViewInSkinCraft(): boolean {
-        return this.webGpuStatus === 'available' && !!this.skinCraftItem;
+    /**
+     * The button renders for any item SkinCraft can show; WebGPU capability only decides enabled
+     * vs disabled-with-guidance (hiding it entirely drew user feedback on the csfloat.com
+     * integration). It stays hidden while the probe settles so it never appears and then changes.
+     */
+    private get show3dButton(): boolean {
+        return this.webGpuStatus !== 'checking' && !!this.skinCraftItem;
+    }
+
+    private get canRender3d(): boolean {
+        return this.webGpuStatus === 'available';
     }
 
     renderViewIn3D(): TemplateResult<1> {
-        if (!this.canViewInSkinCraft) {
+        if (!this.show3dButton) {
             return html``;
+        }
+
+        if (!this.canRender3d) {
+            const reason = gWebGpuAvailability.unavailableReason ?? 'no-webgpu';
+            // The tooltip lives on a wrapper, not the button: hint.css renders it as the host's
+            // ::after, so on the button it would inherit the muted opacity, and the directive's
+            // aria-label would replace the button's "View in 3D" accessible name.
+            return html`
+                <span>
+                    ${this.tooltip(webGpuGuidance(reason), 'hint--large')}
+                    <button class="view-3d-btn unavailable" type="button" aria-disabled="true">
+                        <img src="${environment.skincraft_embed_origin}/icon.svg" height="22" alt="" />
+                        <span>View in 3D</span>
+                    </button>
+                </span>
+            `;
         }
 
         return html`

@@ -1,5 +1,12 @@
 export type WebGpuAvailability = 'checking' | 'available' | 'unavailable';
 
+/**
+ * Why WebGPU is unusable: the API isn't exposed at all (old/flagged-off browser) vs. exposed but
+ * no adapter came back (hardware acceleration off, blocklisted GPU). The two need different
+ * recovery guidance.
+ */
+export type WebGpuUnavailableReason = 'no-webgpu' | 'no-adapter';
+
 interface WebGpuApi {
     requestAdapter(): Promise<unknown | null>;
 }
@@ -29,8 +36,7 @@ async function detectWebGpuAvailability(browserNavigator?: Pick<WebGpuNavigator,
  *
  * `navigator.gpu` is not Baseline — absent in Firefox before 141 and platform-dependent after
  * (https://developer.mozilla.org/en-US/docs/Web/API/Navigator/gpu#browser_compatibility), and the
- * manifest supports Firefox 127+. Those clients see no 3D button at all, which is useful context
- * for support tickets asking where it went.
+ * manifest supports Firefox 127+, so 'unavailable' is a common, expected state there.
  */
 class WebGpuAvailabilityService {
     private readonly browserNavigator = typeof navigator === 'undefined' ? undefined : (navigator as WebGpuNavigator);
@@ -45,6 +51,12 @@ class WebGpuAvailabilityService {
 
     get available(): boolean {
         return this.state === 'available';
+    }
+
+    /** Set only once {@link status} is 'unavailable'; null otherwise. */
+    get unavailableReason(): WebGpuUnavailableReason | null {
+        if (this.state !== 'unavailable') return null;
+        return this.browserNavigator?.gpu ? 'no-adapter' : 'no-webgpu';
     }
 
     /** Resolves once the probe settles, starting it on first call. */
