@@ -85,6 +85,12 @@ export class SkinCraftViewerModal {
         return this.frameRef.value?.contentWindow ?? null;
     }
 
+    /** Re-navigates the embed after a failed boot; a cross-origin frame can't be reloaded from inside. */
+    reloadFrame(): void {
+        const frame = this.frameRef.value;
+        if (frame) frame.src = this.options.embedSrc;
+    }
+
     get isOpen(): boolean {
         return this.dialogRef.value?.open ?? false;
     }
