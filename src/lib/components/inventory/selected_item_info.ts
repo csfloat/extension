@@ -100,19 +100,19 @@ export class SelectedItemInfo extends FloatElement {
                     0 4px 12px hsl(0 0% 0% / 0.22),
                     0 1px 2px hsl(0 0% 0% / 0.16),
                     inset 0 1px 0 rgba(255, 255, 255, 0.22);
-            }
 
-            .view-3d-btn img {
-                filter: brightness(0) invert(1);
-            }
+                img {
+                    filter: brightness(0) invert(1);
+                }
 
-            .view-3d-btn:hover {
-                filter: brightness(1.1);
-            }
+                &:hover {
+                    filter: brightness(1.1);
+                }
 
-            .view-3d-btn:active {
-                transform: scale(0.98);
-                filter: brightness(0.95);
+                &:active {
+                    transform: scale(0.98);
+                    filter: brightness(0.95);
+                }
             }
         `,
     ];
