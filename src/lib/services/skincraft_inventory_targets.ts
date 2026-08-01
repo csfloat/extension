@@ -102,7 +102,12 @@ export function getLoadedInventoryTargets(
         for (const asset of Object.values(inventory.m_rgAssets)) {
             if (seenAssets.has(asset.assetid)) continue;
 
-            const target = toSkinCraftItem(asset, inventory.m_rgAssetProperties?.[asset.assetid], getCachedItemInfo);
+            // Same lookup as the clicked item so the strip also sees the appwide parent's map.
+            const target = toSkinCraftItem(
+                asset,
+                getActiveInventoryAssetProperties(activeInventory, asset.assetid),
+                getCachedItemInfo
+            );
             if (!target) continue;
 
             seenAssets.add(asset.assetid);

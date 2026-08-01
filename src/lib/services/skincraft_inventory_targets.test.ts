@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import type {ItemInfo} from '../bridge/handlers/fetch_inspect_info';
-import type {CInventory, InventoryAsset} from '../types/steam';
+import type {CAppwideInventory, CInventory, InventoryAsset} from '../types/steam';
+import {ContextId} from '../types/steam_constants';
 import {getLoadedInventoryTargets, toSkinCraftItem} from './skincraft_inventory_targets';
 
 function createInventory(assets: InventoryAsset[]): CInventory {
@@ -35,6 +36,22 @@ describe('SkinCraft inventory targets', () => {
         } as unknown as InventoryAsset;
 
         expect(getLoadedInventoryTargets(createInventory([pendingAsset]))).toEqual([]);
+    });
+
+    it('falls back to the appwide parent property map when children carry none', () => {
+        const asset = {
+            assetid: '123',
+            description: {
+                market_hash_name: 'AK-47 | Redline (Field-Tested)',
+                tags: [{category: 'Weapon', internal_name: 'weapon_ak47'}],
+            },
+        } as unknown as InventoryAsset;
+        const appwide = {
+            m_rgChildInventories: {[ContextId.PRIMARY]: createInventory([asset])},
+            m_rgAssetProperties: {'123': [{propertyid: 6, string_value: 'a'.repeat(80)}]},
+        } as unknown as CAppwideInventory;
+
+        expect(getLoadedInventoryTargets(appwide)).toEqual([expect.objectContaining({inspect: 'a'.repeat(80)})]);
     });
 
     it('includes cached float metadata and Steam rarity colors', () => {
