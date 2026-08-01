@@ -205,8 +205,11 @@ export class SelectedItemInfo extends FloatElement {
         }
 
         if (this.canListOnCSFloat || this.canViewInSkinCraft) {
+            // The modal lives outside the flex row: as a flex item its host would add a gap and
+            // nudge the 3D button whenever it mounts.
             containerChildren.push(
-                html`<div class="market-btn-row">${this.renderListOnCSFloat()} ${this.renderViewIn3D()}</div>`
+                html`<div class="market-btn-row">${this.renderListOnCSFloat()} ${this.renderViewIn3D()}</div>
+                    ${this.renderListModal()}`
             );
         }
 
@@ -318,14 +321,19 @@ export class SelectedItemInfo extends FloatElement {
                     <img src="https://csfloat.com/assets/logo/full_white.png" height="21" style="margin-left: 5px;" />
                 </a>
             </div>
-            ${this.showListModal && this.asset && (this.itemInfo || !isSkin(this.asset.description))
-                ? html`<csfloat-list-item-modal
-                      .asset="${this.asset}"
-                      .itemInfo="${this.itemInfo}"
-                      @close="${this.handleModalClose}"
-                  ></csfloat-list-item-modal>`
-                : ''}
         `;
+    }
+
+    renderListModal(): TemplateResult<1> {
+        if (!this.showListModal || !this.asset || (!this.itemInfo && isSkin(this.asset.description))) {
+            return html``;
+        }
+
+        return html`<csfloat-list-item-modal
+            .asset="${this.asset}"
+            .itemInfo="${this.itemInfo}"
+            @close="${this.handleModalClose}"
+        ></csfloat-list-item-modal>`;
     }
 
     private handleViewIn3D(): void {
