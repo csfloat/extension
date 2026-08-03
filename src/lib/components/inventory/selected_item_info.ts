@@ -23,6 +23,13 @@ import {Contract} from '../../types/float_market';
 import '../common/ui/floatbar';
 import {ClientSend} from '../../bridge/client';
 import {FetchBluegem, FetchBluegemResponse} from '../../bridge/handlers/fetch_bluegem';
+import {environment} from '../../../environment';
+import {gSkinCraftEmbed} from '../../services/skincraft_embed';
+import {getActiveInventoryAssetProperties, toSkinCraftItem} from '../../services/skincraft_inventory_targets';
+import type {SkinCraftItem} from '../../services/skincraft_viewer_protocol';
+import {gWebGpuAvailability} from '../../services/webgpu_availability';
+import type {WebGpuAvailability} from '../../services/webgpu_availability';
+import {webGpuGuidance} from '../../utils/webgpu_guidance';
 import './list_item_modal';
 
 /**
@@ -48,6 +55,13 @@ export class SelectedItemInfo extends FloatElement {
                 margin-bottom: 10px;
             }
 
+            .market-btn-row {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 10px;
+            }
+
             .market-btn-container {
                 margin: 10px 0 10px 0;
                 padding: 5px;
@@ -64,6 +78,57 @@ export class SelectedItemInfo extends FloatElement {
                 color: #ebebeb;
                 text-decoration: none;
             }
+
+            .view-3d-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                height: 32px;
+                padding: 0 12px;
+                font-size: 13px;
+                font-weight: 600;
+                color: #f5f8ff;
+                background-color: #5155eb;
+                border: 0;
+                border-radius: 8px;
+                cursor: pointer;
+                font-family: inherit;
+                text-decoration: none;
+                transition:
+                    filter 180ms ease,
+                    transform 180ms ease;
+                box-shadow:
+                    0 4px 12px hsl(0 0% 0% / 0.22),
+                    0 1px 2px hsl(0 0% 0% / 0.16),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+
+                img {
+                    filter: brightness(0) invert(1);
+                }
+
+                &:hover {
+                    filter: brightness(1.1);
+                }
+
+                &:active {
+                    transform: scale(0.98);
+                    filter: brightness(0.95);
+                }
+
+                &.unavailable {
+                    cursor: not-allowed;
+                    opacity: 0.55;
+
+                    &:hover {
+                        filter: none;
+                    }
+
+                    &:active {
+                        transform: none;
+                        filter: none;
+                    }
+                }
+            }
         `,
     ];
 
@@ -78,6 +143,9 @@ export class SelectedItemInfo extends FloatElement {
 
     @state()
     private showListModal: boolean = false;
+
+    @state()
+    private webGpuStatus: WebGpuAvailability = gWebGpuAvailability.status;
 
     private bluegemData: FetchBluegemResponse | undefined;
 
@@ -151,8 +219,17 @@ export class SelectedItemInfo extends FloatElement {
             );
         }
 
+        if (this.canListOnCSFloat || this.show3dButton) {
+            // The modal lives outside the flex row: as a flex item its host would add a gap and
+            // nudge the 3D button whenever it mounts.
+            containerChildren.push(
+                html`<div class="market-btn-row">${this.renderListOnCSFloat()} ${this.renderViewIn3D()}</div>
+                    ${this.renderListModal()}`
+            );
+        }
+
         if (isSellableOnCSFloat(this.asset.description)) {
-            containerChildren.push(html`${this.renderListOnCSFloat()} ${this.renderFloatMarketListing()}`);
+            containerChildren.push(this.renderFloatMarketListing());
         }
 
         if (containerChildren.length === 0) {
@@ -216,19 +293,64 @@ export class SelectedItemInfo extends FloatElement {
         `;
     }
 
+    private get canListOnCSFloat(): boolean {
+        return (
+            !!this.asset?.description &&
+            isSellableOnCSFloat(this.asset.description) &&
+            !this.stallListing &&
+            g_ActiveInventory?.m_owner?.strSteamId === g_steamID &&
+            !!this.asset.description.tradable
+        );
+    }
+
+    private get skinCraftItem(): SkinCraftItem | undefined {
+        return toSkinCraftItem(this.asset, getActiveInventoryAssetProperties(g_ActiveInventory, this.asset?.assetid));
+    }
+
+    /**
+     * The button renders for any item SkinCraft can show; WebGPU capability only decides enabled
+     * vs disabled-with-guidance (hiding it entirely drew user feedback on the csfloat.com
+     * integration). It stays hidden while the probe settles so it never appears and then changes.
+     */
+    private get show3dButton(): boolean {
+        return this.webGpuStatus !== 'checking' && !!this.skinCraftItem;
+    }
+
+    private get canRender3d(): boolean {
+        return this.webGpuStatus === 'available';
+    }
+
+    renderViewIn3D(): TemplateResult<1> {
+        if (!this.show3dButton) {
+            return html``;
+        }
+
+        if (!this.canRender3d) {
+            const reason = gWebGpuAvailability.unavailableReason ?? 'no-webgpu';
+            // The tooltip lives on a wrapper, not the button: hint.css renders it as the host's
+            // ::after, so on the button it would inherit the muted opacity, and the directive's
+            // aria-label would replace the button's "View in 3D" accessible name.
+            return html`
+                <span>
+                    ${this.tooltip(webGpuGuidance(reason), 'hint--large')}
+                    <button class="view-3d-btn unavailable" type="button" aria-disabled="true">
+                        <img src="${environment.skincraft_embed_origin}/icon.svg" height="22" alt="" />
+                        <span>View in 3D</span>
+                    </button>
+                </span>
+            `;
+        }
+
+        return html`
+            <button class="view-3d-btn" type="button" @click="${this.handleViewIn3D}">
+                <img src="${environment.skincraft_embed_origin}/icon.svg" height="22" alt="" />
+                <span>View in 3D</span>
+            </button>
+        `;
+    }
+
     renderListOnCSFloat(): TemplateResult<1> {
-        if (this.stallListing) {
-            // Don't tell them to list it if it's already listed...
-            return html``;
-        }
-
-        if (g_ActiveInventory?.m_owner?.strSteamId !== g_steamID) {
-            // Not the signed-in user, don't show
-            return html``;
-        }
-
-        if (!this.asset?.description?.tradable) {
-            // Don't show if item isn't tradable
+        if (!this.canListOnCSFloat) {
             return html``;
         }
 
@@ -239,14 +361,24 @@ export class SelectedItemInfo extends FloatElement {
                     <img src="https://csfloat.com/assets/logo/full_white.png" height="21" style="margin-left: 5px;" />
                 </a>
             </div>
-            ${this.showListModal && this.asset && (this.itemInfo || !isSkin(this.asset.description))
-                ? html`<csfloat-list-item-modal
-                      .asset="${this.asset}"
-                      .itemInfo="${this.itemInfo}"
-                      @close="${this.handleModalClose}"
-                  ></csfloat-list-item-modal>`
-                : ''}
         `;
+    }
+
+    renderListModal(): TemplateResult<1> {
+        if (!this.showListModal || !this.asset || (!this.itemInfo && isSkin(this.asset.description))) {
+            return html``;
+        }
+
+        return html`<csfloat-list-item-modal
+            .asset="${this.asset}"
+            .itemInfo="${this.itemInfo}"
+            @close="${this.handleModalClose}"
+        ></csfloat-list-item-modal>`;
+    }
+
+    private handleViewIn3D(): void {
+        const item = this.skinCraftItem;
+        if (item) gSkinCraftEmbed.open(item);
     }
 
     async processSelectChange() {
@@ -289,8 +421,15 @@ export class SelectedItemInfo extends FloatElement {
         this.loading = false;
     }
 
+    private async resolveWebGpuStatus(): Promise<void> {
+        if (this.webGpuStatus === 'checking') this.webGpuStatus = await gWebGpuAvailability.settled();
+    }
+
     connectedCallback() {
         super.connectedCallback();
+
+        // Settles once per session; the 3D button stays hidden until it does
+        void this.resolveWebGpuStatus();
 
         // For the initial load, in case an item is pre-selected
         this.processSelectChange();
