@@ -129,10 +129,14 @@ class SkinCraftEmbedService {
     }
 
     private requestLoad(inspect: string, showLoadingCover: boolean): void {
-        // A frame whose boot already timed out will never emit `ready` on its own — Retry and
-        // reopening would otherwise wait forever on a dead iframe.
-        if (this.needsFrameReload && !this.ready) {
+        // A frame that let a load time out won't recover on its own — whether it never booted or
+        // booted and then stopped answering. Retry and reopening would otherwise wait forever on a
+        // dead iframe. Re-`src`ing boots a fresh document, so the old handshake is void: keeping
+        // `ready` would send the load into an iframe that hasn't come up yet.
+        if (this.needsFrameReload) {
             this.needsFrameReload = false;
+            this.ready = false;
+            this.frameHasContent = false;
             this.modal?.reloadFrame();
         }
         this.pendingInspect = inspect;
@@ -266,7 +270,7 @@ class SkinCraftEmbedService {
             // late `loaded` can act under the error UI — recovery goes through the Retry button.
             this.pendingInspect = undefined;
             this.latestLoadId = undefined;
-            if (!this.ready) this.needsFrameReload = true;
+            this.needsFrameReload = true;
             this.modal?.setError('The 3D viewer took too long to load.');
         }, LOAD_TIMEOUT_MS);
     }
