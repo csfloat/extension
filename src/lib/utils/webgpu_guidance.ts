@@ -5,7 +5,6 @@ type BrowserFamily = 'chromium' | 'firefox' | 'other';
 type DetectedBrowser = {
     family: BrowserFamily;
     browser: string;
-    isEdge: boolean;
     /**
      * Firefox on Linux is the one modern build that still ships WebGPU behind a flag; elsewhere a
      * missing API means an outdated/modified build.
@@ -21,11 +20,11 @@ type DetectedBrowser = {
 export function detectBrowser(): DetectedBrowser {
     const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
     const isLinux = !/android/i.test(ua) && /linux|x11|cros/i.test(ua);
-    if (/edg\//i.test(ua)) return {family: 'chromium', browser: 'Microsoft Edge', isEdge: true, isLinux};
-    if (/firefox|fxios/i.test(ua)) return {family: 'firefox', browser: 'Firefox', isEdge: false, isLinux};
-    if (/opr\/|opera/i.test(ua)) return {family: 'chromium', browser: 'Opera', isEdge: false, isLinux};
-    if (/chrome|chromium/i.test(ua)) return {family: 'chromium', browser: 'Chrome', isEdge: false, isLinux};
-    return {family: 'other', browser: '', isEdge: false, isLinux};
+    if (/edg\//i.test(ua)) return {family: 'chromium', browser: 'Microsoft Edge', isLinux};
+    if (/firefox|fxios/i.test(ua)) return {family: 'firefox', browser: 'Firefox', isLinux};
+    if (/opr\/|opera/i.test(ua)) return {family: 'chromium', browser: 'Opera', isLinux};
+    if (/chrome|chromium/i.test(ua)) return {family: 'chromium', browser: 'Chrome', isLinux};
+    return {family: 'other', browser: '', isLinux};
 }
 
 /**
@@ -34,10 +33,9 @@ export function detectBrowser(): DetectedBrowser {
  * this renders in a CSS tooltip, which can hold neither links nor copyable text.
  */
 export function webGpuGuidance(reason: WebGpuUnavailableReason, b: DetectedBrowser = detectBrowser()): string {
-    // Chromium forks serve their internal pages under their own scheme, not chrome://.
-    const scheme = b.isEdge ? 'edge' : b.browser === 'Opera' ? 'opera' : 'chrome';
-    const settingsPath = `${scheme}://settings/system`;
-    const flagsPath = `${scheme}://flags/#enable-unsafe-webgpu`;
+    // Chromium forks keep serving the chrome:// scheme alongside their own, so one path covers all.
+    const settingsPath = 'chrome://settings/system';
+    const flagsPath = 'chrome://flags/#enable-unsafe-webgpu';
 
     if (reason === 'no-webgpu') {
         switch (b.family) {
@@ -56,10 +54,10 @@ export function webGpuGuidance(reason: WebGpuUnavailableReason, b: DetectedBrows
 
     switch (b.family) {
         case 'firefox':
-            return "Firefox has WebGPU but couldn't reach your GPU. Re-enable hardware acceleration under Performance in about:preferences, then restart Firefox.";
+            return "Firefox supports WebGPU but couldn't reach your GPU. Re-enable hardware acceleration under Performance in about:preferences, then restart Firefox.";
         case 'chromium':
-            return `${b.browser} has WebGPU but couldn't reach your GPU — graphics acceleration is usually switched off. Turn on "Use graphics acceleration when available" in ${settingsPath}, then relaunch.`;
+            return `${b.browser} supports WebGPU but couldn't reach your GPU — graphics acceleration is usually switched off. Turn on "Use graphics acceleration when available" in ${settingsPath}, then relaunch.`;
         default:
-            return "This browser has WebGPU but couldn't reach your GPU. Update your system and graphics drivers, then restart the browser.";
+            return "This browser supports WebGPU but couldn't reach your GPU. Update your system and graphics drivers, then restart the browser.";
     }
 }

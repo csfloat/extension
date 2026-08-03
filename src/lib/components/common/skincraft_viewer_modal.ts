@@ -5,7 +5,6 @@ import {guard} from 'lit/directives/guard.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import {styleMap} from 'lit/directives/style-map.js';
 import type {SkinCraftViewerTarget} from '../../services/skincraft_viewer_protocol';
-import {skinCraftLogoMark} from './skincraft_logo';
 import {MODAL_TRANSITION_MS, skinCraftViewerModalStyles} from './skincraft_viewer_modal_styles';
 
 type LoadPhase = 'loading' | 'revealed' | 'error';
@@ -175,7 +174,12 @@ export class SkinCraftViewerModal {
                             rel="noopener noreferrer"
                             aria-label="Open on SkinCraft"
                         >
-                            ${skinCraftLogoMark}
+                            <img
+                                class="skincraft-logo-mark"
+                                src="https://csfloat.com/assets/skincraft-logo-mark.svg"
+                                alt=""
+                                aria-hidden="true"
+                            />
                             <span class="skincraft-wordmark">skincraft<span>.gg</span></span>
                         </a>
                         <button
