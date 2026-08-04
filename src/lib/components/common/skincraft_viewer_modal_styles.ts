@@ -7,8 +7,11 @@ export const skinCraftViewerModalStyles = `
         font-family: Arial, Helvetica, sans-serif;
     }
 
+    /* Width follows the viewport; the height-derived term caps the 16:9 stage at 80vh so the
+       composition scales with the screen, mirroring the market site's screenshot dialog. */
     dialog {
-        width: min(1120px, calc(100vw - 48px));
+        width: min(90vw, calc(80vh * 16 / 9));
+        width: min(90vw, calc(80dvh * 16 / 9));
         max-width: none;
         padding: 0;
         border: 1px solid rgba(193, 206, 255, 0.12);
@@ -429,8 +432,10 @@ export const skinCraftViewerModalStyles = `
     }
 
     @media (min-width: 1168px) and (max-width: 1519px) and (min-height: 840px) {
+        /* The 122px item strip sits above the stage, so it joins the height budget. */
         dialog.has-items {
-            width: 1120px;
+            width: max(1120px, min(90vw, calc((80vh - 122px) * 16 / 9)));
+            width: max(1120px, min(90vw, calc((80dvh - 122px) * 16 / 9)));
         }
 
         dialog.has-items .modal-body {
@@ -463,19 +468,24 @@ export const skinCraftViewerModalStyles = `
     }
 
     @media (min-width: 1520px) {
+        /* The 320px item panel sits beside the stage, so it joins the width budget instead. */
         dialog.has-items {
-            width: min(1440px, calc(100vw - 48px));
+            width: min(90vw, calc(80vh * 16 / 9 + 320px));
+            width: min(90vw, calc(80dvh * 16 / 9 + 320px));
         }
 
         dialog.has-items .modal-body {
             display: grid;
-            grid-template-columns: minmax(280px, 320px) 1120px;
+            grid-template-columns: 320px minmax(0, 1fr);
         }
 
         dialog.has-items .item-panel {
             display: flex;
             flex-direction: column;
-            height: min(630px, calc(100vh - 104px));
+            /* The stage's height (its column width at 16:9), restated because the panel's own
+               content must not be what sizes the shared grid row. */
+            height: min(calc((90vw - 320px) * 9 / 16), 80vh);
+            height: min(calc((90vw - 320px) * 9 / 16), 80dvh);
             border-right: 1px solid rgba(193, 206, 255, 0.1);
         }
 
@@ -498,10 +508,6 @@ export const skinCraftViewerModalStyles = `
 
         dialog.has-items .item-card {
             height: 92px;
-        }
-
-        dialog.has-items .viewer-stage {
-            width: 1120px;
         }
     }
 
