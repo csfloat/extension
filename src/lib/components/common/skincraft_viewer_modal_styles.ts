@@ -8,10 +8,11 @@ export const skinCraftViewerModalStyles = `
     }
 
     /* Width follows the viewport; the height-derived term caps the 16:9 stage at 80vh so the
-       composition scales with the screen, mirroring the market site's screenshot dialog. */
+       composition scales with the screen. The 1920px ceiling is the stage's native resolution —
+       past it 4K+ displays only upscale. */
     dialog {
-        width: min(90vw, calc(80vh * 16 / 9));
-        width: min(90vw, calc(80dvh * 16 / 9));
+        width: min(90vw, calc(80vh * 16 / 9), 1920px);
+        width: min(90vw, calc(80dvh * 16 / 9), 1920px);
         max-width: none;
         padding: 0;
         border: 1px solid rgba(193, 206, 255, 0.12);
@@ -470,8 +471,8 @@ export const skinCraftViewerModalStyles = `
     @media (min-width: 1520px) {
         /* The 320px item panel sits beside the stage, so it joins the width budget instead. */
         dialog.has-items {
-            width: min(90vw, calc(80vh * 16 / 9 + 320px));
-            width: min(90vw, calc(80dvh * 16 / 9 + 320px));
+            width: min(90vw, calc(80vh * 16 / 9 + 320px), 2240px);
+            width: min(90vw, calc(80dvh * 16 / 9 + 320px), 2240px);
         }
 
         dialog.has-items .modal-body {
@@ -483,9 +484,10 @@ export const skinCraftViewerModalStyles = `
             display: flex;
             flex-direction: column;
             /* The stage's height (its column width at 16:9), restated because the panel's own
-               content must not be what sizes the shared grid row. */
-            height: min(calc((90vw - 320px) * 9 / 16), 80vh);
-            height: min(calc((90vw - 320px) * 9 / 16), 80dvh);
+               content must not be what sizes the shared grid row. Tracks the same 2240px ceiling
+               as the dialog, or it would outgrow the stage it sits beside. */
+            height: min(calc((min(90vw, 2240px) - 320px) * 9 / 16), 80vh);
+            height: min(calc((min(90vw, 2240px) - 320px) * 9 / 16), 80dvh);
             border-right: 1px solid rgba(193, 206, 255, 0.1);
         }
 
