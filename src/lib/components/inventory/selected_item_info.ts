@@ -60,10 +60,10 @@ export class SelectedItemInfo extends FloatElement {
                 flex-wrap: wrap;
                 align-items: center;
                 gap: 10px;
+                margin: 14px 0 10px;
             }
 
             .market-btn-container {
-                margin: 10px 0 10px 0;
                 padding: 5px;
                 width: fit-content;
                 border: solid 1px rgb(56 64 77);
@@ -219,17 +219,17 @@ export class SelectedItemInfo extends FloatElement {
             );
         }
 
-        if (this.canListOnCSFloat || this.show3dButton) {
-            // The modal lives outside the flex row: as a flex item its host would add a gap and
-            // nudge the 3D button whenever it mounts.
+        if (this.canListOnCSFloat || this.show3dButton || this.stallListing) {
+            // One flex row for every action: the market action (list button or active listing —
+            // mutually exclusive) keeps the left slot in both states, and nothing wraps while
+            // there's room. The modal lives outside the row: as a flex item its host would add a
+            // gap and nudge the 3D button whenever it mounts.
             containerChildren.push(
-                html`<div class="market-btn-row">${this.renderListOnCSFloat()} ${this.renderViewIn3D()}</div>
+                html`<div class="market-btn-row">
+                        ${this.renderListOnCSFloat()} ${this.renderFloatMarketListing()} ${this.renderViewIn3D()}
+                    </div>
                     ${this.renderListModal()}`
             );
-        }
-
-        if (isSellableOnCSFloat(this.asset.description)) {
-            containerChildren.push(this.renderFloatMarketListing());
         }
 
         if (containerChildren.length === 0) {
