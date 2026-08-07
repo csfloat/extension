@@ -8,6 +8,7 @@ import {gStore} from '../storage/store';
 import {StorageKey} from '../storage/keys';
 import {reportBlockedBuyers} from './blocked_users';
 import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
+import {pingFailedTrades} from './failed_trade';
 import {pingRollbackTrades} from './rollback';
 import {FetchSlimTrades} from '../bridge/handlers/fetch_slim_trades';
 
@@ -73,6 +74,7 @@ interface UpdateErrors {
     trade_offer_error?: string;
     blocked_buyers_error?: string;
     rollback_trades_error?: string;
+    failed_trades_error?: string;
 }
 
 async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null): Promise<UpdateErrors> {
@@ -117,6 +119,13 @@ async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null):
     } catch (e) {
         console.error('failed to ping rollback trades', e);
         errors.rollback_trades_error = (e as any).toString();
+    }
+
+    try {
+        await pingFailedTrades(pendingTrades, tradeHistory);
+    } catch (e) {
+        console.error('failed to report failed trades', e);
+        errors.failed_trades_error = (e as any).toString();
     }
 
     return errors;

@@ -21,13 +21,14 @@ export async function isBackgroundNotaryRollbackEnabled(): Promise<boolean> {
     }
 }
 
-function buildProveRequest(trades: TradeHistoryStatus[]): NotaryProveRequest {
+export function buildProveRequest(trades: TradeHistoryStatus[]): NotaryProveRequest {
     if (trades.length === 1) {
         return {
             type: ProofType.TRADE_HISTORY,
             max_trades: 5,
             start_after_time: trades[0].time_init,
             navigating_back: true,
+            include_failed: true,
         };
     }
 
@@ -39,6 +40,7 @@ function buildProveRequest(trades: TradeHistoryStatus[]): NotaryProveRequest {
         max_trades: MAX_TRADE_HISTORY_FETCH,
         start_after_time: oldestTimeInit,
         navigating_back: true,
+        include_failed: true,
     };
 }
 
