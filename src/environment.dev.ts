@@ -7,5 +7,5 @@ export const environment = {
     },
     reverse_watch_base_api_url: 'http://localhost:3434/api',
     floatdb_gateway_url: 'https://gateway.floatdb.com',
-    skincraft_embed_origin: 'https://localhost:3000',
+    skincraft_embed_origin: 'https://beta.skincraft.gg',
 };
