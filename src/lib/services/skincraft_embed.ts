@@ -9,7 +9,11 @@ import {
 } from './skincraft_embed_protocol';
 import type {SkinCraftEmbedCommand} from './skincraft_embed_protocol';
 import {getLoadedInventoryTargets} from './skincraft_inventory_targets';
-import {isOpenSkinCraftViewerMessage, SKINCRAFT_VIEWER_MESSAGE_SOURCE} from './skincraft_viewer_protocol';
+import {
+    isOpenSkinCraftViewerMessage,
+    SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+    STEAM_INSPECT_URL_PATTERN,
+} from './skincraft_viewer_protocol';
 import type {OpenSkinCraftViewerMessage, SkinCraftItem, SkinCraftViewerTarget} from './skincraft_viewer_protocol';
 
 const LOAD_TIMEOUT_MS = 20_000;
@@ -212,6 +216,13 @@ class SkinCraftEmbedService {
                 this.frameHasContent = false;
                 this.modal?.setError(message.message || 'SkinCraft could not load this item.');
                 break;
+            case 'inspect-requested': {
+                // Re-check the shape: targets on the direct open() path never cross the
+                // validated page boundary.
+                const url = this.activeTarget?.inspectUrl;
+                if (this.active && url && STEAM_INSPECT_URL_PATTERN.test(url)) window.location.href = url;
+                break;
+            }
         }
     };
 

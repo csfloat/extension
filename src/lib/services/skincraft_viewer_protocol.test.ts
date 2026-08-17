@@ -8,6 +8,7 @@ import type {SkinCraftItem} from './skincraft_viewer_protocol';
 
 const target: SkinCraftItem = {
     inspect: 'a'.repeat(80),
+    inspectUrl: `steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20${'a'.repeat(80)}`,
     name: 'AK-47 | Redline',
     iconUrl: 'https://community.akamai.steamstatic.com/economy/image/example/330x192',
     assetId: '12345678901234567890',
@@ -25,6 +26,14 @@ describe('SkinCraft viewer open messages', () => {
                 type: 'open',
                 target,
                 inventory: [target],
+            })
+        ).toBe(true);
+        expect(
+            isOpenSkinCraftViewerMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'open',
+                target: {...target, inspectUrl: undefined},
+                inventory: [],
             })
         ).toBe(true);
     });
@@ -52,6 +61,22 @@ describe('SkinCraft viewer open messages', () => {
                 type: 'open',
                 target,
                 inventory: [{...target, rarityColor: 'not-a-color'}],
+            })
+        ).toBe(false);
+        expect(
+            isOpenSkinCraftViewerMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'open',
+                target: {...target, inspectUrl: 'https://example.com/inspect'},
+                inventory: [],
+            })
+        ).toBe(false);
+        expect(
+            isOpenSkinCraftViewerMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'open',
+                target: {...target, inspectUrl: 'steam://uninstall/730'},
+                inventory: [],
             })
         ).toBe(false);
     });

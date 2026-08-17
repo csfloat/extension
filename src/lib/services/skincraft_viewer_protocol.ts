@@ -5,11 +5,15 @@ export const MAX_SKINCRAFT_INVENTORY_TARGETS = 2_000;
 
 export const SKINCRAFT_INSPECT_PATTERN = /^[0-9a-f]{40,8192}$/i;
 export const HEX_COLOR_PATTERN = /^[0-9a-f]{6}$/i;
+export const STEAM_INSPECT_URL_PATTERN =
+    /^steam:\/\/rungame\/730\/\d{1,20}\/\+csgo_econ_action_preview%20[0-9a-f]{40,8192}$/i;
 const ASSET_ID_PATTERN = /^\d{1,32}$/;
 
 /** An item as it crosses the page → content-script boundary. */
 export type SkinCraftItem = {
     inspect: string;
+    /** The item's own `steam://` launch link, for Inspect clicks forwarded out of the embed. */
+    inspectUrl?: string;
     name: string;
     iconUrl?: string;
     assetId?: string;
@@ -36,6 +40,7 @@ function isSkinCraftItemShape(data: unknown): data is SkinCraftItem {
     const item = data as Partial<SkinCraftItem>;
     return (
         typeof item.inspect === 'string' &&
+        (item.inspectUrl === undefined || typeof item.inspectUrl === 'string') &&
         typeof item.name === 'string' &&
         (item.assetId === undefined || typeof item.assetId === 'string') &&
         (item.seed === undefined || typeof item.seed === 'string') &&
@@ -50,6 +55,7 @@ function isSkinCraftItemShape(data: unknown): data is SkinCraftItem {
 function isValidSkinCraftItem(item: SkinCraftItem): boolean {
     return (
         SKINCRAFT_INSPECT_PATTERN.test(item.inspect) &&
+        (item.inspectUrl === undefined || STEAM_INSPECT_URL_PATTERN.test(item.inspectUrl)) &&
         item.name.length <= 512 &&
         (item.assetId === undefined || ASSET_ID_PATTERN.test(item.assetId)) &&
         (item.seed === undefined || item.seed.length <= 64) &&

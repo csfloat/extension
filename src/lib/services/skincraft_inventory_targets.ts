@@ -1,14 +1,15 @@
-import type {CAppwideInventory, CInventory, InventoryAsset, rgAssetProperty} from '../types/steam';
+import type {CAppwideInventory, CInventory, InventoryAsset, rgAsset, rgAssetProperty} from '../types/steam';
 import type {ItemInfo} from '../bridge/handlers/fetch_inspect_info';
 import {ContextId} from '../types/steam_constants';
 import {isCAppwideInventory} from '../utils/checkers';
-import {formatFloatWithRank, formatSeed, isSkin} from '../utils/skin';
+import {formatFloatWithRank, formatSeed, isAgent, isCharm, isPatch, isSkin, isSticker} from '../utils/skin';
 import {steamEconomyImageUrl} from '../utils/steam_images';
 import {gFloatFetcher} from './float_fetcher';
 import {
     HEX_COLOR_PATTERN,
     MAX_SKINCRAFT_INVENTORY_TARGETS,
     SKINCRAFT_INSPECT_PATTERN,
+    STEAM_INSPECT_URL_PATTERN,
 } from './skincraft_viewer_protocol';
 import type {SkinCraftItem} from './skincraft_viewer_protocol';
 
@@ -22,17 +23,32 @@ function getAssetProperties(asset: InventoryAsset, fallbackProperties: rgAssetPr
     return fallbackProperties;
 }
 
+/** Item types SkinCraft renders (weapons and gloves are both matched by `isSkin`). */
+function isSkinCraftRenderable(description: rgAsset): boolean {
+    if (isSkin(description)) return true;
+    // Half-hydrated descriptions may lack `type`, which the predicates below dereference.
+    if (typeof description.type !== 'string') return false;
+    return isSticker(description) || isCharm(description) || isPatch(description) || isAgent(description);
+}
+
 function getSkinCraftInspect(
     asset: InventoryAsset | undefined,
     fallbackProperties: rgAssetProperty[]
 ): string | undefined {
-    if (!asset?.description || !isSkin(asset.description)) return;
+    if (!asset?.description || !isSkinCraftRenderable(asset.description)) return;
 
     return (
         getAssetProperties(asset, fallbackProperties)
             .find((property) => property.propertyid === 6)
             ?.string_value?.trim() || undefined
     );
+}
+
+/** The asset's `steam://` inspect launch link — Steam templates the masked hex slot as `%propid:6%`. */
+function getSteamInspectUrl(asset: InventoryAsset, inspect: string): string | undefined {
+    const link = asset.description.actions?.find((action) => action.link.includes('%propid:6%'))?.link;
+    const url = link?.replace('%propid:6%', inspect);
+    return url && STEAM_INSPECT_URL_PATTERN.test(url) ? url : undefined;
 }
 
 export function toSkinCraftItem(
@@ -51,6 +67,7 @@ export function toSkinCraftItem(
     const backgroundColor = asset.description.background_color;
     return {
         inspect,
+        inspectUrl: getSteamInspectUrl(asset, inspect),
         name: asset.description.market_hash_name,
         iconUrl: icon ? steamEconomyImageUrl(icon) : undefined,
         assetId: asset.assetid,
