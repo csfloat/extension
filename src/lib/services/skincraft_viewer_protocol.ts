@@ -12,7 +12,7 @@ const ASSET_ID_PATTERN = /^\d{1,32}$/;
 /** An item as it crosses the page → content-script boundary. */
 export type SkinCraftItem = {
     inspect: string;
-    /** The item's own `steam://` launch link, for Inspect clicks forwarded out of the embed. */
+    /** The `steam://` launch link; `inspect` is the masked hex on its own. */
     inspectUrl?: string;
     name: string;
     iconUrl?: string;

@@ -33,7 +33,8 @@ describe('SkinCraft inventory targets', () => {
     it.each([
         ['sticker', 'High Grade Sticker', 'CSGO_Tool_Sticker'],
         ['patch', 'High Grade Patch', 'CSGO_Type_Patch'],
-        ['charm', 'Extraordinary Charm', 'CSGO_Tool_Keychain'],
+        // Localized `type`, so this row lands on the tag branch the way non-English Steam does.
+        ['charm', 'Breloque extraordinaire', 'CSGO_Tool_Keychain'],
         ['agent', 'Master Agent', 'Type_CustomPlayer'],
     ])('accepts %s items with inspect data', (_kind, type, internalName) => {
         const asset = {
@@ -113,10 +114,49 @@ describe('SkinCraft inventory targets', () => {
             },
         } as unknown as InventoryAsset;
 
+        expect(toSkinCraftItem(asset)).toEqual(
+            expect.objectContaining({inspect: 'a'.repeat(80), inspectUrl: undefined})
+        );
+    });
+
+    it('ignores inspect-shaped actions that are not steam launch links', () => {
+        const hex = 'a'.repeat(80);
+        const asset = {
+            assetid: '123',
+            asset_properties: [{propertyid: 6, string_value: hex}],
+            description: {
+                market_hash_name: 'AK-47 | Redline (Field-Tested)',
+                tags: [{category: 'Weapon', internal_name: 'weapon_ak47'}],
+                actions: [
+                    {name: 'Inspect in Game...', link: `https://example.com/#+csgo_econ_action_preview%20${hex}`},
+                ],
+            },
+        } as unknown as InventoryAsset;
+
         expect(toSkinCraftItem(asset)?.inspectUrl).toBeUndefined();
     });
 
-    it('produces items the viewer protocol accepts, even for oversized inspects', () => {
+    it('builds the launch link around the rendered hex, not the one embedded in the link', () => {
+        const property = 'a'.repeat(80);
+        const embedded = 'b'.repeat(80);
+        const asset = {
+            assetid: '123',
+            asset_properties: [{propertyid: 6, string_value: property}],
+            description: {
+                market_hash_name: 'AK-47 | Redline (Field-Tested)',
+                tags: [{category: 'Weapon', internal_name: 'weapon_ak47'}],
+                actions: [
+                    {name: 'Inspect in Game...', link: `steam://run/730//+csgo_econ_action_preview%20${embedded}`},
+                ],
+            },
+        } as unknown as InventoryAsset;
+        const target = toSkinCraftItem(asset);
+
+        expect(target?.inspect).toBe(property);
+        expect(target?.inspectUrl).toBe(`steam://run/730//+csgo_econ_action_preview%20${property}`);
+    });
+
+    it('produces items the viewer protocol accepts, including very long inspects', () => {
         const asset = {
             assetid: '123',
             asset_properties: [{propertyid: 6, string_value: 'a'.repeat(5000)}],
@@ -144,7 +184,7 @@ describe('SkinCraft inventory targets', () => {
         ).toBe(true);
     });
 
-    it('rejects half-hydrated non-skin descriptions without throwing', () => {
+    it('identifies half-hydrated descriptions by tag, without throwing on the missing type', () => {
         const asset = {
             assetid: '123',
             asset_properties: [{propertyid: 6, string_value: 'a'.repeat(80)}],
@@ -154,7 +194,7 @@ describe('SkinCraft inventory targets', () => {
             },
         } as unknown as InventoryAsset;
 
-        expect(toSkinCraftItem(asset)).toBeUndefined();
+        expect(toSkinCraftItem(asset)?.inspect).toBe('a'.repeat(80));
     });
 
     it('skips Steam assets whose descriptions are not initialized yet', () => {

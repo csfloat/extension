@@ -23,44 +23,52 @@ function getAssetProperties(asset: InventoryAsset, fallbackProperties: rgAssetPr
     return fallbackProperties;
 }
 
-/** Item types SkinCraft renders (weapons and gloves are both matched by `isSkin`). */
+/** Item types SkinCraft renders (gloves fall under `isSkin`). */
 function isSkinCraftRenderable(description: rgAsset): boolean {
-    if (isSkin(description)) return true;
-    // Half-hydrated descriptions may lack `type`, which the predicates below dereference.
-    if (typeof description.type !== 'string') return false;
-    return isSticker(description) || isCharm(description) || isPatch(description) || isAgent(description);
+    return (
+        isSkin(description) ||
+        isSticker(description) ||
+        isCharm(description) ||
+        isPatch(description) ||
+        isAgent(description)
+    );
 }
 
-const MASKED_ACTION_PATTERN = /\+csgo_econ_action_preview%20(%propid:6%|[0-9a-f]{40,8192})$/i;
+const PROPERTY_SLOT = '%propid:6%';
+const MASKED_ACTION_PATTERN =
+    /^steam:\/\/(?:run|rungame)\/730\/\d{0,20}\/\+csgo_econ_action_preview%20(%propid:6%|[0-9a-f]{40,8192})$/i;
 
-/** The description's masked inspect action. Steam ships the hex two ways: as asset
- *  property 6 with a `%propid:6%` slot in the link (skins), or embedded directly in
- *  the link (stickers). */
-function getMaskedInspectAction(description: rgAsset): {link: string; embeddedHex?: string} | undefined {
+/** The description's masked inspect action, split at the hex slot. Steam either leaves a
+ *  `%propid:6%` slot to fill from asset property 6, or embeds the hex in the link itself. */
+function getMaskedInspectAction(description: rgAsset): {prefix: string; embeddedHex?: string} | undefined {
     for (const action of description.actions ?? []) {
-        const hex = MASKED_ACTION_PATTERN.exec(action.link)?.[1];
-        if (hex) return {link: action.link, embeddedHex: hex === '%propid:6%' ? undefined : hex};
+        const slot = MASKED_ACTION_PATTERN.exec(action.link)?.[1];
+        if (slot) {
+            return {
+                prefix: action.link.slice(0, action.link.length - slot.length),
+                embeddedHex: slot.toLowerCase() === PROPERTY_SLOT ? undefined : slot,
+            };
+        }
     }
     return undefined;
 }
 
+/** The item's masked inspect hex, plus the `steam://` link that launches that same hex. */
 function getSkinCraftInspect(
-    asset: InventoryAsset | undefined,
+    asset: InventoryAsset,
     fallbackProperties: rgAssetProperty[]
-): string | undefined {
-    if (!asset?.description || !isSkinCraftRenderable(asset.description)) return;
+): Pick<SkinCraftItem, 'inspect' | 'inspectUrl'> | undefined {
+    if (!isSkinCraftRenderable(asset.description)) return;
 
-    const property = getAssetProperties(asset, fallbackProperties)
-        .find((property) => property.propertyid === 6)
-        ?.string_value?.trim();
-    return property || getMaskedInspectAction(asset.description)?.embeddedHex;
-}
-
-/** The asset's `steam://` inspect launch link, with any `%propid:6%` slot filled with the masked hex. */
-function getSteamInspectUrl(asset: InventoryAsset, inspect: string): string | undefined {
     const action = getMaskedInspectAction(asset.description);
-    const url = action?.embeddedHex ? action.link : action?.link.replace('%propid:6%', inspect);
-    return url && STEAM_INSPECT_URL_PATTERN.test(url) ? url : undefined;
+    const inspect =
+        getAssetProperties(asset, fallbackProperties)
+            .find((property) => property.propertyid === 6)
+            ?.string_value?.trim() || action?.embeddedHex;
+    if (!inspect || !SKINCRAFT_INSPECT_PATTERN.test(inspect)) return;
+
+    const inspectUrl = action && `${action.prefix}${inspect}`;
+    return {inspect, inspectUrl: inspectUrl && STEAM_INSPECT_URL_PATTERN.test(inspectUrl) ? inspectUrl : undefined};
 }
 
 export function toSkinCraftItem(
@@ -70,16 +78,15 @@ export function toSkinCraftItem(
 ): SkinCraftItem | undefined {
     if (!asset?.description || typeof asset.description.market_hash_name !== 'string') return;
 
-    const inspect = getSkinCraftInspect(asset, fallbackProperties);
-    if (!inspect || !SKINCRAFT_INSPECT_PATTERN.test(inspect)) return;
+    const inspectFields = getSkinCraftInspect(asset, fallbackProperties);
+    if (!inspectFields) return;
 
     const icon = asset.description.icon_url_large || asset.description.icon_url;
     const itemInfo = getCachedItemInfo(asset.assetid);
     const rarityColor = asset.description.tags?.find((tag) => tag.category === 'Rarity')?.color;
     const backgroundColor = asset.description.background_color;
     return {
-        inspect,
-        inspectUrl: getSteamInspectUrl(asset, inspect),
+        ...inspectFields,
         name: asset.description.market_hash_name,
         iconUrl: icon ? steamEconomyImageUrl(icon) : undefined,
         assetId: asset.assetid,
