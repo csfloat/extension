@@ -217,10 +217,16 @@ class SkinCraftEmbedService {
                 this.modal?.setError(message.message || 'SkinCraft could not load this item.');
                 break;
             case 'inspect-requested': {
-                // Re-check the shape: targets on the direct open() path never cross the
-                // validated page boundary.
+                // Re-checked at the navigation sink. `loaded` means the frame shows `activeTarget` — a
+                // switch-in-place keeps the old model on screen while the next loads, and it must not launch.
+                if (!this.active) break;
+
                 const url = this.activeTarget?.inspectUrl;
-                if (this.active && url && STEAM_INSPECT_URL_PATTERN.test(url)) window.location.href = url;
+                if (this.loadPhase === 'loaded' && url && STEAM_INSPECT_URL_PATTERN.test(url)) {
+                    window.location.href = url;
+                } else {
+                    console.warn('SkinCraft: no launchable inspect link for the item on screen.');
+                }
                 break;
             }
         }
