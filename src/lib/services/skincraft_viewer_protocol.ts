@@ -6,7 +6,7 @@ export const MAX_SKINCRAFT_INVENTORY_TARGETS = 2_000;
 export const SKINCRAFT_INSPECT_PATTERN = /^[0-9a-f]{40,8192}$/i;
 export const HEX_COLOR_PATTERN = /^[0-9a-f]{6}$/i;
 export const STEAM_INSPECT_URL_PATTERN =
-    /^steam:\/\/rungame\/730\/\d{1,20}\/\+csgo_econ_action_preview%20[0-9a-f]{40,8192}$/i;
+    /^steam:\/\/(?:run|rungame)\/730\/\d{0,20}\/\+csgo_econ_action_preview%20[0-9a-f]{40,8192}$/i;
 const ASSET_ID_PATTERN = /^\d{1,32}$/;
 
 /** An item as it crosses the page → content-script boundary. */

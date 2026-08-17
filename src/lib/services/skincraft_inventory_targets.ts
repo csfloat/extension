@@ -31,23 +31,35 @@ function isSkinCraftRenderable(description: rgAsset): boolean {
     return isSticker(description) || isCharm(description) || isPatch(description) || isAgent(description);
 }
 
+const MASKED_ACTION_PATTERN = /\+csgo_econ_action_preview%20(%propid:6%|[0-9a-f]{40,8192})$/i;
+
+/** The description's masked inspect action. Steam ships the hex two ways: as asset
+ *  property 6 with a `%propid:6%` slot in the link (skins), or embedded directly in
+ *  the link (stickers). */
+function getMaskedInspectAction(description: rgAsset): {link: string; embeddedHex?: string} | undefined {
+    for (const action of description.actions ?? []) {
+        const hex = MASKED_ACTION_PATTERN.exec(action.link)?.[1];
+        if (hex) return {link: action.link, embeddedHex: hex === '%propid:6%' ? undefined : hex};
+    }
+    return undefined;
+}
+
 function getSkinCraftInspect(
     asset: InventoryAsset | undefined,
     fallbackProperties: rgAssetProperty[]
 ): string | undefined {
     if (!asset?.description || !isSkinCraftRenderable(asset.description)) return;
 
-    return (
-        getAssetProperties(asset, fallbackProperties)
-            .find((property) => property.propertyid === 6)
-            ?.string_value?.trim() || undefined
-    );
+    const property = getAssetProperties(asset, fallbackProperties)
+        .find((property) => property.propertyid === 6)
+        ?.string_value?.trim();
+    return property || getMaskedInspectAction(asset.description)?.embeddedHex;
 }
 
-/** The asset's `steam://` inspect launch link — Steam templates the masked hex slot as `%propid:6%`. */
+/** The asset's `steam://` inspect launch link, with any `%propid:6%` slot filled with the masked hex. */
 function getSteamInspectUrl(asset: InventoryAsset, inspect: string): string | undefined {
-    const link = asset.description.actions?.find((action) => action.link.includes('%propid:6%'))?.link;
-    const url = link?.replace('%propid:6%', inspect);
+    const action = getMaskedInspectAction(asset.description);
+    const url = action?.embeddedHex ? action.link : action?.link.replace('%propid:6%', inspect);
     return url && STEAM_INSPECT_URL_PATTERN.test(url) ? url : undefined;
 }
 

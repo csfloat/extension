@@ -72,20 +72,34 @@ describe('SkinCraft inventory targets', () => {
                 tags: [{category: 'Weapon', internal_name: 'weapon_ak47'}],
                 actions: [
                     {name: 'View Wiki', link: 'https://example.com/wiki'},
-                    {
-                        name: 'Inspect in Game...',
-                        link: 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20%propid:6%',
-                    },
+                    {name: 'Inspect in Game...', link: 'steam://run/730//+csgo_econ_action_preview%20%propid:6%'},
                 ],
             },
         } as unknown as InventoryAsset;
 
         expect(toSkinCraftItem(asset)?.inspectUrl).toBe(
-            `steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20${'a'.repeat(80)}`
+            `steam://run/730//+csgo_econ_action_preview%20${'a'.repeat(80)}`
         );
     });
 
-    it('omits the launch link when no action carries the masked placeholder', () => {
+    it('extracts the inspect from action links that embed the hex directly', () => {
+        const hex = 'A'.repeat(54);
+        const asset = {
+            assetid: '123',
+            description: {
+                market_hash_name: 'Sticker | Crown (Foil)',
+                type: 'High Grade Sticker',
+                tags: [{category: 'Type', internal_name: 'CSGO_Tool_Sticker'}],
+                actions: [{name: 'Inspect in Game...', link: `steam://run/730//+csgo_econ_action_preview%20${hex}`}],
+            },
+        } as unknown as InventoryAsset;
+        const target = toSkinCraftItem(asset);
+
+        expect(target?.inspect).toBe(hex);
+        expect(target?.inspectUrl).toBe(`steam://run/730//+csgo_econ_action_preview%20${hex}`);
+    });
+
+    it('omits the launch link when no action is a masked inspect launch', () => {
         const asset = {
             assetid: '123',
             asset_properties: [{propertyid: 6, string_value: 'a'.repeat(80)}],
