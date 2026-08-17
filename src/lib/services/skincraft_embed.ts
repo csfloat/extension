@@ -217,8 +217,8 @@ class SkinCraftEmbedService {
                 this.modal?.setError(message.message || 'SkinCraft could not load this item.');
                 break;
             case 'inspect-requested': {
-                // Re-checked at the navigation sink. `loaded` means the frame shows `activeTarget` — a
-                // switch-in-place keeps the old model on screen while the next loads, and it must not launch.
+                // A switch-in-place keeps the old model on screen while the next loads; only `loaded`
+                // means the frame shows `activeTarget`.
                 if (!this.active) break;
 
                 const url = this.activeTarget?.inspectUrl;

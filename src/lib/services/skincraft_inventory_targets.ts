@@ -38,8 +38,7 @@ const PROPERTY_SLOT = '%propid:6%';
 const MASKED_ACTION_PATTERN =
     /^steam:\/\/(?:run|rungame)\/730\/\d{0,20}\/\+csgo_econ_action_preview%20(%propid:6%|[0-9a-f]{40,8192})$/i;
 
-/** The description's masked inspect action, split at the hex slot. Steam either leaves a
- *  `%propid:6%` slot to fill from asset property 6, or embeds the hex in the link itself. */
+/** Split at the hex slot, which Steam either fills from asset property 6 or embeds inline. */
 function getMaskedInspectAction(description: rgAsset): {prefix: string; embeddedHex?: string} | undefined {
     for (const action of description.actions ?? []) {
         const slot = MASKED_ACTION_PATTERN.exec(action.link)?.[1];
@@ -53,7 +52,6 @@ function getMaskedInspectAction(description: rgAsset): {prefix: string; embedded
     return undefined;
 }
 
-/** The item's masked inspect hex, plus the `steam://` link that launches that same hex. */
 function getSkinCraftInspect(
     asset: InventoryAsset,
     fallbackProperties: rgAssetProperty[]
