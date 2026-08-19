@@ -1,14 +1,15 @@
-import type {CAppwideInventory, CInventory, InventoryAsset, rgAssetProperty} from '../types/steam';
+import type {CAppwideInventory, CInventory, InventoryAsset, rgAsset, rgAssetProperty} from '../types/steam';
 import type {ItemInfo} from '../bridge/handlers/fetch_inspect_info';
 import {ContextId} from '../types/steam_constants';
 import {isCAppwideInventory} from '../utils/checkers';
-import {formatFloatWithRank, formatSeed, isSkin} from '../utils/skin';
+import {formatFloatWithRank, formatSeed, isAgent, isCharm, isPatch, isSkin, isSticker} from '../utils/skin';
 import {steamEconomyImageUrl} from '../utils/steam_images';
 import {gFloatFetcher} from './float_fetcher';
 import {
     HEX_COLOR_PATTERN,
     MAX_SKINCRAFT_INVENTORY_TARGETS,
     SKINCRAFT_INSPECT_PATTERN,
+    STEAM_INSPECT_URL_PATTERN,
 } from './skincraft_viewer_protocol';
 import type {SkinCraftItem} from './skincraft_viewer_protocol';
 
@@ -22,17 +23,50 @@ function getAssetProperties(asset: InventoryAsset, fallbackProperties: rgAssetPr
     return fallbackProperties;
 }
 
-function getSkinCraftInspect(
-    asset: InventoryAsset | undefined,
-    fallbackProperties: rgAssetProperty[]
-): string | undefined {
-    if (!asset?.description || !isSkin(asset.description)) return;
-
+/** Item types SkinCraft renders (gloves fall under `isSkin`). */
+function isSkinCraftRenderable(description: rgAsset): boolean {
     return (
+        isSkin(description) ||
+        isSticker(description) ||
+        isCharm(description) ||
+        isPatch(description) ||
+        isAgent(description)
+    );
+}
+
+const PROPERTY_SLOT = '%propid:6%';
+const MASKED_ACTION_PATTERN =
+    /^steam:\/\/(?:run|rungame)\/730\/\d{0,20}\/\+csgo_econ_action_preview%20(%propid:6%|[0-9a-f]{40,8192})$/i;
+
+/** Split at the hex slot, which Steam either fills from asset property 6 or embeds inline. */
+function getMaskedInspectAction(description: rgAsset): {prefix: string; embeddedHex?: string} | undefined {
+    for (const action of description.actions ?? []) {
+        const slot = MASKED_ACTION_PATTERN.exec(action.link)?.[1];
+        if (slot) {
+            return {
+                prefix: action.link.slice(0, action.link.length - slot.length),
+                embeddedHex: slot.toLowerCase() === PROPERTY_SLOT ? undefined : slot,
+            };
+        }
+    }
+    return undefined;
+}
+
+function getSkinCraftInspect(
+    asset: InventoryAsset,
+    fallbackProperties: rgAssetProperty[]
+): Pick<SkinCraftItem, 'inspect' | 'inspectUrl'> | undefined {
+    if (!isSkinCraftRenderable(asset.description)) return;
+
+    const action = getMaskedInspectAction(asset.description);
+    const inspect =
         getAssetProperties(asset, fallbackProperties)
             .find((property) => property.propertyid === 6)
-            ?.string_value?.trim() || undefined
-    );
+            ?.string_value?.trim() || action?.embeddedHex;
+    if (!inspect || !SKINCRAFT_INSPECT_PATTERN.test(inspect)) return;
+
+    const inspectUrl = action && `${action.prefix}${inspect}`;
+    return {inspect, inspectUrl: inspectUrl && STEAM_INSPECT_URL_PATTERN.test(inspectUrl) ? inspectUrl : undefined};
 }
 
 export function toSkinCraftItem(
@@ -42,15 +76,15 @@ export function toSkinCraftItem(
 ): SkinCraftItem | undefined {
     if (!asset?.description || typeof asset.description.market_hash_name !== 'string') return;
 
-    const inspect = getSkinCraftInspect(asset, fallbackProperties);
-    if (!inspect || !SKINCRAFT_INSPECT_PATTERN.test(inspect)) return;
+    const inspectFields = getSkinCraftInspect(asset, fallbackProperties);
+    if (!inspectFields) return;
 
     const icon = asset.description.icon_url_large || asset.description.icon_url;
     const itemInfo = getCachedItemInfo(asset.assetid);
     const rarityColor = asset.description.tags?.find((tag) => tag.category === 'Rarity')?.color;
     const backgroundColor = asset.description.background_color;
     return {
-        inspect,
+        ...inspectFields,
         name: asset.description.market_hash_name,
         iconUrl: icon ? steamEconomyImageUrl(icon) : undefined,
         assetId: asset.assetid,

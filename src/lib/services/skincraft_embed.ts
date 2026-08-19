@@ -9,7 +9,11 @@ import {
 } from './skincraft_embed_protocol';
 import type {SkinCraftEmbedCommand} from './skincraft_embed_protocol';
 import {getLoadedInventoryTargets} from './skincraft_inventory_targets';
-import {isOpenSkinCraftViewerMessage, SKINCRAFT_VIEWER_MESSAGE_SOURCE} from './skincraft_viewer_protocol';
+import {
+    isOpenSkinCraftViewerMessage,
+    SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+    STEAM_INSPECT_URL_PATTERN,
+} from './skincraft_viewer_protocol';
 import type {OpenSkinCraftViewerMessage, SkinCraftItem, SkinCraftViewerTarget} from './skincraft_viewer_protocol';
 
 const LOAD_TIMEOUT_MS = 20_000;
@@ -212,6 +216,19 @@ class SkinCraftEmbedService {
                 this.frameHasContent = false;
                 this.modal?.setError(message.message || 'SkinCraft could not load this item.');
                 break;
+            case 'inspect-requested': {
+                // A switch-in-place keeps the old model on screen while the next loads; only `loaded`
+                // means the frame shows `activeTarget`.
+                if (!this.active) break;
+
+                const url = this.activeTarget?.inspectUrl;
+                if (this.loadPhase === 'loaded' && url && STEAM_INSPECT_URL_PATTERN.test(url)) {
+                    window.location.href = url;
+                } else {
+                    console.warn('SkinCraft: no launchable inspect link for the item on screen.');
+                }
+                break;
+            }
         }
     };
 

@@ -18,6 +18,8 @@ export type SkinCraftEmbedEvent = EmbedEnvelope &
         | {type: 'progress'; id?: string; percent: number | null; label?: string}
         | {type: 'loaded'; id?: string}
         | {type: 'error'; id?: string; code: string; message: string}
+        // The sandboxed iframe can't launch steam:// itself.
+        | {type: 'inspect-requested'}
     );
 
 export function isSkinCraftEmbedEvent(data: unknown): data is SkinCraftEmbedEvent {
@@ -35,6 +37,7 @@ export function isSkinCraftEmbedEvent(data: unknown): data is SkinCraftEmbedEven
     const hasValidId = message.id === undefined || typeof message.id === 'string';
     switch (message.type) {
         case 'ready':
+        case 'inspect-requested':
             return true;
         case 'progress':
             return hasValidId && (message.label === undefined || typeof message.label === 'string');

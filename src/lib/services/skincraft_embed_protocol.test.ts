@@ -11,6 +11,7 @@ describe('SkinCraft embed messages', () => {
         expect(
             isSkinCraftEmbedEvent({...envelope, type: 'error', id: '1', code: 'load-failed', message: 'Failed'})
         ).toBe(true);
+        expect(isSkinCraftEmbedEvent({...envelope, type: 'inspect-requested'})).toBe(true);
     });
 
     it('rejects spoofed, malformed, and unknown messages', () => {

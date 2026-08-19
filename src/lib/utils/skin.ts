@@ -156,7 +156,8 @@ export function isPin(asset: rgAsset): boolean {
 }
 
 function isAbstractType(asset: rgAsset, type: string, internalName: string): boolean {
-    if (asset.type.endsWith(type)) {
+    // Half-hydrated descriptions can arrive without `type`, despite the declared shape.
+    if (typeof asset.type === 'string' && asset.type.endsWith(type)) {
         return true;
     }
 
