@@ -99,20 +99,37 @@ describe('SkinCraft market targets', () => {
         });
     });
 
-    it('extracts applied stickers from the sticker_info markup, keeping them out of the text lines', () => {
-        const icon = 'https://cdn.steamstatic.com/apps/730/icons/econ/stickers/stockh2021/faze.abc.png';
+    it("maps applied accessories with Steam's own attribute lines, keeping their markup out of the text lines", () => {
+        const accessory = (description: object, parentProperties: object[] = []) => ({
+            classid: '7104637288',
+            standalone_properties: [],
+            parent_relationship_properties: parentProperties,
+            nested_accessories: [],
+            description,
+        });
         const listing = createListing({
+            asset: {
+                assetid: '53323033442',
+                asset_properties: [{propertyid: 6, string_value: 'a'.repeat(80)}],
+                asset_accessories: [
+                    accessory(
+                        {market_hash_name: 'Sticker | NRG | Austin 2025', type: 'High Grade Sticker', icon_url: 'nrg'},
+                        [{propertyid: 4, float_value: 0.6800000071525574}]
+                    ),
+                    accessory({
+                        market_hash_name: 'Sticker | OG | Austin 2025',
+                        type: 'High Grade Sticker',
+                        icon_url: 'og',
+                    }),
+                    accessory(
+                        {market_hash_name: 'Charm | Baby Karat T', type: 'Extraordinary Charm', icon_url: 'charm'},
+                        [{propertyid: 3, int_value: '88143'}]
+                    ),
+                ],
+            },
             description: {
                 descriptions: [
-                    {
-                        type: 'html',
-                        value:
-                            `<div id="sticker_info" class="sticker_info"><center>` +
-                            `<img width=64 height=48 src="${icon}" title="Sticker: FaZe Clan | Stockholm 2021">` +
-                            `<img width=64 height=48 src="https://evil.example/x.png" title="Sticker: Spoofed &amp; Fake">` +
-                            `<br>Sticker: FaZe Clan | Stockholm 2021</center></div>`,
-                        name: 'sticker_info',
-                    },
+                    {type: 'html', value: '<div class="sticker_info"><img src="x"></div>', name: 'sticker_info'},
                     {type: 'html', value: 'The Phoenix Collection', name: 'itemset_name'},
                 ],
             },
@@ -120,8 +137,21 @@ describe('SkinCraft market targets', () => {
         const details = toSkinCraftListingItem(listing)?.details;
 
         expect(details?.accessories).toEqual([
-            {name: 'Sticker | FaZe Clan | Stockholm 2021', iconUrl: icon},
-            {name: 'Sticker | Spoofed & Fake', iconUrl: undefined},
+            {
+                name: 'Sticker | NRG | Austin 2025',
+                iconUrl: `${STEAM_ECONOMY_IMAGE_PREFIX}nrg/330x192`,
+                detail: 'Sticker Scrape Level: 0.680000007',
+            },
+            {
+                name: 'Sticker | OG | Austin 2025',
+                iconUrl: `${STEAM_ECONOMY_IMAGE_PREFIX}og/330x192`,
+                detail: 'Sticker Scrape Level: 0',
+            },
+            {
+                name: 'Charm | Baby Karat T',
+                iconUrl: `${STEAM_ECONOMY_IMAGE_PREFIX}charm/330x192`,
+                detail: 'Charm Template: 88143',
+            },
         ]);
         expect(details?.lines).toEqual([{text: 'The Phoenix Collection', italic: undefined, color: undefined}]);
     });

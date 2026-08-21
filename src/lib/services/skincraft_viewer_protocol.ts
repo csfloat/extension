@@ -12,12 +12,6 @@ export const MAX_SKINCRAFT_DETAIL_LINES = 24;
 export const MAX_SKINCRAFT_DETAIL_TEXT = 2048;
 export const MAX_SKINCRAFT_ACCESSORIES = 8;
 
-/** The hosts Steam serves sticker/charm icons from. */
-export const SKINCRAFT_ACCESSORY_ICON_PREFIXES = [
-    'https://cdn.steamstatic.com/apps/730/icons/',
-    'https://steamcdn-a.akamaihd.net/apps/730/icons/',
-] as const;
-
 /** One sanitized line of Steam's item description block (exterior, flavour text, collection, …). */
 export type SkinCraftDetailLine = {
     text: string;
@@ -29,6 +23,8 @@ export type SkinCraftDetailLine = {
 export type SkinCraftAccessory = {
     name: string;
     iconUrl?: string;
+    /** Steam's per-accessory attribute line, e.g. "Sticker Scrape Level: 0.680000007". */
+    detail?: string;
 };
 
 /** The listing facts the viewer's details panel mirrors from Steam's own item dialog. */
@@ -120,9 +116,9 @@ function isSkinCraftAccessory(data: unknown): data is SkinCraftAccessory {
     const accessory = data as Partial<SkinCraftAccessory>;
     return (
         isBoundedString(accessory.name, 256) &&
+        isOptional(accessory.detail, (v): v is string => isBoundedString(v, 128)) &&
         (accessory.iconUrl === undefined ||
-            (isBoundedString(accessory.iconUrl, 4096) &&
-                SKINCRAFT_ACCESSORY_ICON_PREFIXES.some((prefix) => accessory.iconUrl!.startsWith(prefix))))
+            (isBoundedString(accessory.iconUrl, 4096) && accessory.iconUrl.startsWith(STEAM_ECONOMY_IMAGE_PREFIX)))
     );
 }
 

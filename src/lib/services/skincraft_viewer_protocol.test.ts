@@ -111,7 +111,8 @@ describe('SkinCraft viewer listing details', () => {
         accessories: [
             {
                 name: 'Sticker | dupreeh | Katowice 2019',
-                iconUrl: 'https://cdn.steamstatic.com/apps/730/icons/econ/stickers/kat2019/dupreeh.png',
+                iconUrl: 'https://community.akamai.steamstatic.com/economy/image/dupreeh/330x192',
+                detail: 'Sticker Scrape Level: 0.680000007',
             },
         ],
         lines: [{text: 'Exterior: Battle-Scarred'}, {text: 'Never be afraid', italic: true, color: '9da1a9'}],

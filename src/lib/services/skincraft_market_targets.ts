@@ -1,6 +1,7 @@
-import type {MarketListing, MarketListingProps} from '../components/market/react/types';
+import type {MarketListing, MarketListingAccessory, MarketListingProps} from '../components/market/react/types';
 import type {InventoryAsset, rgAsset, rgAssetProperty} from '../types/steam';
 import {getFiberProps} from '../utils/fiber';
+import {steamEconomyImageUrl} from '../utils/steam_images';
 import {toSkinCraftItem} from './skincraft_inventory_targets';
 import type {CachedItemInfoLookup} from './skincraft_inventory_targets';
 import {
@@ -9,7 +10,6 @@ import {
     MAX_SKINCRAFT_DETAIL_LINES,
     MAX_SKINCRAFT_DETAIL_TEXT,
     MAX_SKINCRAFT_INVENTORY_TARGETS,
-    SKINCRAFT_ACCESSORY_ICON_PREFIXES,
 } from './skincraft_viewer_protocol';
 import type {
     SkinCraftAccessory,
@@ -35,41 +35,44 @@ function toListingAsset(listing: MarketListing): InventoryAsset {
     } as unknown as InventoryAsset;
 }
 
-/** The description entries that carry applied sticker/charm markup rather than prose. */
+/** The description entries that duplicate applied sticker/charm data as markup rather than prose. */
 const ACCESSORY_INFO_ENTRIES = new Set(['sticker_info', 'keychain_info']);
 
-function decodeHtmlEntities(text: string): string {
-    return text
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .replace(/&amp;/g, '&');
+/** Matches how Steam prints scrape levels: the float32 value at 9 significant digits. */
+function formatScrapeLevel(value: number): string {
+    return String(Number(value.toPrecision(9)));
 }
 
-/**
- * Pulls the applied stickers/charms out of Steam's `sticker_info`/`keychain_info` markup. Regex
- * over Steam's own fixed-shape HTML, so the mapping stays runnable outside a DOM.
- */
+/** The per-accessory attribute line, from the {@link https://steamcommunity.com AssetPropertySchema} ids. */
+function toAccessoryDetail(accessory: MarketListingAccessory): string | undefined {
+    const properties = [
+        ...(accessory.parent_relationship_properties ?? []),
+        ...(accessory.standalone_properties ?? []),
+    ];
+
+    const scrape = Number(properties.find((p) => p.propertyid === 4)?.float_value);
+    if (Number.isFinite(scrape)) return `Sticker Scrape Level: ${formatScrapeLevel(scrape)}`;
+
+    const template = properties.find((p) => p.propertyid === 3)?.int_value;
+    if (template) return `Charm Template: ${template}`;
+
+    // Steam spells out the zero on unscraped stickers rather than dropping the line.
+    return accessory.description.type?.endsWith('Sticker') ? 'Sticker Scrape Level: 0' : undefined;
+}
+
 function toAccessories(listing: MarketListing): SkinCraftAccessory[] | undefined {
     const accessories: SkinCraftAccessory[] = [];
-    for (const entry of listing.description.descriptions ?? []) {
-        if (!ACCESSORY_INFO_ENTRIES.has(entry.name) || typeof entry.value !== 'string') continue;
+    for (const accessory of listing.asset.asset_accessories ?? []) {
+        const description = accessory.description;
+        if (typeof description?.market_hash_name !== 'string') continue;
 
-        for (const [tag] of entry.value.matchAll(/<img\b[^>]*>/gi)) {
-            // Steam titles these "Sticker: <name>" / "Charm: <name>"; the dialog renders " | ".
-            const name = decodeHtmlEntities(/\btitle="([^"]*)"/i.exec(tag)?.[1] ?? '')
-                .trim()
-                .replace(':', ' |');
-            if (!name) continue;
-
-            const src = /\bsrc="([^"]*)"/i.exec(tag)?.[1] ?? '';
-            const iconUrl = SKINCRAFT_ACCESSORY_ICON_PREFIXES.some((prefix) => src.startsWith(prefix))
-                ? src
-                : undefined;
-            accessories.push({name: name.slice(0, 256), iconUrl});
-            if (accessories.length === MAX_SKINCRAFT_ACCESSORIES) return accessories;
-        }
+        const icon = description.icon_url_large || description.icon_url;
+        accessories.push({
+            name: description.market_hash_name.slice(0, 256),
+            iconUrl: icon ? steamEconomyImageUrl(icon) : undefined,
+            detail: toAccessoryDetail(accessory),
+        });
+        if (accessories.length === MAX_SKINCRAFT_ACCESSORIES) break;
     }
     return accessories.length ? accessories : undefined;
 }

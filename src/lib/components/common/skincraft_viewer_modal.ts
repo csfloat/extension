@@ -382,7 +382,12 @@ export class SkinCraftViewerModal {
                             ${accessory.iconUrl
                                 ? html`<img src="${accessory.iconUrl}" alt="" loading="lazy" draggable="false" />`
                                 : nothing}
-                            <span>${accessory.name}</span>
+                            <span class="details-accessory-text">
+                                <span>${accessory.name}</span>
+                                ${accessory.detail
+                                    ? html`<span class="details-accessory-detail">${accessory.detail}</span>`
+                                    : nothing}
+                            </span>
                         </div>
                     `
                 )}

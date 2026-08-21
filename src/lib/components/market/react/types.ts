@@ -35,11 +35,22 @@ export interface MarketListingDescription
     tags: unknown[];
 }
 
+/** A sticker/charm applied to a listed item, with its own description and slot properties. */
+export interface MarketListingAccessory {
+    classid: string;
+    standalone_properties: rgAssetProperty[];
+    /** Properties tying the accessory to its host item, e.g. propertyid 4 = sticker scrape level. */
+    parent_relationship_properties: rgAssetProperty[];
+    nested_accessories: MarketListingAccessory[];
+    description: MarketListingDescription;
+}
+
 export interface MarketListingAsset {
     asset_properties: rgAssetProperty[];
     amount: number;
     appid: number;
     accessory_properties: rgAssetProperty[];
+    asset_accessories?: MarketListingAccessory[];
     assetid: string;
     classid: string;
     contextid: string;

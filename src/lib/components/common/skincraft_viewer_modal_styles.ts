@@ -619,6 +619,18 @@ export const skinCraftViewerModalStyles = `
         flex: 0 0 auto;
     }
 
+    .details-accessory-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .details-accessory-detail {
+        color: rgba(245, 248, 255, 0.45);
+        font-size: 12px;
+    }
+
     .details-restrictions {
         color: rgba(245, 248, 255, 0.6);
         font-size: 13px;
