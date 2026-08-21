@@ -1,6 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import {
+    isBuySkinCraftListingMessage,
     isOpenSkinCraftViewerMessage,
+    isRequestSkinCraftViewerItemsMessage,
+    isSkinCraftViewerItemsMessage,
+    MAX_SKINCRAFT_DETAIL_TEXT,
     MAX_SKINCRAFT_INVENTORY_TARGETS,
     SKINCRAFT_VIEWER_MESSAGE_SOURCE,
 } from './skincraft_viewer_protocol';
@@ -87,6 +91,114 @@ describe('SkinCraft viewer open messages', () => {
                 source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
                 type: 'open',
                 target,
+                inventory: Array.from({length: MAX_SKINCRAFT_INVENTORY_TARGETS + 1}, () => target),
+            })
+        ).toBe(false);
+    });
+});
+
+describe('SkinCraft viewer listing details', () => {
+    const details = {
+        listingId: '556910233323745386',
+        game: 'Counter-Strike 2',
+        type: 'Classified Rifle',
+        nameTag: 'AK-47| Nerfed',
+        patternTemplate: '515',
+        wearRating: '0.52918148',
+        price: '$35.20',
+        tradeRestrictionDays: 7,
+        marketRestrictionDays: 7,
+        accessories: [
+            {
+                name: 'Sticker | dupreeh | Katowice 2019',
+                iconUrl: 'https://cdn.steamstatic.com/apps/730/icons/econ/stickers/kat2019/dupreeh.png',
+            },
+        ],
+        lines: [{text: 'Exterior: Battle-Scarred'}, {text: 'Never be afraid', italic: true, color: '9da1a9'}],
+    };
+
+    it('accepts a target carrying well-formed details', () => {
+        expect(
+            isOpenSkinCraftViewerMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'open',
+                target: {...target, details},
+                inventory: [],
+            })
+        ).toBe(true);
+    });
+
+    it.each([
+        ['a non-numeric listing id', {...details, listingId: 'not-a-listing'}],
+        ['an oversized line', {...details, lines: [{text: 'a'.repeat(MAX_SKINCRAFT_DETAIL_TEXT + 1)}]}],
+        ['a malformed line colour', {...details, lines: [{text: 'x', color: 'red'}]}],
+        ['out-of-range restriction days', {...details, tradeRestrictionDays: 9000}],
+        [
+            'an accessory icon from an untrusted origin',
+            {...details, accessories: [{name: 'Sticker | X', iconUrl: 'https://evil.example/x.png'}]},
+        ],
+    ])('rejects details with %s', (_label, malformed) => {
+        expect(
+            isOpenSkinCraftViewerMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'open',
+                target: {...target, details: malformed},
+                inventory: [],
+            })
+        ).toBe(false);
+    });
+});
+
+describe('SkinCraft viewer buy messages', () => {
+    it('accepts only well-formed listing ids from this protocol', () => {
+        expect(
+            isBuySkinCraftListingMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'buy-listing',
+                listingId: '556910233323745386',
+            })
+        ).toBe(true);
+        expect(
+            isBuySkinCraftListingMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'buy-listing',
+                listingId: 'javascript:alert(1)',
+            })
+        ).toBe(false);
+        expect(isBuySkinCraftListingMessage({source: 'other', type: 'buy-listing', listingId: '1'})).toBe(false);
+    });
+});
+
+describe('SkinCraft viewer items messages', () => {
+    it('accepts a request for more items only from this protocol', () => {
+        expect(
+            isRequestSkinCraftViewerItemsMessage({source: SKINCRAFT_VIEWER_MESSAGE_SOURCE, type: 'request-items'})
+        ).toBe(true);
+        expect(isRequestSkinCraftViewerItemsMessage({source: 'other', type: 'request-items'})).toBe(false);
+        expect(isRequestSkinCraftViewerItemsMessage({source: SKINCRAFT_VIEWER_MESSAGE_SOURCE, type: 'items'})).toBe(
+            false
+        );
+    });
+
+    it('holds item updates to the same target validation as open messages', () => {
+        expect(
+            isSkinCraftViewerItemsMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'items',
+                inventory: [target],
+            })
+        ).toBe(true);
+        expect(
+            isSkinCraftViewerItemsMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'items',
+                inventory: [{...target, inspect: 'not-an-inspect'}],
+            })
+        ).toBe(false);
+        expect(
+            isSkinCraftViewerItemsMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'items',
                 inventory: Array.from({length: MAX_SKINCRAFT_INVENTORY_TARGETS + 1}, () => target),
             })
         ).toBe(false);

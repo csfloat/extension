@@ -423,6 +423,264 @@ export const skinCraftViewerModalStyles = `
         background: rgba(255, 255, 255, 0.1);
     }
 
+    .details-panel {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+        background: #181b21;
+    }
+
+    .details-nav {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        height: 48px;
+        padding: 0 10px;
+        border-bottom: 1px solid rgba(193, 206, 255, 0.08);
+    }
+
+    .details-nav-btn {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        padding: 0 0 3px;
+        place-items: center;
+        color: rgba(245, 248, 255, 0.78);
+        font: inherit;
+        font-size: 22px;
+        line-height: 1;
+        background: rgba(255, 255, 255, 0.06);
+        border: 0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: color 150ms ease, background-color 150ms ease;
+    }
+
+    .details-nav-btn:hover:not(:disabled) {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+    .details-nav-btn:disabled {
+        opacity: 0.35;
+        cursor: default;
+    }
+
+    .details-count {
+        color: rgba(245, 248, 255, 0.5);
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .details-scroll {
+        flex: 1;
+        min-height: 0;
+        padding: 16px;
+        overflow-y: auto;
+        scrollbar-color: rgba(193, 206, 255, 0.2) transparent;
+        scrollbar-width: thin;
+    }
+
+    .details-scroll::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .details-scroll::-webkit-scrollbar-thumb {
+        background: rgba(193, 206, 255, 0.2);
+        border: 2px solid transparent;
+        border-radius: 999px;
+        background-clip: padding-box;
+    }
+
+    .details-name {
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.25;
+        overflow-wrap: break-word;
+    }
+
+    .details-type {
+        margin-top: 4px;
+        color: rgba(245, 248, 255, 0.55);
+        font-size: 13px;
+    }
+
+    .details-wear-bar {
+        position: relative;
+        margin: 16px 0 6px;
+    }
+
+    .details-wear-track {
+        display: flex;
+        height: 8px;
+        overflow: hidden;
+        border-radius: 4px;
+        opacity: 0.85;
+    }
+
+    .details-wear-track div {
+        height: 100%;
+    }
+
+    .details-wear-marker {
+        position: absolute;
+        top: -3px;
+        width: 3px;
+        height: 14px;
+        background: #d9d9d9;
+        border-radius: 4px;
+        transform: translateX(-50%);
+    }
+
+    .details-props {
+        margin-top: 14px;
+        font-size: 13.5px;
+        line-height: 1.65;
+    }
+
+    .details-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 16px 0;
+        padding: 14px 0;
+        border-top: 1px solid rgba(193, 206, 255, 0.1);
+        border-bottom: 1px solid rgba(193, 206, 255, 0.1);
+    }
+
+    .details-inspect {
+        flex: 0 0 auto;
+        padding: 8px 12px;
+        color: inherit;
+        font-size: 13px;
+        text-decoration: none;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        transition: background-color 150ms ease;
+    }
+
+    .details-inspect:hover {
+        background: rgba(255, 255, 255, 0.16);
+    }
+
+    .details-price {
+        margin-left: auto;
+        font-size: 15px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .details-buy {
+        padding: 8px 18px;
+        color: #fff;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        background: #6fa720;
+        border: 0;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 150ms ease;
+    }
+
+    .details-buy:hover {
+        background: #83bd2c;
+    }
+
+    .details-accessories {
+        margin-bottom: 16px;
+    }
+
+    .details-section-title {
+        margin-bottom: 8px;
+        color: rgba(245, 248, 255, 0.82);
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .details-accessory {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 4px;
+        padding: 5px 8px;
+        font-size: 13px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 6px;
+    }
+
+    .details-accessory img {
+        width: 48px;
+        height: 36px;
+        object-fit: contain;
+        flex: 0 0 auto;
+    }
+
+    .details-restrictions {
+        color: rgba(245, 248, 255, 0.6);
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .details-restrictions ul {
+        margin: 6px 0 0;
+        padding-left: 22px;
+    }
+
+    .details-lines {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(193, 206, 255, 0.1);
+    }
+
+    .details-lines p {
+        margin: 10px 0;
+        color: rgba(245, 248, 255, 0.72);
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .details-lines p.italic {
+        font-style: italic;
+    }
+
+    dialog.has-details {
+        width: min(94vw, calc(80vh * 16 / 9 + 340px), 2260px);
+        width: min(94vw, calc(80dvh * 16 / 9 + 340px), 2260px);
+    }
+
+    dialog.has-details .modal-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 340px;
+    }
+
+    dialog.has-details .details-panel {
+        /* The stage's height (its column width at 16:9), restated because the panel's own content
+           must not be what sizes the shared grid row. Tracks the same 2260px ceiling as the dialog. */
+        height: min(calc((min(94vw, 2260px) - 340px) * 9 / 16), 80vh);
+        height: min(calc((min(94vw, 2260px) - 340px) * 9 / 16), 80dvh);
+        border-left: 1px solid rgba(193, 206, 255, 0.1);
+    }
+
+    @media (max-width: 1167px) {
+        dialog.has-details .modal-body {
+            display: block;
+            max-height: calc(100vh - 80px);
+            max-height: calc(100dvh - 80px);
+            overflow-y: auto;
+        }
+
+        dialog.has-details .details-panel {
+            height: auto;
+            max-height: 38vh;
+            border-top: 1px solid rgba(193, 206, 255, 0.1);
+            border-left: 0;
+        }
+    }
+
     .hidden {
         display: none !important;
     }

@@ -10,11 +10,21 @@ import {
 import type {SkinCraftEmbedCommand} from './skincraft_embed_protocol';
 import {getLoadedInventoryTargets} from './skincraft_inventory_targets';
 import {
+    isBuySkinCraftListingMessage,
     isOpenSkinCraftViewerMessage,
+    isRequestSkinCraftViewerItemsMessage,
+    isSkinCraftViewerItemsMessage,
     SKINCRAFT_VIEWER_MESSAGE_SOURCE,
     STEAM_INSPECT_URL_PATTERN,
 } from './skincraft_viewer_protocol';
-import type {OpenSkinCraftViewerMessage, SkinCraftItem, SkinCraftViewerTarget} from './skincraft_viewer_protocol';
+import type {
+    BuySkinCraftListingMessage,
+    OpenSkinCraftViewerMessage,
+    RequestSkinCraftViewerItemsMessage,
+    SkinCraftItem,
+    SkinCraftViewerItemsMessage,
+    SkinCraftViewerTarget,
+} from './skincraft_viewer_protocol';
 
 const LOAD_TIMEOUT_MS = 20_000;
 type LoadPhase = 'idle' | 'loading' | 'loaded' | 'error';
@@ -37,12 +47,31 @@ class SkinCraftEmbedService {
     private showLoadingCover = false;
     private frameHasContent = false;
     private needsFrameReload = false;
+    private itemsProvider?: () => Promise<SkinCraftItem[]>;
+    private buyHandler?: (listingId: string) => void;
+    private providingItems = false;
+    private itemsRequestPending = false;
+    private itemCount = 0;
 
     constructor() {
-        if (!this.runsInPage) window.addEventListener('message', this.handleOpenRequest);
+        if (this.runsInPage) {
+            window.addEventListener('message', this.handlePageRequest);
+        } else {
+            window.addEventListener('message', this.handleViewerMessage);
+        }
     }
 
-    open(target: SkinCraftItem): void {
+    /** Page-context surfaces with paginated items (the Market beta) register how to load more. */
+    registerItemsProvider(provider: () => Promise<SkinCraftItem[]>): void {
+        this.itemsProvider = provider;
+    }
+
+    /** Page-context surfaces with purchasable items register how to hand off to their buy flow. */
+    registerBuyListingHandler(handler: (listingId: string) => void): void {
+        this.buyHandler = handler;
+    }
+
+    open(target: SkinCraftItem, items?: SkinCraftItem[]): void {
         if (!target.inspect) return;
 
         if (this.runsInPage) {
@@ -51,17 +80,52 @@ class SkinCraftEmbedService {
                     source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
                     type: 'open',
                     target,
-                    inventory:
-                        typeof g_ActiveInventory === 'undefined' || !g_ActiveInventory
-                            ? []
-                            : getLoadedInventoryTargets(g_ActiveInventory),
+                    inventory: items ?? this.loadedInventoryTargets(),
                 } satisfies OpenSkinCraftViewerMessage,
                 window.location.origin
             );
             return;
         }
 
-        this.openEmbeddedViewer(target, []);
+        this.openEmbeddedViewer(target, items ?? []);
+    }
+
+    private loadedInventoryTargets(): SkinCraftItem[] {
+        return typeof g_ActiveInventory === 'undefined' || !g_ActiveInventory
+            ? []
+            : getLoadedInventoryTargets(g_ActiveInventory);
+    }
+
+    private handlePageRequest = (event: MessageEvent): void => {
+        if (event.source !== window || event.origin !== window.location.origin) return;
+        if (isRequestSkinCraftViewerItemsMessage(event.data)) {
+            void this.provideItems();
+        } else if (isBuySkinCraftListingMessage(event.data)) {
+            this.buyHandler?.(event.data.listingId);
+        }
+    };
+
+    private async provideItems(): Promise<void> {
+        if (!this.itemsProvider || this.providingItems) return;
+
+        this.providingItems = true;
+        let inventory: SkinCraftItem[] = [];
+        try {
+            inventory = await this.itemsProvider();
+        } catch {
+            // An empty answer reads as "nothing more" — the content script keeps its current strip.
+        } finally {
+            this.providingItems = false;
+        }
+
+        window.postMessage(
+            {
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'items',
+                inventory,
+            } satisfies SkinCraftViewerItemsMessage,
+            window.location.origin
+        );
     }
 
     close(): void {
@@ -70,6 +134,8 @@ class SkinCraftEmbedService {
         this.active = false;
         this.pendingInspect = undefined;
         this.latestLoadId = undefined;
+        this.itemsRequestPending = false;
+        this.itemCount = 0;
         this.loadProgress = null;
         this.loadPhase = 'idle';
         this.showLoadingCover = false;
@@ -80,16 +146,65 @@ class SkinCraftEmbedService {
         document.removeEventListener('visibilitychange', this.handleVisibilityChange);
     }
 
-    private handleOpenRequest = (event: MessageEvent): void => {
+    private handleViewerMessage = (event: MessageEvent): void => {
         if (event.source !== window || event.origin !== window.location.origin) return;
-        if (!isOpenSkinCraftViewerMessage(event.data)) return;
-        this.openEmbeddedViewer(event.data.target, event.data.inventory);
+        if (isOpenSkinCraftViewerMessage(event.data)) {
+            this.openEmbeddedViewer(event.data.target, event.data.inventory);
+        } else if (isSkinCraftViewerItemsMessage(event.data)) {
+            this.applyItemsUpdate(event.data.inventory);
+        }
     };
 
     private openEmbeddedViewer(target: SkinCraftItem, inventory: SkinCraftItem[]): void {
         const modal = this.ensureModal();
+        this.itemCount = inventory.length;
+        this.itemsRequestPending = false;
         modal.setItems(inventory.map((item) => this.toViewerTarget(item)));
         this.selectEmbeddedTarget(this.toViewerTarget(target));
+    }
+
+    private get isMarketPage(): boolean {
+        return window.location.pathname.startsWith('/market/');
+    }
+
+    private requestMoreItems(): void {
+        if (this.itemsRequestPending || !this.active || !this.isMarketPage) return;
+        this.itemsRequestPending = true;
+        window.postMessage(
+            {
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'request-items',
+            } satisfies RequestSkinCraftViewerItemsMessage,
+            window.location.origin
+        );
+    }
+
+    /** Closes the viewer and hands the purchase to Steam's own flow for this listing. */
+    private handleBuyRequest(target: SkinCraftViewerTarget): void {
+        const listingId = target.details?.listingId;
+        if (!listingId) return;
+
+        this.close();
+        window.postMessage(
+            {
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'buy-listing',
+                listingId,
+            } satisfies BuySkinCraftListingMessage,
+            window.location.origin
+        );
+    }
+
+    private applyItemsUpdate(items: SkinCraftItem[]): void {
+        this.itemsRequestPending = false;
+        // A shrunk harvest (a failed load, or the grid re-filtered underneath) never truncates the
+        // strip the user is scrolling — the snapshot only ever grows within a session.
+        if (!this.active || !this.modal || items.length <= this.itemCount) return;
+
+        this.itemCount = items.length;
+        this.modal.setItems(items.map((item) => this.toViewerTarget(item)));
+        // Keep filling while the user is still parked at the strip's end.
+        if (this.modal.itemsNearEnd()) this.requestMoreItems();
     }
 
     private selectEmbeddedTarget(target: SkinCraftViewerTarget): void {
@@ -119,12 +234,15 @@ class SkinCraftEmbedService {
         this.frameHasContent = false;
         const modal = new SkinCraftViewerModal({
             embedSrc: this.embedSrc,
-            itemsTitle: 'Inventory',
+            itemsTitle: this.isMarketPage ? 'Listings' : 'Inventory',
+            layout: this.isMarketPage ? 'details' : 'grid',
             onClose: () => this.close(),
             onRetry: () => {
                 if (this.activeTarget) this.requestLoad(this.activeTarget.inspect, true);
             },
             onSelect: (target) => this.selectEmbeddedTarget(target),
+            onItemsNearEnd: () => this.requestMoreItems(),
+            onBuy: this.isMarketPage ? (target) => this.handleBuyRequest(target) : undefined,
         });
         document.body.appendChild(modal.element);
         window.addEventListener('message', this.handleEmbedMessage);

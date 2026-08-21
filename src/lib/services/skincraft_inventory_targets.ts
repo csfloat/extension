@@ -13,7 +13,7 @@ import {
 } from './skincraft_viewer_protocol';
 import type {SkinCraftItem} from './skincraft_viewer_protocol';
 
-type CachedItemInfoLookup = (assetId: string) => ItemInfo | undefined;
+export type CachedItemInfoLookup = (assetId: string) => ItemInfo | undefined;
 
 const cachedItemInfo: CachedItemInfoLookup = (assetId) => gFloatFetcher.getCached(assetId);
 

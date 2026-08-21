@@ -4,7 +4,7 @@ import {classMap} from 'lit/directives/class-map.js';
 import {guard} from 'lit/directives/guard.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import {styleMap} from 'lit/directives/style-map.js';
-import type {SkinCraftViewerTarget} from '../../services/skincraft_viewer_protocol';
+import type {SkinCraftListingDetails, SkinCraftViewerTarget} from '../../services/skincraft_viewer_protocol';
 import {MODAL_TRANSITION_MS, skinCraftViewerModalStyles} from './skincraft_viewer_modal_styles';
 
 type LoadPhase = 'loading' | 'revealed' | 'error';
@@ -14,10 +14,37 @@ export type SkinCraftViewerModalOptions = {
     embedSrc: string;
     /** Heading for the item strip, e.g. "Inventory" — the modal itself is surface-agnostic. */
     itemsTitle: string;
+    /** `grid` shows the item strip; `details` swaps it for a listing-details panel with prev/next. */
+    layout?: 'grid' | 'details';
     onClose: () => void;
     onRetry: () => void;
     onSelect: (target: SkinCraftViewerTarget) => void;
+    /** Fired when the item strip scrolls near its end, for surfaces with paginated items. */
+    onItemsNearEnd?: () => void;
+    /** Enables the details panel's Buy button; the host hands off to the surface's purchase flow. */
+    onBuy?: (target: SkinCraftViewerTarget) => void;
 };
+
+/** About two card rows — asking for more this early keeps strip scrolling seamless. */
+const ITEMS_NEAR_END_PX = 240;
+
+/** In details mode, prefetch the next page once selection comes within this many items of the end. */
+const ITEMS_NEAR_END_COUNT = 5;
+
+/** Full 0–1 wear range in the same bands the float bar uses. */
+const WEAR_SEGMENTS = [
+    {width: 7, color: 'green'},
+    {width: 8, color: '#18a518'},
+    {width: 23, color: '#9acd32'},
+    {width: 7, color: '#cd5c5c'},
+    {width: 55, color: '#f92424'},
+];
+
+function formatRestrictionDays(days: number): string {
+    if (days === 7) return 'one week';
+    if (days === 1) return 'one day';
+    return `${days} days`;
+}
 
 function mixHexColors(base: string, tint: string, tintAmount: number): string {
     const mixChannel = (offset: number): number => {
@@ -57,6 +84,7 @@ export class SkinCraftViewerModal {
     private readonly root: ShadowRoot;
     private readonly dialogRef = createRef<HTMLDialogElement>();
     private readonly frameRef = createRef<HTMLIFrameElement>();
+    private readonly itemGridRef = createRef<HTMLDivElement>();
 
     private target?: SkinCraftViewerTarget;
     private items: SkinCraftViewerTarget[] = [];
@@ -111,6 +139,7 @@ export class SkinCraftViewerModal {
 
         void this.revealIconWhenDecoded(target.iconUrl, request);
         this.scrollSelectedIntoView();
+        this.maybeRequestMore(this.selectedIndex);
         if (opening) this.openDialog();
     }
 
@@ -147,14 +176,20 @@ export class SkinCraftViewerModal {
         render(this.template(), this.root, {host: this});
     }
 
+    private get layout(): 'grid' | 'details' {
+        return this.options.layout ?? 'grid';
+    }
+
     private template(): TemplateResult {
         const revealed = this.phase === 'revealed';
+        const details = this.layout === 'details';
 
         return html`
             <dialog
                 ${ref(this.dialogRef)}
                 class="${classMap({
-                    'has-items': this.items.length > 1,
+                    'has-items': !details && this.items.length > 1,
+                    'has-details': details,
                     entering: this.entering,
                     closing: this.closing,
                 })}"
@@ -163,6 +198,7 @@ export class SkinCraftViewerModal {
                 @pointerdown="${this.handleDialogPointerDown}"
                 @click="${this.handleDialogClick}"
                 @transitionend="${this.handleTransitionEnd}"
+                @keydown="${this.handleKeydown}"
             >
                 <header class="modal-header">
                     <div class="modal-title" id="skincraft-viewer-title">${this.target?.name ?? ''}</div>
@@ -193,15 +229,7 @@ export class SkinCraftViewerModal {
                     </div>
                 </header>
                 <div class="modal-body">
-                    <aside class="item-panel" aria-label="${this.options.itemsTitle}">
-                        <div class="item-panel-header">
-                            <span>${this.options.itemsTitle}</span>
-                            <span class="item-count">${this.items.length}</span>
-                        </div>
-                        <div class="item-grid" @click="${this.handleItemsClick}">
-                            ${guard([this.items, this.selectedKey], () => this.renderItemCards())}
-                        </div>
-                    </aside>
+                    ${details ? nothing : this.renderItemPanel()}
                     <div class="viewer-stage">
                         <iframe
                             ${ref(this.frameRef)}
@@ -216,13 +244,240 @@ export class SkinCraftViewerModal {
                             ${this.renderLoading()}${this.renderError()}
                         </div>
                     </div>
+                    ${details ? this.renderDetailsPanel() : nothing}
                 </div>
             </dialog>
         `;
     }
 
+    private renderItemPanel(): TemplateResult {
+        return html`
+            <aside class="item-panel" aria-label="${this.options.itemsTitle}">
+                <div class="item-panel-header">
+                    <span>${this.options.itemsTitle}</span>
+                    <span class="item-count">${this.items.length}</span>
+                </div>
+                <div
+                    ${ref(this.itemGridRef)}
+                    class="item-grid"
+                    @click="${this.handleItemsClick}"
+                    @scroll="${this.handleItemsScroll}"
+                >
+                    ${guard([this.items, this.selectedKey], () => this.renderItemCards())}
+                </div>
+            </aside>
+        `;
+    }
+
+    private renderDetailsPanel(): TemplateResult {
+        const target = this.target;
+        const details = target?.details;
+        const index = this.selectedIndex;
+
+        return html`
+            <aside class="details-panel" aria-label="${this.options.itemsTitle}">
+                <div class="details-nav">
+                    <button
+                        class="details-nav-btn"
+                        type="button"
+                        aria-label="Previous listing"
+                        ?disabled="${index <= 0}"
+                        @click="${this.handlePrevious}"
+                    >
+                        ‹
+                    </button>
+                    <span class="details-count">${index >= 0 ? `${index + 1} / ${this.items.length}` : ''}</span>
+                    <button
+                        class="details-nav-btn"
+                        type="button"
+                        aria-label="Next listing"
+                        ?disabled="${index < 0 || index >= this.items.length - 1}"
+                        @click="${this.handleNext}"
+                    >
+                        ›
+                    </button>
+                </div>
+                <div class="details-scroll">
+                    <div
+                        class="details-name"
+                        style="${styleMap({color: target?.rarityColor ? `#${target.rarityColor}` : undefined})}"
+                    >
+                        ${target?.name ?? ''}
+                    </div>
+                    ${details?.game || details?.type
+                        ? html`<div class="details-type">
+                              ${[details.game, details.type].filter(Boolean).join(' · ')}
+                          </div>`
+                        : nothing}
+                    ${this.renderWearBar(details)} ${this.renderDetailProps(details)}
+                    ${this.renderDetailActions(target, details)} ${this.renderAccessories(details)}
+                    ${this.renderRestrictions(details)} ${this.renderDetailLines(details)}
+                </div>
+            </aside>
+        `;
+    }
+
+    private renderWearBar(details?: SkinCraftListingDetails): TemplateResult | typeof nothing {
+        const wear = Number(details?.wearRating);
+        if (!Number.isFinite(wear)) return nothing;
+
+        const percent = (Math.min(Math.max(wear, 0), 1) * 100).toFixed(3);
+        return html`
+            <div class="details-wear-bar">
+                <div class="details-wear-track">
+                    ${WEAR_SEGMENTS.map(
+                        (segment) =>
+                            html`<div
+                                style="${styleMap({width: `${segment.width}%`, backgroundColor: segment.color})}"
+                            ></div>`
+                    )}
+                </div>
+                <div class="details-wear-marker" style="${styleMap({left: `${percent}%`})}"></div>
+            </div>
+        `;
+    }
+
+    private renderDetailProps(details?: SkinCraftListingDetails): TemplateResult | typeof nothing {
+        if (!details?.nameTag && !details?.patternTemplate && !details?.wearRating) return nothing;
+
+        return html`
+            <div class="details-props">
+                ${details.nameTag ? html`<div>Name Tag: ${details.nameTag}</div>` : nothing}
+                ${details.patternTemplate ? html`<div>Pattern Template: ${details.patternTemplate}</div>` : nothing}
+                ${details.wearRating ? html`<div>Wear Rating: ${details.wearRating}</div>` : nothing}
+            </div>
+        `;
+    }
+
+    private renderDetailActions(
+        target?: SkinCraftViewerTarget,
+        details?: SkinCraftListingDetails
+    ): TemplateResult | typeof nothing {
+        const inspectUrl = target?.inspectUrl;
+        const showBuy = !!details?.price && !!details.listingId && !!this.options.onBuy;
+        if (!inspectUrl && !showBuy) return nothing;
+
+        return html`
+            <div class="details-actions">
+                ${inspectUrl ? html`<a class="details-inspect" href="${inspectUrl}">Inspect in Game...</a>` : nothing}
+                ${showBuy
+                    ? html`
+                          <span class="details-price">${details.price}</span>
+                          <button class="details-buy" type="button" @click="${this.handleBuy}">Buy</button>
+                      `
+                    : nothing}
+            </div>
+        `;
+    }
+
+    private renderAccessories(details?: SkinCraftListingDetails): TemplateResult | typeof nothing {
+        if (!details?.accessories?.length) return nothing;
+
+        return html`
+            <div class="details-accessories">
+                <div class="details-section-title">Accessories</div>
+                ${details.accessories.map(
+                    (accessory) => html`
+                        <div class="details-accessory">
+                            ${accessory.iconUrl
+                                ? html`<img src="${accessory.iconUrl}" alt="" loading="lazy" draggable="false" />`
+                                : nothing}
+                            <span>${accessory.name}</span>
+                        </div>
+                    `
+                )}
+            </div>
+        `;
+    }
+
+    private renderRestrictions(details?: SkinCraftListingDetails): TemplateResult | typeof nothing {
+        const restrictions: string[] = [];
+        if (details?.tradeRestrictionDays) {
+            restrictions.push(`will not be tradable for ${formatRestrictionDays(details.tradeRestrictionDays)}`);
+        }
+        if (details?.marketRestrictionDays) {
+            restrictions.push(
+                `cannot be listed on the Steam Community Market for ${formatRestrictionDays(
+                    details.marketRestrictionDays
+                )}`
+            );
+        }
+        if (!restrictions.length) return nothing;
+
+        return html`
+            <div class="details-restrictions">
+                <div>After purchase, this item:</div>
+                <ul>
+                    ${restrictions.map((line) => html`<li>${line}</li>`)}
+                </ul>
+            </div>
+        `;
+    }
+
+    private renderDetailLines(details?: SkinCraftListingDetails): TemplateResult | typeof nothing {
+        if (!details?.lines?.length) return nothing;
+
+        return html`
+            <div class="details-lines">
+                ${details.lines.map(
+                    (line) =>
+                        html`<p
+                            class="${line.italic ? 'italic' : ''}"
+                            style="${styleMap({color: line.color ? `#${line.color}` : undefined})}"
+                        >
+                            ${line.text}
+                        </p>`
+                )}
+            </div>
+        `;
+    }
+
     private get selectedKey(): string | undefined {
         return this.target ? targetKey(this.target) : undefined;
+    }
+
+    private get selectedIndex(): number {
+        const key = this.selectedKey;
+        if (!key) return -1;
+        return this.items.findIndex((item) => targetKey(item) === key);
+    }
+
+    private handlePrevious(): void {
+        this.selectNeighbor(-1);
+    }
+
+    private handleNext(): void {
+        this.selectNeighbor(1);
+    }
+
+    private selectNeighbor(step: number): void {
+        const index = this.selectedIndex;
+        const neighbor = index >= 0 ? this.items[index + step] : undefined;
+        if (!neighbor) return;
+
+        this.maybeRequestMore(index + step);
+        this.options.onSelect(neighbor);
+    }
+
+    private maybeRequestMore(index: number): void {
+        if (this.layout !== 'details' || index < 0) return;
+        if (this.items.length - index <= ITEMS_NEAR_END_COUNT) this.options.onItemsNearEnd?.();
+    }
+
+    private handleKeydown(event: KeyboardEvent): void {
+        if (this.layout !== 'details') return;
+
+        if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            this.selectNeighbor(-1);
+        } else if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            this.selectNeighbor(1);
+        }
+    }
+
+    private handleBuy(): void {
+        if (this.target) this.options.onBuy?.(this.target);
     }
 
     // Both status blocks stay mounted and toggle `hidden` so the item icon survives an error →
@@ -381,6 +636,17 @@ export class SkinCraftViewerModal {
 
     private handleTransitionEnd(event: TransitionEvent): void {
         if (event.target === this.dialogRef.value && event.propertyName === 'transform') this.finishClose();
+    }
+
+    /** Whether the item strip sits near its end — also true when it has too few items to scroll. */
+    itemsNearEnd(): boolean {
+        const grid = this.itemGridRef.value;
+        if (!grid) return false;
+        return grid.scrollTop + grid.clientHeight >= grid.scrollHeight - ITEMS_NEAR_END_PX;
+    }
+
+    private handleItemsScroll(): void {
+        if (this.itemsNearEnd()) this.options.onItemsNearEnd?.();
     }
 
     private handleItemsClick(event: MouseEvent): void {

@@ -1,5 +1,10 @@
 import {ItemInfo} from '../../../bridge/handlers/fetch_inspect_info';
 import {gFloatFetcher} from '../../../services/float_fetcher';
+import {
+    getCardListing,
+    MARKET_LISTING_CARD_SELECTOR,
+    toSkinCraftListingItem,
+} from '../../../services/skincraft_market_targets';
 import {getFiberProps} from '../../../utils/fiber';
 import {defineInjectionScope, InjectionMode} from '../../injectors';
 import {isReactSteamMarket} from '../mode';
@@ -13,12 +18,34 @@ export interface ReactListingContext {
     itemInfo: ItemInfo;
 }
 
+export interface ReactListingCardContext {
+    listing: MarketListing;
+}
+
 export const ReactMarketListingScope = defineInjectionScope<ReactListingContext>({
     selector: 'div[style*="--grid-rows"]:has([style*="market_listings/"])',
     mode: InjectionMode.CONTINUOUS,
     guard: isReactSteamMarket,
     context: buildReactListingContext,
 });
+
+/**
+ * Unlike {@link ReactMarketListingScope}, covers every listing card — no rendered screenshot or
+ * float fetch required — for injections that only need the listing itself.
+ */
+export const ReactMarketListingCardScope = defineInjectionScope<ReactListingCardContext>({
+    selector: MARKET_LISTING_CARD_SELECTOR,
+    mode: InjectionMode.CONTINUOUS,
+    guard: isReactSteamMarket,
+    context: buildReactListingCardContext,
+});
+
+function buildReactListingCardContext(scope: HTMLElement): ReactListingCardContext | null | undefined {
+    const listing = getCardListing(scope);
+    if (!listing) return undefined;
+
+    return toSkinCraftListingItem(listing) ? {listing} : null;
+}
 
 function getInspectLink(listing: MarketListing): string | null {
     const link = listing.description.actions?.[0]?.link;

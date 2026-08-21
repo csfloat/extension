@@ -1,7 +1,7 @@
 import type {ScopedInjectionArgs} from '../../injectors';
 import {getFadePercentage, isBlueSkin, parseRank} from '../../../utils/skin';
 import {hasDopplerPhase} from '../../../utils/dopplers';
-import type {ReactListingContext} from './listing';
+import type {ReactListingCardContext, ReactListingContext} from './listing';
 
 function hasSeedDetail(context: ReactListingContext): boolean {
     return (
@@ -27,6 +27,14 @@ export function findWearSpan({
     }
 
     return undefined;
+}
+
+export function findListingImageFrame({
+    scope,
+}: ScopedInjectionArgs<ReactListingCardContext>): HTMLElement | null | undefined {
+    return (
+        scope.querySelector<HTMLElement>('div[style*="--position:relative"]:has([style*="--bg-image"])') ?? undefined
+    );
 }
 
 export function findSeedSpan({
