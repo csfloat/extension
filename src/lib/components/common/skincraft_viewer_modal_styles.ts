@@ -431,37 +431,54 @@ export const skinCraftViewerModalStyles = `
         background: #181b21;
     }
 
-    .details-nav {
+    .details-header {
         display: flex;
         flex: 0 0 auto;
         align-items: center;
         justify-content: space-between;
         gap: 10px;
         height: 48px;
-        padding: 0 10px;
+        padding: 0 10px 0 16px;
         border-bottom: 1px solid rgba(193, 206, 255, 0.08);
     }
 
     .details-nav-btn {
-        display: grid;
-        width: 34px;
-        height: 34px;
-        padding: 0 0 3px;
-        place-items: center;
-        color: rgba(245, 248, 255, 0.78);
+        display: inline-flex;
+        flex: 1;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 36px;
+        padding: 0 12px;
+        color: rgba(245, 248, 255, 0.85);
         font: inherit;
-        font-size: 22px;
-        line-height: 1;
-        background: rgba(255, 255, 255, 0.06);
-        border: 0;
+        font-size: 13px;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(193, 206, 255, 0.12);
         border-radius: 8px;
         cursor: pointer;
-        transition: color 150ms ease, background-color 150ms ease;
+        transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+    }
+
+    .details-nav-btn svg {
+        flex: 0 0 auto;
+        opacity: 0.65;
+        transition: opacity 150ms ease;
     }
 
     .details-nav-btn:hover:not(:disabled) {
         color: #fff;
-        background: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(193, 206, 255, 0.24);
+    }
+
+    .details-nav-btn:hover:not(:disabled) svg {
+        opacity: 1;
+    }
+
+    .details-nav-btn:active:not(:disabled) {
+        transform: translateY(1px);
     }
 
     .details-nav-btn:disabled {
@@ -469,10 +486,14 @@ export const skinCraftViewerModalStyles = `
         cursor: default;
     }
 
-    .details-count {
-        color: rgba(245, 248, 255, 0.5);
-        font-size: 12px;
-        font-variant-numeric: tabular-nums;
+    .details-footer {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 8px 10px;
+        border-top: 1px solid rgba(193, 206, 255, 0.08);
     }
 
     .details-scroll {
@@ -604,9 +625,9 @@ export const skinCraftViewerModalStyles = `
     .details-accessory {
         display: flex;
         align-items: center;
-        gap: 10px;
-        margin-top: 4px;
-        padding: 5px 8px;
+        gap: 12px;
+        margin-top: 6px;
+        padding: 9px 10px;
         font-size: 13px;
         background: rgba(255, 255, 255, 0.04);
         border-radius: 6px;
@@ -622,8 +643,9 @@ export const skinCraftViewerModalStyles = `
     .details-accessory-text {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 4px;
         min-width: 0;
+        line-height: 1.35;
     }
 
     .details-accessory-detail {

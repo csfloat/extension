@@ -40,6 +40,24 @@ const WEAR_SEGMENTS = [
     {width: 55, color: '#f92424'},
 ];
 
+function renderChevron(direction: 'left' | 'right'): TemplateResult {
+    return html`
+        <svg
+            viewBox="0 0 24 24"
+            width="15"
+            height="15"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+        >
+            <path d="${direction === 'left' ? 'M15 18l-6-6 6-6' : 'M9 18l6-6-6-6'}" />
+        </svg>
+    `;
+}
+
 function formatRestrictionDays(days: number): string {
     if (days === 7) return 'one week';
     if (days === 1) return 'one day';
@@ -200,34 +218,7 @@ export class SkinCraftViewerModal {
                 @transitionend="${this.handleTransitionEnd}"
                 @keydown="${this.handleKeydown}"
             >
-                <header class="modal-header">
-                    <div class="modal-title" id="skincraft-viewer-title">${this.target?.name ?? ''}</div>
-                    <div class="modal-header-actions">
-                        <a
-                            class="skincraft-attribution"
-                            href="${this.target?.itemUrl ?? ''}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label="Open on SkinCraft"
-                        >
-                            <img
-                                class="skincraft-logo-mark"
-                                src="https://csfloat.com/assets/skincraft-logo-mark.svg"
-                                alt=""
-                                aria-hidden="true"
-                            />
-                            <span class="skincraft-wordmark">skincraft<span>.gg</span></span>
-                        </a>
-                        <button
-                            class="close-button"
-                            type="button"
-                            aria-label="Close 3D viewer"
-                            @click="${this.options.onClose}"
-                        >
-                            ×
-                        </button>
-                    </div>
-                </header>
+                ${details ? nothing : this.renderHeader()}
                 <div class="modal-body">
                     ${details ? nothing : this.renderItemPanel()}
                     <div class="viewer-stage">
@@ -247,6 +238,45 @@ export class SkinCraftViewerModal {
                     ${details ? this.renderDetailsPanel() : nothing}
                 </div>
             </dialog>
+        `;
+    }
+
+    private renderHeader(): TemplateResult {
+        return html`
+            <header class="modal-header">
+                <div class="modal-title" id="skincraft-viewer-title">${this.target?.name ?? ''}</div>
+                <div class="modal-header-actions">
+                    ${this.renderAttribution()}
+                    <button
+                        class="close-button"
+                        type="button"
+                        aria-label="Close 3D viewer"
+                        @click="${this.options.onClose}"
+                    >
+                        ×
+                    </button>
+                </div>
+            </header>
+        `;
+    }
+
+    private renderAttribution(): TemplateResult {
+        return html`
+            <a
+                class="skincraft-attribution"
+                href="${this.target?.itemUrl ?? ''}"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Open on SkinCraft"
+            >
+                <img
+                    class="skincraft-logo-mark"
+                    src="https://csfloat.com/assets/skincraft-logo-mark.svg"
+                    alt=""
+                    aria-hidden="true"
+                />
+                <span class="skincraft-wordmark">skincraft<span>.gg</span></span>
+            </a>
         `;
     }
 
@@ -276,30 +306,21 @@ export class SkinCraftViewerModal {
 
         return html`
             <aside class="details-panel" aria-label="${this.options.itemsTitle}">
-                <div class="details-nav">
+                <div class="details-header">
+                    ${this.renderAttribution()}
                     <button
-                        class="details-nav-btn"
+                        class="close-button"
                         type="button"
-                        aria-label="Previous listing"
-                        ?disabled="${index <= 0}"
-                        @click="${this.handlePrevious}"
+                        aria-label="Close 3D viewer"
+                        @click="${this.options.onClose}"
                     >
-                        ‹
-                    </button>
-                    <span class="details-count">${index >= 0 ? `${index + 1} / ${this.items.length}` : ''}</span>
-                    <button
-                        class="details-nav-btn"
-                        type="button"
-                        aria-label="Next listing"
-                        ?disabled="${index < 0 || index >= this.items.length - 1}"
-                        @click="${this.handleNext}"
-                    >
-                        ›
+                        ×
                     </button>
                 </div>
                 <div class="details-scroll">
                     <div
                         class="details-name"
+                        id="skincraft-viewer-title"
                         style="${styleMap({color: target?.rarityColor ? `#${target.rarityColor}` : undefined})}"
                     >
                         ${target?.name ?? ''}
@@ -312,6 +333,26 @@ export class SkinCraftViewerModal {
                     ${this.renderWearBar(details)} ${this.renderDetailProps(details)}
                     ${this.renderDetailActions(target, details)} ${this.renderAccessories(details)}
                     ${this.renderRestrictions(details)} ${this.renderDetailLines(details)}
+                </div>
+                <div class="details-footer">
+                    <button
+                        class="details-nav-btn"
+                        type="button"
+                        ?disabled="${index <= 0}"
+                        @click="${this.handlePrevious}"
+                    >
+                        ${renderChevron('left')}
+                        <span>Previous</span>
+                    </button>
+                    <button
+                        class="details-nav-btn"
+                        type="button"
+                        ?disabled="${index < 0 || index >= this.items.length - 1}"
+                        @click="${this.handleNext}"
+                    >
+                        <span>Next</span>
+                        ${renderChevron('right')}
+                    </button>
                 </div>
             </aside>
         `;

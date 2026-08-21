@@ -29,11 +29,10 @@ export function findWearSpan({
     return undefined;
 }
 
-export function findListingImageFrame({
-    scope,
-}: ScopedInjectionArgs<ReactListingCardContext>): HTMLElement | null | undefined {
+export function findPriceRow({scope}: ScopedInjectionArgs<ReactListingCardContext>): HTMLElement | null | undefined {
     return (
-        scope.querySelector<HTMLElement>('div[style*="--position:relative"]:has([style*="--bg-image"])') ?? undefined
+        scope.querySelector<HTMLElement>('div[style*="--justify:end"][style*="--align:center"]:has(button)') ??
+        undefined
     );
 }
 
