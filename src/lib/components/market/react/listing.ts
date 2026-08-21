@@ -1,7 +1,7 @@
 import {ItemInfo} from '../../../bridge/handlers/fetch_inspect_info';
 import {gFloatFetcher} from '../../../services/float_fetcher';
 import {
-    getCardListing,
+    getFiberListing,
     MARKET_LISTING_CARD_SELECTOR,
     toSkinCraftListingItem,
 } from '../../../services/skincraft_market_targets';
@@ -41,10 +41,32 @@ export const ReactMarketListingCardScope = defineInjectionScope<ReactListingCard
 });
 
 function buildReactListingCardContext(scope: HTMLElement): ReactListingCardContext | null | undefined {
-    const listing = getCardListing(scope);
+    const listing = getFiberListing(scope);
     if (!listing) return undefined;
 
     return toSkinCraftListingItem(listing) ? {listing} : null;
+}
+
+/**
+ * The main "Inspect in Game..." link inside the item dialog, one per swipeable listing pane —
+ * dialog injections anchor beside it.
+ */
+export const ReactMarketDialogInspectScope = defineInjectionScope<ReactListingCardContext>({
+    selector: 'dialog a[href*="csgo_econ_action_preview"]',
+    mode: InjectionMode.CONTINUOUS,
+    guard: isReactSteamMarket,
+    context: buildReactDialogInspectContext,
+});
+
+function buildReactDialogInspectContext(scope: HTMLElement): ReactListingCardContext | null | undefined {
+    const listing = getFiberListing(scope);
+    if (!listing) return undefined;
+
+    const item = toSkinCraftListingItem(listing);
+    if (!item) return null;
+    // Accessory rows carry their own inspect links; only the pane's own launch link qualifies.
+    if (!(scope instanceof HTMLAnchorElement) || !scope.href.includes(item.inspect)) return null;
+    return {listing};
 }
 
 function getInspectLink(listing: MarketListing): string | null {

@@ -131,8 +131,12 @@ export function toSkinCraftListingItem(
     return {...target, rarityColor, details: toListingDetails(listing)};
 }
 
-export function getCardListing(scope: HTMLElement): MarketListing | undefined {
-    return getFiberProps<MarketListingProps>(scope, (fiber) => typeof fiber.key === 'string')?.listing;
+/** The listing owning `element`, from whichever ancestor fiber carries it in its props. */
+export function getFiberListing(element: HTMLElement): MarketListing | undefined {
+    return getFiberProps<MarketListingProps>(element, (fiber) => {
+        const props = fiber.memoizedProps;
+        return !!props && typeof props === 'object' && !!(props as Partial<MarketListingProps>).listing;
+    })?.listing;
 }
 
 /** SkinCraft targets for the market listings currently mounted on the page, in page order. */
@@ -141,7 +145,7 @@ export function getLoadedListingTargets(getCachedItemInfo?: CachedItemInfoLookup
     const seenAssets = new Set<string>();
 
     for (const scope of document.querySelectorAll<HTMLElement>(MARKET_LISTING_CARD_SELECTOR)) {
-        const listing = getCardListing(scope);
+        const listing = getFiberListing(scope);
         const target = listing && toSkinCraftListingItem(listing, getCachedItemInfo);
         if (!target?.assetId || seenAssets.has(target.assetId)) continue;
 
@@ -187,7 +191,7 @@ async function waitForCardGrowth(previousCount: number): Promise<void> {
 /** Hands off to Steam's own purchase flow by clicking the listing card's native Buy button. */
 export function buyListing(listingId: string): boolean {
     for (const scope of document.querySelectorAll<HTMLElement>(MARKET_LISTING_CARD_SELECTOR)) {
-        if (getCardListing(scope)?.listingid !== listingId) continue;
+        if (getFiberListing(scope)?.listingid !== listingId) continue;
 
         const buyButton = [...scope.querySelectorAll('button')].find((button) => button.textContent?.trim() === 'Buy');
         buyButton?.click();

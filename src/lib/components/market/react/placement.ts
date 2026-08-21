@@ -36,6 +36,11 @@ export function findPriceRow({scope}: ScopedInjectionArgs<ReactListingCardContex
     );
 }
 
+/** The dialog scope is the inspect link itself; the launcher lands right beside it. */
+export function findDialogInspectLink({scope}: ScopedInjectionArgs<ReactListingCardContext>): HTMLElement {
+    return scope;
+}
+
 export function findSeedSpan({
     scope,
     context,
