@@ -334,6 +334,9 @@ class SkinCraftEmbedService {
                 this.frameHasContent = false;
                 this.modal?.setError(message.message || 'SkinCraft could not load this item.');
                 break;
+            case 'key':
+                if (this.active) this.modal?.navigateByKey(message.key);
+                break;
             case 'inspect-requested': {
                 // A switch-in-place keeps the old model on screen while the next loads; only `loaded`
                 // means the frame shows `activeTarget`.
