@@ -18,6 +18,7 @@ export const skinCraftViewerModalStyles = `
         border: 1px solid rgba(193, 206, 255, 0.12);
         border-radius: 12px;
         overflow: hidden;
+        outline: none;
         color: inherit;
         background: #15171c;
         box-shadow: 0 24px 80px rgba(0, 0, 0, 0.68);

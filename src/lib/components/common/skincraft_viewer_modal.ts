@@ -212,6 +212,7 @@ export class SkinCraftViewerModal {
                     closing: this.closing,
                 })}"
                 aria-labelledby="skincraft-viewer-title"
+                tabindex="-1"
                 @cancel="${this.handleCancel}"
                 @pointerdown="${this.handleDialogPointerDown}"
                 @click="${this.handleDialogClick}"
@@ -488,24 +489,20 @@ export class SkinCraftViewerModal {
         return this.items.findIndex((item) => targetKey(item) === key);
     }
 
-    // Nav clicks hand focus back to the viewer: a button that kept it would re-trigger on keypress.
     private handlePrevious(): void {
         this.selectNeighbor(-1);
-        this.focusViewer();
+        this.dropNavFocus();
     }
 
     private handleNext(): void {
         this.selectNeighbor(1);
-        this.focusViewer();
+        this.dropNavFocus();
     }
 
-    /** Steps the selection for a navigation hotkey; the embed forwards its keydowns through here. */
-    navigateByKey(key: string): boolean {
-        if (this.layout !== 'details') return false;
-        if (key !== 'ArrowLeft' && key !== 'ArrowRight') return false;
-
-        this.selectNeighbor(key === 'ArrowLeft' ? -1 : 1);
-        return true;
+    // A nav button must not keep focus: keys would re-trigger it, and once it disables at the
+    // list's end, focus falls to <body> and the dialog stops hearing the arrow hotkeys.
+    private dropNavFocus(): void {
+        this.dialogRef.value?.focus({preventScroll: true});
     }
 
     private selectNeighbor(step: number): void {
@@ -523,7 +520,15 @@ export class SkinCraftViewerModal {
     }
 
     private handleKeydown(event: KeyboardEvent): void {
-        if (this.navigateByKey(event.key)) event.preventDefault();
+        if (this.layout !== 'details') return;
+
+        if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            this.selectNeighbor(-1);
+        } else if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            this.selectNeighbor(1);
+        }
     }
 
     private handleBuy(): void {

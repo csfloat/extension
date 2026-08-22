@@ -20,8 +20,6 @@ export type SkinCraftEmbedEvent = EmbedEnvelope &
         | {type: 'error'; id?: string; code: string; message: string}
         // The sandboxed iframe can't launch steam:// itself.
         | {type: 'inspect-requested'}
-        // Forwarded while the iframe holds focus, so the parent's hotkeys keep working.
-        | {type: 'key'; key: string}
     );
 
 export function isSkinCraftEmbedEvent(data: unknown): data is SkinCraftEmbedEvent {
@@ -47,8 +45,6 @@ export function isSkinCraftEmbedEvent(data: unknown): data is SkinCraftEmbedEven
             return hasValidId;
         case 'error':
             return hasValidId && typeof message.code === 'string' && typeof message.message === 'string';
-        case 'key':
-            return typeof message.key === 'string';
         default:
             return false;
     }
