@@ -612,6 +612,13 @@ export const skinCraftViewerModalStyles = `
         background: #83bd2c;
     }
 
+    .details-buy-notice {
+        margin: -8px 0 16px;
+        color: #ff8585;
+        font-size: 12.5px;
+        line-height: 1.4;
+    }
+
     .details-accessories {
         margin-bottom: 16px;
     }

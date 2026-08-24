@@ -1,4 +1,5 @@
 import type {ScopedInjectionArgs} from '../../injectors';
+import {MARKET_PRICE_ROW_SELECTOR} from '../../../services/skincraft_market_targets';
 import {getFadePercentage, isBlueSkin, parseRank} from '../../../utils/skin';
 import {hasDopplerPhase} from '../../../utils/dopplers';
 import type {ReactListingCardContext, ReactListingContext} from './listing';
@@ -30,10 +31,7 @@ export function findWearSpan({
 }
 
 export function findPriceRow({scope}: ScopedInjectionArgs<ReactListingCardContext>): HTMLElement | null | undefined {
-    return (
-        scope.querySelector<HTMLElement>('div[style*="--justify:end"][style*="--align:center"]:has(button)') ??
-        undefined
-    );
+    return scope.querySelector<HTMLElement>(MARKET_PRICE_ROW_SELECTOR) ?? undefined;
 }
 
 /** The dialog scope is the inspect link itself; the launcher lands right beside it. */

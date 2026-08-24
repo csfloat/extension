@@ -1,8 +1,10 @@
 import {css, html, nothing} from 'lit';
+import type {TemplateResult} from 'lit';
 import {property, state} from 'lit/decorators.js';
 
 import {gSkinCraftEmbed} from '../../../services/skincraft_embed';
 import {getLoadedListingTargets, toSkinCraftListingItem} from '../../../services/skincraft_market_targets';
+import {MAX_SKINCRAFT_INVENTORY_TARGETS} from '../../../services/skincraft_viewer_protocol';
 import type {SkinCraftItem} from '../../../services/skincraft_viewer_protocol';
 import {gWebGpuAvailability, type WebGpuAvailability} from '../../../services/webgpu_availability';
 import {webGpuGuidance} from '../../../utils/webgpu_guidance';
@@ -10,6 +12,26 @@ import {FloatElement} from '../../custom';
 import {CustomElement, InjectIntoScope, InjectionPosition} from '../../injectors';
 import {ReactMarketDialogInspectScope, ReactMarketListingCardScope, type ReactListingCardContext} from './listing';
 import {findDialogInspectLink, findPriceRow} from './placement';
+
+const VIEW_3D_BUTTON_BASE_STYLES = css`
+    .view-3d-btn {
+        display: inline-flex;
+        align-items: center;
+        height: 24px;
+        color: #fff;
+        font-family: inherit;
+        font-size: 12px;
+        border: 0;
+        border-radius: 2px;
+        cursor: pointer;
+        transition: background-color 150ms ease;
+    }
+
+    .view-3d-btn.unavailable {
+        cursor: default;
+        opacity: 0.5;
+    }
+`;
 
 /**
  * Shared behaviour for the market 3D launchers, mirroring the inventory "View in 3D" button: they
@@ -47,9 +69,30 @@ abstract class MarketView3DButton extends FloatElement {
 
         // A dialog deep-link can show a listing whose card isn't mounted; keep it navigable.
         const targets = getLoadedListingTargets();
-        if (!targets.some((target) => target.assetId === item.assetId)) targets.unshift(item);
+        if (!targets.some((target) => target.assetId === item.assetId)) {
+            if (targets.length === MAX_SKINCRAFT_INVENTORY_TARGETS) targets.pop();
+            targets.unshift(item);
+        }
         this.beforeOpen();
         gSkinCraftEmbed.open(item, targets);
+    }
+
+    protected renderUnavailableButton(label: string): TemplateResult {
+        const reason = gWebGpuAvailability.unavailableReason ?? 'no-webgpu';
+        return html`
+            <span>
+                ${this.tooltip(webGpuGuidance(reason), 'hint--large')}
+                <button
+                    class="view-3d-btn unavailable"
+                    type="button"
+                    aria-disabled="true"
+                    aria-label="View in 3D"
+                    @click=${this.handleClick}
+                >
+                    ${label}
+                </button>
+            </span>
+        `;
     }
 }
 
@@ -62,33 +105,19 @@ abstract class MarketView3DButton extends FloatElement {
 export class ReactListingView3D extends MarketView3DButton {
     static styles = [
         ...FloatElement.styles,
+        VIEW_3D_BUTTON_BASE_STYLES,
         css`
             :host {
                 margin-right: auto;
             }
 
             .view-3d-btn {
-                display: inline-flex;
-                align-items: center;
-                height: 24px;
                 padding: 0 10px;
-                color: #fff;
-                font-family: inherit;
-                font-size: 12px;
                 background: rgba(255, 255, 255, 0.12);
-                border: 0;
-                border-radius: 2px;
-                cursor: pointer;
-                transition: background-color 150ms ease;
             }
 
             .view-3d-btn:hover:not(.unavailable) {
                 background: rgba(255, 255, 255, 0.2);
-            }
-
-            .view-3d-btn.unavailable {
-                cursor: default;
-                opacity: 0.5;
             }
         `,
     ];
@@ -96,23 +125,7 @@ export class ReactListingView3D extends MarketView3DButton {
     protected render() {
         if (this.webGpuStatus === 'checking' || !this.skinCraftItem) return nothing;
 
-        if (this.webGpuStatus !== 'available') {
-            const reason = gWebGpuAvailability.unavailableReason ?? 'no-webgpu';
-            return html`
-                <span>
-                    ${this.tooltip(webGpuGuidance(reason), 'hint--large')}
-                    <button
-                        class="view-3d-btn unavailable"
-                        type="button"
-                        aria-disabled="true"
-                        aria-label="View in 3D"
-                        @click=${this.handleClick}
-                    >
-                        3D
-                    </button>
-                </span>
-            `;
-        }
+        if (this.webGpuStatus !== 'available') return this.renderUnavailableButton('3D');
 
         return html`
             <span>
@@ -135,51 +148,34 @@ export class ReactListingView3D extends MarketView3DButton {
 export class ReactDialogView3D extends MarketView3DButton {
     static styles = [
         ...FloatElement.styles,
+        VIEW_3D_BUTTON_BASE_STYLES,
         css`
             .view-3d-btn {
-                display: inline-flex;
-                align-items: center;
-                height: 24px;
                 padding: 0 12px;
-                color: #fff;
-                font-family: inherit;
-                font-size: 12px;
                 font-weight: 300;
                 background: #3d4450;
-                border: 0;
-                border-radius: 2px;
-                cursor: pointer;
-                transition: background-color 150ms ease;
             }
 
             .view-3d-btn:hover:not(.unavailable) {
                 background: #464d5c;
-            }
-
-            .view-3d-btn.unavailable {
-                cursor: default;
-                opacity: 0.5;
             }
         `,
     ];
 
     protected beforeOpen(): void {
         // The dialog owns the ?detail=… routing, and Escape is Steam's own dismissal path.
+        const dialog = this.closest('dialog');
         document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', code: 'Escape', bubbles: true}));
+        // A dialog still open after Steam's async handling ignored the synthetic key.
+        window.setTimeout(() => {
+            if (dialog?.open) console.warn("CSFloat: Steam's item dialog ignored the dismissal before the 3D viewer.");
+        }, 500);
     }
 
     protected render() {
         if (this.webGpuStatus === 'checking' || !this.skinCraftItem) return nothing;
 
-        if (this.webGpuStatus !== 'available') {
-            const reason = gWebGpuAvailability.unavailableReason ?? 'no-webgpu';
-            return html`
-                <span>
-                    ${this.tooltip(webGpuGuidance(reason), 'hint--large')}
-                    <button class="view-3d-btn unavailable" type="button" aria-disabled="true">View in 3D</button>
-                </span>
-            `;
-        }
+        if (this.webGpuStatus !== 'available') return this.renderUnavailableButton('View in 3D');
 
         return html`<button class="view-3d-btn" type="button" @click=${this.handleClick}>View in 3D</button>`;
     }

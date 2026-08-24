@@ -5,6 +5,7 @@ import {guard} from 'lit/directives/guard.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import {styleMap} from 'lit/directives/style-map.js';
 import type {SkinCraftListingDetails, SkinCraftViewerTarget} from '../../services/skincraft_viewer_protocol';
+import {FLOAT_CONDITION_BANDS} from '../../utils/skin';
 import {MODAL_TRANSITION_MS, skinCraftViewerModalStyles} from './skincraft_viewer_modal_styles';
 
 type LoadPhase = 'loading' | 'revealed' | 'error';
@@ -19,10 +20,10 @@ export type SkinCraftViewerModalOptions = {
     onClose: () => void;
     onRetry: () => void;
     onSelect: (target: SkinCraftViewerTarget) => void;
-    /** Fired when the item strip scrolls near its end, for surfaces with paginated items. */
+    /** Fired when the user nears the end of the loaded items — strip scroll in `grid`, selection proximity in `details`. */
     onItemsNearEnd?: () => void;
     /** Enables the details panel's Buy button; the host hands off to the surface's purchase flow. */
-    onBuy?: (target: SkinCraftViewerTarget) => void;
+    onBuy?: (listingId: string) => void;
 };
 
 /** About two card rows — asking for more this early keeps strip scrolling seamless. */
@@ -32,13 +33,7 @@ const ITEMS_NEAR_END_PX = 240;
 const ITEMS_NEAR_END_COUNT = 5;
 
 /** Full 0–1 wear range in the same bands the float bar uses. */
-const WEAR_SEGMENTS = [
-    {width: 7, color: 'green'},
-    {width: 8, color: '#18a518'},
-    {width: 23, color: '#9acd32'},
-    {width: 7, color: '#cd5c5c'},
-    {width: 55, color: '#f92424'},
-];
+const WEAR_SEGMENTS = FLOAT_CONDITION_BANDS.map((band) => ({width: band.max - band.min, color: band.color}));
 
 function renderChevron(direction: 'left' | 'right'): TemplateResult {
     return html`
@@ -109,6 +104,7 @@ export class SkinCraftViewerModal {
     private phase: LoadPhase = 'loading';
     private progress: number | null = null;
     private errorMessage = '';
+    private buyNotice = '';
     private entering = false;
     private closing = false;
     private iconReady = false;
@@ -148,6 +144,7 @@ export class SkinCraftViewerModal {
     show(target: SkinCraftViewerTarget): void {
         this.target = target;
         this.iconReady = false;
+        this.buyNotice = '';
         const request = ++this.iconRequest;
 
         this.cancelClose();
@@ -186,6 +183,12 @@ export class SkinCraftViewerModal {
     setError(message: string): void {
         this.phase = 'error';
         this.errorMessage = message;
+        this.update();
+    }
+
+    /** Surfaces a failed buy hand-off next to the Buy button; cleared on the next selection. */
+    setBuyNotice(message: string): void {
+        this.buyNotice = message;
         this.update();
     }
 
@@ -409,6 +412,7 @@ export class SkinCraftViewerModal {
                       `
                     : nothing}
             </div>
+            ${this.buyNotice ? html`<div class="details-buy-notice" role="alert">${this.buyNotice}</div>` : nothing}
         `;
     }
 
@@ -510,7 +514,7 @@ export class SkinCraftViewerModal {
         const neighbor = index >= 0 ? this.items[index + step] : undefined;
         if (!neighbor) return;
 
-        this.maybeRequestMore(index + step);
+        // `onSelect` leads back into `show()`, which runs `maybeRequestMore` for the new index.
         this.options.onSelect(neighbor);
     }
 
@@ -532,7 +536,8 @@ export class SkinCraftViewerModal {
     }
 
     private handleBuy(): void {
-        if (this.target) this.options.onBuy?.(this.target);
+        const listingId = this.target?.details?.listingId;
+        if (listingId) this.options.onBuy?.(listingId);
     }
 
     // Both status blocks stay mounted and toggle `hidden` so the item icon survives an error →
@@ -693,8 +698,13 @@ export class SkinCraftViewerModal {
         if (event.target === this.dialogRef.value && event.propertyName === 'transform') this.finishClose();
     }
 
-    /** Whether the item strip sits near its end — also true when it has too few items to scroll. */
+    /** Whether the user sits near the end of the loaded items — strip scroll in `grid`, selection proximity in `details`. */
     itemsNearEnd(): boolean {
+        if (this.layout === 'details') {
+            const index = this.selectedIndex;
+            return index >= 0 && this.items.length - index <= ITEMS_NEAR_END_COUNT;
+        }
+
         const grid = this.itemGridRef.value;
         if (!grid) return false;
         return grid.scrollTop + grid.clientHeight >= grid.scrollHeight - ITEMS_NEAR_END_PX;

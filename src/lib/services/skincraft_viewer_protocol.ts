@@ -7,10 +7,21 @@ export const SKINCRAFT_INSPECT_PATTERN = /^[0-9a-f]{40,8192}$/i;
 export const HEX_COLOR_PATTERN = /^[0-9a-f]{6}$/i;
 export const STEAM_INSPECT_URL_PATTERN =
     /^steam:\/\/(?:run|rungame)\/730\/\d{0,20}\/\+csgo_econ_action_preview%20[0-9a-f]{40,8192}$/i;
-const ASSET_ID_PATTERN = /^\d{1,32}$/;
+/** Also fits listing ids, which share the numeric-id format. */
+export const ASSET_ID_PATTERN = /^\d{1,32}$/;
 export const MAX_SKINCRAFT_DETAIL_LINES = 24;
 export const MAX_SKINCRAFT_DETAIL_TEXT = 2048;
 export const MAX_SKINCRAFT_ACCESSORIES = 8;
+
+// Producers must clamp to these same bounds: one over-limit field drops its whole message.
+export const MAX_SKINCRAFT_ITEM_NAME = 512;
+export const MAX_SKINCRAFT_ICON_URL = 4096;
+export const MAX_SKINCRAFT_ACCESSORY_NAME = 256;
+export const MAX_SKINCRAFT_ACCESSORY_DETAIL = 128;
+export const MAX_SKINCRAFT_DETAIL_FIELD = 256;
+export const MAX_SKINCRAFT_PATTERN_TEMPLATE = 16;
+export const MAX_SKINCRAFT_WEAR_RATING = 32;
+export const MAX_SKINCRAFT_PRICE = 64;
 
 /** One sanitized line of Steam's item description block (exterior, flavour text, collection, …). */
 export type SkinCraftDetailLine = {
@@ -87,6 +98,14 @@ export type SkinCraftViewerItemsMessage = {
     inventory: SkinCraftItem[];
 };
 
+/** Page → content script: whether the `buy-listing` hand-off reached Steam's purchase flow. */
+export type SkinCraftBuyListingResultMessage = {
+    source: typeof SKINCRAFT_VIEWER_MESSAGE_SOURCE;
+    type: 'buy-result';
+    listingId: string;
+    success: boolean;
+};
+
 function isBoundedString(value: unknown, maxLength: number): value is string {
     return typeof value === 'string' && value.length <= maxLength;
 }
@@ -95,8 +114,23 @@ function isOptional<T>(value: unknown, check: (value: unknown) => value is T): b
     return value === undefined || check(value);
 }
 
-function isRestrictionDays(value: unknown): value is number {
+export function isRestrictionDays(value: unknown): value is number {
     return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 365;
+}
+
+/**
+ * A message claiming our source and an expected type, yet failing its guard — producer/validator
+ * drift that receivers log rather than drop silently.
+ */
+export function isMalformedSkinCraftViewerMessage(data: unknown, expectedTypes: readonly string[]): boolean {
+    if (!data || typeof data !== 'object') return false;
+
+    const message = data as {source?: unknown; type?: unknown};
+    return (
+        message.source === SKINCRAFT_VIEWER_MESSAGE_SOURCE &&
+        typeof message.type === 'string' &&
+        expectedTypes.includes(message.type)
+    );
 }
 
 function isSkinCraftDetailLine(data: unknown): data is SkinCraftDetailLine {
@@ -115,10 +149,11 @@ function isSkinCraftAccessory(data: unknown): data is SkinCraftAccessory {
 
     const accessory = data as Partial<SkinCraftAccessory>;
     return (
-        isBoundedString(accessory.name, 256) &&
-        isOptional(accessory.detail, (v): v is string => isBoundedString(v, 128)) &&
+        isBoundedString(accessory.name, MAX_SKINCRAFT_ACCESSORY_NAME) &&
+        isOptional(accessory.detail, (v): v is string => isBoundedString(v, MAX_SKINCRAFT_ACCESSORY_DETAIL)) &&
         (accessory.iconUrl === undefined ||
-            (isBoundedString(accessory.iconUrl, 4096) && accessory.iconUrl.startsWith(STEAM_ECONOMY_IMAGE_PREFIX)))
+            (isBoundedString(accessory.iconUrl, MAX_SKINCRAFT_ICON_URL) &&
+                accessory.iconUrl.startsWith(STEAM_ECONOMY_IMAGE_PREFIX)))
     );
 }
 
@@ -134,11 +169,11 @@ function isSkinCraftListingDetails(data: unknown): data is SkinCraftListingDetai
                 details.accessories.length <= MAX_SKINCRAFT_ACCESSORIES &&
                 details.accessories.every(isSkinCraftAccessory))) &&
         isOptional(details.game, (v): v is string => isBoundedString(v, 128)) &&
-        isOptional(details.type, (v): v is string => isBoundedString(v, 256)) &&
-        isOptional(details.nameTag, (v): v is string => isBoundedString(v, 256)) &&
-        isOptional(details.patternTemplate, (v): v is string => isBoundedString(v, 16)) &&
-        isOptional(details.wearRating, (v): v is string => isBoundedString(v, 32)) &&
-        isOptional(details.price, (v): v is string => isBoundedString(v, 64)) &&
+        isOptional(details.type, (v): v is string => isBoundedString(v, MAX_SKINCRAFT_DETAIL_FIELD)) &&
+        isOptional(details.nameTag, (v): v is string => isBoundedString(v, MAX_SKINCRAFT_DETAIL_FIELD)) &&
+        isOptional(details.patternTemplate, (v): v is string => isBoundedString(v, MAX_SKINCRAFT_PATTERN_TEMPLATE)) &&
+        isOptional(details.wearRating, (v): v is string => isBoundedString(v, MAX_SKINCRAFT_WEAR_RATING)) &&
+        isOptional(details.price, (v): v is string => isBoundedString(v, MAX_SKINCRAFT_PRICE)) &&
         isOptional(details.tradeRestrictionDays, isRestrictionDays) &&
         isOptional(details.marketRestrictionDays, isRestrictionDays) &&
         (details.lines === undefined ||
@@ -172,14 +207,14 @@ function isValidSkinCraftItem(item: SkinCraftItem): boolean {
     return (
         SKINCRAFT_INSPECT_PATTERN.test(item.inspect) &&
         (item.inspectUrl === undefined || STEAM_INSPECT_URL_PATTERN.test(item.inspectUrl)) &&
-        item.name.length <= 512 &&
+        item.name.length <= MAX_SKINCRAFT_ITEM_NAME &&
         (item.assetId === undefined || ASSET_ID_PATTERN.test(item.assetId)) &&
         (item.seed === undefined || item.seed.length <= 64) &&
         (item.float === undefined || item.float.length <= 64) &&
         (item.rarityColor === undefined || HEX_COLOR_PATTERN.test(item.rarityColor)) &&
         (item.backgroundColor === undefined || HEX_COLOR_PATTERN.test(item.backgroundColor)) &&
         (item.iconUrl === undefined ||
-            (item.iconUrl.length <= 4096 && item.iconUrl.startsWith(STEAM_ECONOMY_IMAGE_PREFIX)))
+            (item.iconUrl.length <= MAX_SKINCRAFT_ICON_URL && item.iconUrl.startsWith(STEAM_ECONOMY_IMAGE_PREFIX)))
     );
 }
 
@@ -230,5 +265,18 @@ export function isSkinCraftViewerItemsMessage(data: unknown): data is SkinCraftV
         message.source === SKINCRAFT_VIEWER_MESSAGE_SOURCE &&
         message.type === 'items' &&
         isSkinCraftItemList(message.inventory)
+    );
+}
+
+export function isSkinCraftBuyListingResultMessage(data: unknown): data is SkinCraftBuyListingResultMessage {
+    if (!data || typeof data !== 'object') return false;
+
+    const message = data as Partial<SkinCraftBuyListingResultMessage>;
+    return (
+        message.source === SKINCRAFT_VIEWER_MESSAGE_SOURCE &&
+        message.type === 'buy-result' &&
+        typeof message.listingId === 'string' &&
+        ASSET_ID_PATTERN.test(message.listingId) &&
+        typeof message.success === 'boolean'
     );
 }

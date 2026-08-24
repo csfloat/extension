@@ -3,7 +3,10 @@ import {
     isBuySkinCraftListingMessage,
     isOpenSkinCraftViewerMessage,
     isRequestSkinCraftViewerItemsMessage,
+    isSkinCraftBuyListingResultMessage,
     isSkinCraftViewerItemsMessage,
+    MAX_SKINCRAFT_ACCESSORIES,
+    MAX_SKINCRAFT_DETAIL_LINES,
     MAX_SKINCRAFT_DETAIL_TEXT,
     MAX_SKINCRAFT_INVENTORY_TARGETS,
     SKINCRAFT_VIEWER_MESSAGE_SOURCE,
@@ -138,6 +141,14 @@ describe('SkinCraft viewer listing details', () => {
             'an accessory icon from an untrusted origin',
             {...details, accessories: [{name: 'Sticker | X', iconUrl: 'https://evil.example/x.png'}]},
         ],
+        [
+            'too many accessories',
+            {...details, accessories: Array.from({length: MAX_SKINCRAFT_ACCESSORIES + 1}, () => ({name: 'Sticker'}))},
+        ],
+        [
+            'too many description lines',
+            {...details, lines: Array.from({length: MAX_SKINCRAFT_DETAIL_LINES + 1}, () => ({text: 'x'}))},
+        ],
     ])('rejects details with %s', (_label, malformed) => {
         expect(
             isOpenSkinCraftViewerMessage({
@@ -167,6 +178,33 @@ describe('SkinCraft viewer buy messages', () => {
             })
         ).toBe(false);
         expect(isBuySkinCraftListingMessage({source: 'other', type: 'buy-listing', listingId: '1'})).toBe(false);
+    });
+
+    it('holds buy results to the same listing id and source rules', () => {
+        expect(
+            isSkinCraftBuyListingResultMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'buy-result',
+                listingId: '556910233323745386',
+                success: false,
+            })
+        ).toBe(true);
+        expect(
+            isSkinCraftBuyListingResultMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'buy-result',
+                listingId: 'javascript:alert(1)',
+                success: true,
+            })
+        ).toBe(false);
+        expect(
+            isSkinCraftBuyListingResultMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'buy-result',
+                listingId: '1',
+                success: 'yes',
+            })
+        ).toBe(false);
     });
 });
 

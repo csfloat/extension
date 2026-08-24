@@ -3,8 +3,18 @@ import type {ItemInfo} from '../bridge/handlers/fetch_inspect_info';
 import type {MarketListing} from '../components/market/react/types';
 import {formatFloatWithRank, formatSeed} from '../utils/skin';
 import {STEAM_ECONOMY_IMAGE_PREFIX} from '../utils/steam_images';
-import {toSkinCraftListingItem} from './skincraft_market_targets';
-import {isOpenSkinCraftViewerMessage, SKINCRAFT_VIEWER_MESSAGE_SOURCE} from './skincraft_viewer_protocol';
+import {formatBuyerPrice, toSkinCraftListingItem} from './skincraft_market_targets';
+import {
+    isOpenSkinCraftViewerMessage,
+    MAX_SKINCRAFT_ACCESSORIES,
+    MAX_SKINCRAFT_ACCESSORY_NAME,
+    MAX_SKINCRAFT_DETAIL_FIELD,
+    MAX_SKINCRAFT_DETAIL_LINES,
+    MAX_SKINCRAFT_DETAIL_TEXT,
+    MAX_SKINCRAFT_ITEM_NAME,
+    MAX_SKINCRAFT_PATTERN_TEMPLATE,
+    SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+} from './skincraft_viewer_protocol';
 
 const MASKED_LINK = 'steam://run/730//+csgo_econ_action_preview%20%propid:6%';
 
@@ -199,6 +209,19 @@ describe('SkinCraft market targets', () => {
         expect(target?.seed).toBe(formatSeed(itemInfo));
     });
 
+    it('drops non-hex text colours instead of forwarding them', () => {
+        const listing = createListing({
+            description: {
+                name_color: 'red',
+                descriptions: [{type: 'html', value: 'The Phoenix Collection', color: '#9da1a9', name: 'itemset_name'}],
+            },
+        });
+        const target = toSkinCraftListingItem(listing);
+
+        expect(target?.rarityColor).toBeUndefined();
+        expect(target?.details?.lines).toEqual([{text: 'The Phoenix Collection', italic: undefined, color: undefined}]);
+    });
+
     it('produces targets the viewer protocol accepts', () => {
         const target = toSkinCraftListingItem(createListing());
 
@@ -210,5 +233,76 @@ describe('SkinCraft market targets', () => {
                 inventory: [target],
             })
         ).toBe(true);
+    });
+
+    it('clamps oversized Steam data to the protocol bounds so the message still validates', () => {
+        const accessory = (name: string, template?: string) => ({
+            classid: '1',
+            parent_relationship_properties: template ? [{propertyid: 3, int_value: template}] : [],
+            description: {market_hash_name: name, type: 'Extraordinary Charm', icon_url: 'charm'},
+        });
+        const listing = createListing({
+            asset: {
+                assetid: '53323033442',
+                asset_properties: [
+                    {propertyid: 1, int_value: '9'.repeat(40)},
+                    {propertyid: 5, string_value: 'N'.repeat(400)},
+                    {propertyid: 6, string_value: 'a'.repeat(80)},
+                ],
+                asset_accessories: Array.from({length: MAX_SKINCRAFT_ACCESSORIES + 2}, () =>
+                    accessory('C'.repeat(400), '9'.repeat(200))
+                ),
+            },
+            description: {
+                market_hash_name: `${'M'.repeat(600)} (Factory New)`,
+                type: 'T'.repeat(400),
+                market_tradable_restriction: 9000,
+                descriptions: Array.from({length: MAX_SKINCRAFT_DETAIL_LINES + 6}, (_, index) => ({
+                    type: 'html',
+                    value: index ? `line ${index}` : 'x'.repeat(MAX_SKINCRAFT_DETAIL_TEXT + 100),
+                    name: `line-${index}`,
+                })),
+            },
+        });
+        const target = toSkinCraftListingItem(listing);
+        const details = target?.details;
+
+        expect(target?.name).toHaveLength(MAX_SKINCRAFT_ITEM_NAME);
+        expect(details?.type).toHaveLength(MAX_SKINCRAFT_DETAIL_FIELD);
+        expect(details?.nameTag).toHaveLength(MAX_SKINCRAFT_DETAIL_FIELD);
+        expect(details?.patternTemplate).toHaveLength(MAX_SKINCRAFT_PATTERN_TEMPLATE);
+        expect(details?.tradeRestrictionDays).toBeUndefined();
+        expect(details?.accessories).toHaveLength(MAX_SKINCRAFT_ACCESSORIES);
+        expect(details?.accessories?.[0].name).toHaveLength(MAX_SKINCRAFT_ACCESSORY_NAME);
+        expect(details?.lines).toHaveLength(MAX_SKINCRAFT_DETAIL_LINES);
+        expect(details?.lines?.[0].text).toHaveLength(MAX_SKINCRAFT_DETAIL_TEXT);
+        expect(
+            isOpenSkinCraftViewerMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'open',
+                target,
+                inventory: [target],
+            })
+        ).toBe(true);
+    });
+});
+
+describe('formatBuyerPrice', () => {
+    const listing = (strSubtotal: string, unPrice?: number, unFee?: number) =>
+        ({strSubtotal, unPrice, unFee}) as MarketListing;
+
+    it('adds the buyer fee inside the localized subtotal format', () => {
+        expect(formatBuyerPrice(listing('$35.20', 3520, 528))).toBe('$40.48');
+        expect(formatBuyerPrice(listing('1 234,56 zł', 123456, 17283))).toBe('1 407,39 zł');
+        expect(formatBuyerPrice(listing('R$ 1.234,56', 123456, 876544))).toBe('R$ 10.000,00');
+        expect(formatBuyerPrice(listing('0,99€', 99, 15))).toBe('1,14€');
+    });
+
+    it('leaves formats it cannot verify against the raw subtotal untouched', () => {
+        expect(formatBuyerPrice(listing('¥ 3,520', 352000, 52800))).toBe('¥ 3,520');
+        expect(formatBuyerPrice(listing('$35.20', 9999, 528))).toBe('$35.20');
+        expect(formatBuyerPrice(listing('$35.20', 3520, 0))).toBe('$35.20');
+        expect(formatBuyerPrice(listing('$35.20'))).toBe('$35.20');
+        expect(formatBuyerPrice(listing(''))).toBeUndefined();
     });
 });

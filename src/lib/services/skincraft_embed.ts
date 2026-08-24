@@ -11,8 +11,10 @@ import type {SkinCraftEmbedCommand} from './skincraft_embed_protocol';
 import {getLoadedInventoryTargets} from './skincraft_inventory_targets';
 import {
     isBuySkinCraftListingMessage,
+    isMalformedSkinCraftViewerMessage,
     isOpenSkinCraftViewerMessage,
     isRequestSkinCraftViewerItemsMessage,
+    isSkinCraftBuyListingResultMessage,
     isSkinCraftViewerItemsMessage,
     SKINCRAFT_VIEWER_MESSAGE_SOURCE,
     STEAM_INSPECT_URL_PATTERN,
@@ -21,12 +23,15 @@ import type {
     BuySkinCraftListingMessage,
     OpenSkinCraftViewerMessage,
     RequestSkinCraftViewerItemsMessage,
+    SkinCraftBuyListingResultMessage,
     SkinCraftItem,
     SkinCraftViewerItemsMessage,
     SkinCraftViewerTarget,
 } from './skincraft_viewer_protocol';
 
 const LOAD_TIMEOUT_MS = 20_000;
+/** The page answers synchronously; a miss means the page script died or was never injected. */
+const BUY_RESULT_TIMEOUT_MS = 2_000;
 type LoadPhase = 'idle' | 'loading' | 'loaded' | 'error';
 
 class SkinCraftEmbedService {
@@ -48,10 +53,12 @@ class SkinCraftEmbedService {
     private frameHasContent = false;
     private needsFrameReload = false;
     private itemsProvider?: () => Promise<SkinCraftItem[]>;
-    private buyHandler?: (listingId: string) => void;
+    private buyHandler?: (listingId: string) => boolean;
     private providingItems = false;
     private itemsRequestPending = false;
     private itemCount = 0;
+    private pendingBuyListingId?: string;
+    private buyResultTimer?: number;
 
     constructor() {
         if (this.runsInPage) {
@@ -67,7 +74,7 @@ class SkinCraftEmbedService {
     }
 
     /** Page-context surfaces with purchasable items register how to hand off to their buy flow. */
-    registerBuyListingHandler(handler: (listingId: string) => void): void {
+    registerBuyListingHandler(handler: (listingId: string) => boolean): void {
         this.buyHandler = handler;
     }
 
@@ -101,29 +108,57 @@ class SkinCraftEmbedService {
         if (isRequestSkinCraftViewerItemsMessage(event.data)) {
             void this.provideItems();
         } else if (isBuySkinCraftListingMessage(event.data)) {
-            this.buyHandler?.(event.data.listingId);
+            this.answerBuyRequest(event.data.listingId);
+        } else if (isMalformedSkinCraftViewerMessage(event.data, ['buy-listing'])) {
+            console.error('CSFloat: dropped a malformed SkinCraft viewer message in the page context.', event.data);
         }
     };
 
     private async provideItems(): Promise<void> {
-        if (!this.itemsProvider || this.providingItems) return;
+        if (this.providingItems) return;
 
         this.providingItems = true;
         let inventory: SkinCraftItem[] = [];
         try {
-            inventory = await this.itemsProvider();
-        } catch {
+            if (this.itemsProvider) {
+                inventory = await this.itemsProvider();
+            } else {
+                console.error('CSFloat: SkinCraft viewer items were requested before a provider was registered.');
+            }
+        } catch (e) {
             // An empty answer reads as "nothing more" — the content script keeps its current strip.
+            console.error('CSFloat: failed to load more items for the SkinCraft viewer.', e);
         } finally {
             this.providingItems = false;
         }
 
+        // Always answered, even empty: the content script's pending flag latches until a response.
         window.postMessage(
             {
                 source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
                 type: 'items',
                 inventory,
             } satisfies SkinCraftViewerItemsMessage,
+            window.location.origin
+        );
+    }
+
+    private answerBuyRequest(listingId: string): void {
+        let success = false;
+        try {
+            success = this.buyHandler?.(listingId) ?? false;
+        } catch (e) {
+            console.error('CSFloat: the buy hand-off threw.', e);
+        }
+        if (!success) console.error(`CSFloat: found no native Buy button for listing ${listingId}.`);
+
+        window.postMessage(
+            {
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'buy-result',
+                listingId,
+                success,
+            } satisfies SkinCraftBuyListingResultMessage,
             window.location.origin
         );
     }
@@ -135,6 +170,7 @@ class SkinCraftEmbedService {
         this.pendingInspect = undefined;
         this.latestLoadId = undefined;
         this.itemsRequestPending = false;
+        this.clearBuyRequest();
         this.itemCount = 0;
         this.loadProgress = null;
         this.loadPhase = 'idle';
@@ -152,6 +188,10 @@ class SkinCraftEmbedService {
             this.openEmbeddedViewer(event.data.target, event.data.inventory);
         } else if (isSkinCraftViewerItemsMessage(event.data)) {
             this.applyItemsUpdate(event.data.inventory);
+        } else if (isSkinCraftBuyListingResultMessage(event.data)) {
+            this.handleBuyResult(event.data);
+        } else if (isMalformedSkinCraftViewerMessage(event.data, ['open', 'items', 'buy-result'])) {
+            console.error('CSFloat: dropped a malformed SkinCraft viewer message.', event.data);
         }
     };
 
@@ -179,12 +219,15 @@ class SkinCraftEmbedService {
         );
     }
 
-    /** Closes the viewer and hands the purchase to Steam's own flow for this listing. */
-    private handleBuyRequest(target: SkinCraftViewerTarget): void {
-        const listingId = target.details?.listingId;
-        if (!listingId) return;
+    /**
+     * Hands the purchase to Steam's own flow. The viewer only closes once the page confirms the
+     * hand-off — a fire-and-forget close would leave a failure with no dialog and no explanation.
+     */
+    private handleBuyRequest(listingId: string): void {
+        if (this.pendingBuyListingId) return;
 
-        this.close();
+        this.pendingBuyListingId = listingId;
+        this.buyResultTimer = window.setTimeout(() => this.finishBuyRequest(false), BUY_RESULT_TIMEOUT_MS);
         window.postMessage(
             {
                 source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
@@ -195,15 +238,41 @@ class SkinCraftEmbedService {
         );
     }
 
+    private handleBuyResult(message: SkinCraftBuyListingResultMessage): void {
+        if (message.listingId !== this.pendingBuyListingId) return;
+        this.finishBuyRequest(message.success);
+    }
+
+    private finishBuyRequest(success: boolean): void {
+        if (!this.pendingBuyListingId) return;
+
+        const listingId = this.pendingBuyListingId;
+        this.clearBuyRequest();
+        if (success) {
+            this.close();
+            return;
+        }
+
+        console.error(`CSFloat: the buy hand-off for listing ${listingId} failed.`);
+        this.modal?.setBuyNotice("Steam's purchase flow couldn't be opened — the listing may no longer be available.");
+    }
+
+    private clearBuyRequest(): void {
+        this.pendingBuyListingId = undefined;
+        if (this.buyResultTimer === undefined) return;
+        window.clearTimeout(this.buyResultTimer);
+        this.buyResultTimer = undefined;
+    }
+
     private applyItemsUpdate(items: SkinCraftItem[]): void {
         this.itemsRequestPending = false;
         // A shrunk harvest (a failed load, or the grid re-filtered underneath) never truncates the
-        // strip the user is scrolling — the snapshot only ever grows within a session.
+        // items the user is navigating — the snapshot only ever grows within a session.
         if (!this.active || !this.modal || items.length <= this.itemCount) return;
 
         this.itemCount = items.length;
         this.modal.setItems(items.map((item) => this.toViewerTarget(item)));
-        // Keep filling while the user is still parked at the strip's end.
+        // Keep filling while the user is still near the end of the loaded items.
         if (this.modal.itemsNearEnd()) this.requestMoreItems();
     }
 
@@ -242,7 +311,7 @@ class SkinCraftEmbedService {
             },
             onSelect: (target) => this.selectEmbeddedTarget(target),
             onItemsNearEnd: () => this.requestMoreItems(),
-            onBuy: this.isMarketPage ? (target) => this.handleBuyRequest(target) : undefined,
+            onBuy: this.isMarketPage ? (listingId) => this.handleBuyRequest(listingId) : undefined,
         });
         document.body.appendChild(modal.element);
         window.addEventListener('message', this.handleEmbedMessage);
@@ -343,7 +412,7 @@ class SkinCraftEmbedService {
                 if (this.loadPhase === 'loaded' && url && STEAM_INSPECT_URL_PATTERN.test(url)) {
                     window.location.href = url;
                 } else {
-                    console.warn('SkinCraft: no launchable inspect link for the item on screen.');
+                    console.warn('CSFloat: no launchable inspect link for the item on screen.');
                 }
                 break;
             }

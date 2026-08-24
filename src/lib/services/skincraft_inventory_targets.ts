@@ -1,4 +1,4 @@
-import type {CAppwideInventory, CInventory, InventoryAsset, rgAsset, rgAssetProperty} from '../types/steam';
+import type {CAppwideInventory, CInventory, rgAsset, rgAssetProperty} from '../types/steam';
 import type {ItemInfo} from '../bridge/handlers/fetch_inspect_info';
 import {ContextId} from '../types/steam_constants';
 import {isCAppwideInventory} from '../utils/checkers';
@@ -7,7 +7,9 @@ import {steamEconomyImageUrl} from '../utils/steam_images';
 import {gFloatFetcher} from './float_fetcher';
 import {
     HEX_COLOR_PATTERN,
+    MAX_SKINCRAFT_ICON_URL,
     MAX_SKINCRAFT_INVENTORY_TARGETS,
+    MAX_SKINCRAFT_ITEM_NAME,
     SKINCRAFT_INSPECT_PATTERN,
     STEAM_INSPECT_URL_PATTERN,
 } from './skincraft_viewer_protocol';
@@ -15,16 +17,35 @@ import type {SkinCraftItem} from './skincraft_viewer_protocol';
 
 export type CachedItemInfoLookup = (assetId: string) => ItemInfo | undefined;
 
+/** An asset property loose enough to cover both the rg-asset and React-market value typings. */
+export type SkinCraftSourceProperty = {propertyid: number; string_value?: string};
+
+/** The description slice {@link toSkinCraftItem} reads; inventory `rgAsset`s and market fiber descriptions both qualify. */
+export type SkinCraftSourceDescription = Pick<
+    rgAsset,
+    'market_hash_name' | 'type' | 'tags' | 'actions' | 'icon_url' | 'icon_url_large' | 'background_color'
+> & {asset_properties?: SkinCraftSourceProperty[]};
+
+/** The asset slice {@link toSkinCraftItem} reads, so market listings satisfy it without casts. */
+export type SkinCraftSourceAsset = {
+    assetid: string;
+    asset_properties?: SkinCraftSourceProperty[];
+    description: SkinCraftSourceDescription;
+};
+
 const cachedItemInfo: CachedItemInfoLookup = (assetId) => gFloatFetcher.getCached(assetId);
 
-function getAssetProperties(asset: InventoryAsset, fallbackProperties: rgAssetProperty[]): rgAssetProperty[] {
+function getAssetProperties(
+    asset: SkinCraftSourceAsset,
+    fallbackProperties: SkinCraftSourceProperty[]
+): SkinCraftSourceProperty[] {
     if (asset.asset_properties?.length) return asset.asset_properties;
     if (asset.description.asset_properties?.length) return asset.description.asset_properties;
     return fallbackProperties;
 }
 
 /** Item types SkinCraft renders (gloves fall under `isSkin`). */
-function isSkinCraftRenderable(description: rgAsset): boolean {
+function isSkinCraftRenderable(description: SkinCraftSourceDescription): boolean {
     return (
         isSkin(description) ||
         isSticker(description) ||
@@ -39,7 +60,9 @@ const MASKED_ACTION_PATTERN =
     /^steam:\/\/(?:run|rungame)\/730\/\d{0,20}\/\+csgo_econ_action_preview%20(%propid:6%|[0-9a-f]{40,8192})$/i;
 
 /** Split at the hex slot, which Steam either fills from asset property 6 or embeds inline. */
-function getMaskedInspectAction(description: rgAsset): {prefix: string; embeddedHex?: string} | undefined {
+function getMaskedInspectAction(
+    description: SkinCraftSourceDescription
+): {prefix: string; embeddedHex?: string} | undefined {
     for (const action of description.actions ?? []) {
         const slot = MASKED_ACTION_PATTERN.exec(action.link)?.[1];
         if (slot) {
@@ -53,8 +76,8 @@ function getMaskedInspectAction(description: rgAsset): {prefix: string; embedded
 }
 
 function getSkinCraftInspect(
-    asset: InventoryAsset,
-    fallbackProperties: rgAssetProperty[]
+    asset: SkinCraftSourceAsset,
+    fallbackProperties: SkinCraftSourceProperty[]
 ): Pick<SkinCraftItem, 'inspect' | 'inspectUrl'> | undefined {
     if (!isSkinCraftRenderable(asset.description)) return;
 
@@ -69,9 +92,15 @@ function getSkinCraftInspect(
     return {inspect, inspectUrl: inspectUrl && STEAM_INSPECT_URL_PATTERN.test(inspectUrl) ? inspectUrl : undefined};
 }
 
+/** Bounded per the viewer protocol; an over-long URL drops the icon, not the item. */
+export function toBoundedIconUrl(icon: string | undefined): string | undefined {
+    const iconUrl = icon ? steamEconomyImageUrl(icon) : undefined;
+    return iconUrl && iconUrl.length <= MAX_SKINCRAFT_ICON_URL ? iconUrl : undefined;
+}
+
 export function toSkinCraftItem(
-    asset: InventoryAsset | undefined,
-    fallbackProperties: rgAssetProperty[] = [],
+    asset: SkinCraftSourceAsset | undefined,
+    fallbackProperties: SkinCraftSourceProperty[] = [],
     getCachedItemInfo: CachedItemInfoLookup = cachedItemInfo
 ): SkinCraftItem | undefined {
     if (!asset?.description || typeof asset.description.market_hash_name !== 'string') return;
@@ -79,14 +108,13 @@ export function toSkinCraftItem(
     const inspectFields = getSkinCraftInspect(asset, fallbackProperties);
     if (!inspectFields) return;
 
-    const icon = asset.description.icon_url_large || asset.description.icon_url;
     const itemInfo = getCachedItemInfo(asset.assetid);
     const rarityColor = asset.description.tags?.find((tag) => tag.category === 'Rarity')?.color;
     const backgroundColor = asset.description.background_color;
     return {
         ...inspectFields,
-        name: asset.description.market_hash_name,
-        iconUrl: icon ? steamEconomyImageUrl(icon) : undefined,
+        name: asset.description.market_hash_name.slice(0, MAX_SKINCRAFT_ITEM_NAME),
+        iconUrl: toBoundedIconUrl(asset.description.icon_url_large || asset.description.icon_url),
         assetId: asset.assetid,
         seed: itemInfo ? formatSeed(itemInfo) : undefined,
         float: itemInfo ? formatFloatWithRank(itemInfo, 6) : undefined,
