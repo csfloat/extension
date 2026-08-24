@@ -55,7 +55,9 @@ class SkinCraftEmbedService {
     private itemsProvider?: () => Promise<SkinCraftItem[]>;
     private buyHandler?: (listingId: string) => boolean;
     private providingItems = false;
+    private latestItemsRequestId = 0;
     private itemsRequestPending = false;
+    private itemsRequestId = 0;
     private itemCount = 0;
     private pendingBuyListingId?: string;
     private buyResultTimer?: number;
@@ -106,7 +108,7 @@ class SkinCraftEmbedService {
     private handlePageRequest = (event: MessageEvent): void => {
         if (event.source !== window || event.origin !== window.location.origin) return;
         if (isRequestSkinCraftViewerItemsMessage(event.data)) {
-            void this.provideItems();
+            void this.provideItems(event.data.requestId);
         } else if (isBuySkinCraftListingMessage(event.data)) {
             this.answerBuyRequest(event.data.listingId);
         } else if (isMalformedSkinCraftViewerMessage(event.data, ['buy-listing'])) {
@@ -114,7 +116,12 @@ class SkinCraftEmbedService {
         }
     };
 
-    private async provideItems(): Promise<void> {
+    /**
+     * Requests that arrive mid-load coalesce into it: the harvest reads the grid once the load
+     * settles, so it answers the newest request, and every request gets an answer.
+     */
+    private async provideItems(requestId: number): Promise<void> {
+        this.latestItemsRequestId = requestId;
         if (this.providingItems) return;
 
         this.providingItems = true;
@@ -137,6 +144,7 @@ class SkinCraftEmbedService {
             {
                 source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
                 type: 'items',
+                requestId: this.latestItemsRequestId,
                 inventory,
             } satisfies SkinCraftViewerItemsMessage,
             window.location.origin
@@ -187,7 +195,7 @@ class SkinCraftEmbedService {
         if (isOpenSkinCraftViewerMessage(event.data)) {
             this.openEmbeddedViewer(event.data.target, event.data.inventory);
         } else if (isSkinCraftViewerItemsMessage(event.data)) {
-            this.applyItemsUpdate(event.data.inventory);
+            this.applyItemsUpdate(event.data);
         } else if (isSkinCraftBuyListingResultMessage(event.data)) {
             this.handleBuyResult(event.data);
         } else if (isMalformedSkinCraftViewerMessage(event.data, ['open', 'items', 'buy-result'])) {
@@ -214,6 +222,7 @@ class SkinCraftEmbedService {
             {
                 source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
                 type: 'request-items',
+                requestId: ++this.itemsRequestId,
             } satisfies RequestSkinCraftViewerItemsMessage,
             window.location.origin
         );
@@ -264,16 +273,31 @@ class SkinCraftEmbedService {
         this.buyResultTimer = undefined;
     }
 
-    private applyItemsUpdate(items: SkinCraftItem[]): void {
+    private applyItemsUpdate({requestId, inventory}: SkinCraftViewerItemsMessage): void {
+        // Only the outstanding request counts: `close()` can't cancel the page's in-flight load, so
+        // its answer may land in a later session, after that session's own request or none at all.
+        if (!this.itemsRequestPending || requestId !== this.itemsRequestId) return;
+
         this.itemsRequestPending = false;
+        if (!this.active || !this.modal) return;
+
+        const items = inventory.map((item) => this.toViewerTarget(item));
+        // A harvest only covers mounted cards; the current item may have none (a dialog deep-link)
+        // and must stay in the strip or Previous/Next both disable under it.
+        const current = this.activeTarget;
+        if (current && !items.some((item) => this.isSameTarget(item, current))) items.unshift(current);
         // A shrunk harvest (a failed load, or the grid re-filtered underneath) never truncates the
         // items the user is navigating — the snapshot only ever grows within a session.
-        if (!this.active || !this.modal || items.length <= this.itemCount) return;
+        if (items.length <= this.itemCount) return;
 
         this.itemCount = items.length;
-        this.modal.setItems(items.map((item) => this.toViewerTarget(item)));
+        this.modal.setItems(items);
         // Keep filling while the user is still near the end of the loaded items.
         if (this.modal.itemsNearEnd()) this.requestMoreItems();
+    }
+
+    private isSameTarget(a: SkinCraftViewerTarget, b: SkinCraftViewerTarget): boolean {
+        return (a.assetId || a.inspect) === (b.assetId || b.inspect);
     }
 
     private selectEmbeddedTarget(target: SkinCraftViewerTarget): void {

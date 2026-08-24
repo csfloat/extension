@@ -209,35 +209,27 @@ describe('SkinCraft viewer buy messages', () => {
 });
 
 describe('SkinCraft viewer items messages', () => {
-    it('accepts a request for more items only from this protocol', () => {
-        expect(
-            isRequestSkinCraftViewerItemsMessage({source: SKINCRAFT_VIEWER_MESSAGE_SOURCE, type: 'request-items'})
-        ).toBe(true);
-        expect(isRequestSkinCraftViewerItemsMessage({source: 'other', type: 'request-items'})).toBe(false);
-        expect(isRequestSkinCraftViewerItemsMessage({source: SKINCRAFT_VIEWER_MESSAGE_SOURCE, type: 'items'})).toBe(
-            false
-        );
+    it('accepts a request for more items only from this protocol, carrying a request id', () => {
+        const request = {source: SKINCRAFT_VIEWER_MESSAGE_SOURCE, type: 'request-items', requestId: 1};
+        expect(isRequestSkinCraftViewerItemsMessage(request)).toBe(true);
+        expect(isRequestSkinCraftViewerItemsMessage({...request, source: 'other'})).toBe(false);
+        expect(isRequestSkinCraftViewerItemsMessage({...request, type: 'items'})).toBe(false);
+        expect(isRequestSkinCraftViewerItemsMessage({...request, requestId: undefined})).toBe(false);
+        expect(isRequestSkinCraftViewerItemsMessage({...request, requestId: '1'})).toBe(false);
+        expect(isRequestSkinCraftViewerItemsMessage({...request, requestId: -1})).toBe(false);
+        expect(isRequestSkinCraftViewerItemsMessage({...request, requestId: 1.5})).toBe(false);
     });
 
     it('holds item updates to the same target validation as open messages', () => {
+        const update = {source: SKINCRAFT_VIEWER_MESSAGE_SOURCE, type: 'items', requestId: 1, inventory: [target]};
+        expect(isSkinCraftViewerItemsMessage(update)).toBe(true);
+        expect(isSkinCraftViewerItemsMessage({...update, requestId: undefined})).toBe(false);
+        expect(isSkinCraftViewerItemsMessage({...update, inventory: [{...target, inspect: 'not-an-inspect'}]})).toBe(
+            false
+        );
         expect(
             isSkinCraftViewerItemsMessage({
-                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
-                type: 'items',
-                inventory: [target],
-            })
-        ).toBe(true);
-        expect(
-            isSkinCraftViewerItemsMessage({
-                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
-                type: 'items',
-                inventory: [{...target, inspect: 'not-an-inspect'}],
-            })
-        ).toBe(false);
-        expect(
-            isSkinCraftViewerItemsMessage({
-                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
-                type: 'items',
+                ...update,
                 inventory: Array.from({length: MAX_SKINCRAFT_INVENTORY_TARGETS + 1}, () => target),
             })
         ).toBe(false);

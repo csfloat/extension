@@ -78,10 +78,14 @@ export type OpenSkinCraftViewerMessage = {
     inventory: SkinCraftItem[];
 };
 
-/** Content script → page: load more items for the viewer's strip (paginated surfaces only). */
+/**
+ * Content script → page: load more items for the viewer's strip (paginated surfaces only). The
+ * page echoes `requestId` so an answer to a request from an earlier viewer session is recognizable.
+ */
 export type RequestSkinCraftViewerItemsMessage = {
     source: typeof SKINCRAFT_VIEWER_MESSAGE_SOURCE;
     type: 'request-items';
+    requestId: number;
 };
 
 /** Content script → page: hand the user off to Steam's own purchase flow for a listing. */
@@ -91,10 +95,11 @@ export type BuySkinCraftListingMessage = {
     listingId: string;
 };
 
-/** Page → content script: the refreshed item strip, answering a `request-items`. */
+/** Page → content script: the refreshed item strip, answering the `request-items` with `requestId`. */
 export type SkinCraftViewerItemsMessage = {
     source: typeof SKINCRAFT_VIEWER_MESSAGE_SOURCE;
     type: 'items';
+    requestId: number;
     inventory: SkinCraftItem[];
 };
 
@@ -116,6 +121,10 @@ function isOptional<T>(value: unknown, check: (value: unknown) => value is T): b
 
 export function isRestrictionDays(value: unknown): value is number {
     return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 365;
+}
+
+function isRequestId(value: unknown): value is number {
+    return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 }
 
 /**
@@ -242,7 +251,11 @@ export function isRequestSkinCraftViewerItemsMessage(data: unknown): data is Req
     if (!data || typeof data !== 'object') return false;
 
     const message = data as Partial<RequestSkinCraftViewerItemsMessage>;
-    return message.source === SKINCRAFT_VIEWER_MESSAGE_SOURCE && message.type === 'request-items';
+    return (
+        message.source === SKINCRAFT_VIEWER_MESSAGE_SOURCE &&
+        message.type === 'request-items' &&
+        isRequestId(message.requestId)
+    );
 }
 
 export function isBuySkinCraftListingMessage(data: unknown): data is BuySkinCraftListingMessage {
@@ -264,6 +277,7 @@ export function isSkinCraftViewerItemsMessage(data: unknown): data is SkinCraftV
     return (
         message.source === SKINCRAFT_VIEWER_MESSAGE_SOURCE &&
         message.type === 'items' &&
+        isRequestId(message.requestId) &&
         isSkinCraftItemList(message.inventory)
     );
 }
