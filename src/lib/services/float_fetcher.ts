@@ -45,6 +45,10 @@ class FloatFetcher {
         return deferred.promise();
     }
 
+    getCached(assetId: string): ItemInfo | undefined {
+        return this.cache.get(assetId);
+    }
+
     private async flush() {
         this.flushScheduled = false;
 

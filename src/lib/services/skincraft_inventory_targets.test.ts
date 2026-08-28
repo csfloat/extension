@@ -1,0 +1,256 @@
+import {describe, expect, it} from 'vitest';
+import type {ItemInfo} from '../bridge/handlers/fetch_inspect_info';
+import type {CAppwideInventory, CInventory, InventoryAsset} from '../types/steam';
+import {ContextId} from '../types/steam_constants';
+import {getLoadedInventoryTargets, toSkinCraftItem} from './skincraft_inventory_targets';
+import {isOpenSkinCraftViewerMessage, SKINCRAFT_VIEWER_MESSAGE_SOURCE} from './skincraft_viewer_protocol';
+
+function createInventory(assets: InventoryAsset[]): CInventory {
+    return {
+        initialized: true,
+        m_rgAssetProperties: {},
+        m_rgAssets: Object.fromEntries(assets.map((asset) => [asset.assetid, asset])),
+        m_parentInventory: null,
+        rgInventory: {},
+    } as unknown as CInventory;
+}
+
+describe('SkinCraft inventory targets', () => {
+    it('allows skins with inspect data to be viewed independently of listing eligibility', () => {
+        const asset = {
+            assetid: '123',
+            asset_properties: [{propertyid: 6, string_value: 'a'.repeat(80)}],
+            description: {
+                market_hash_name: 'AK-47 | Redline (Field-Tested)',
+                tags: [{category: 'Weapon', internal_name: 'weapon_ak47'}],
+                tradable: 0,
+            },
+        } as unknown as InventoryAsset;
+
+        expect(toSkinCraftItem(asset)?.inspect).toBe('a'.repeat(80));
+    });
+
+    it.each([
+        ['sticker', 'High Grade Sticker', 'CSGO_Tool_Sticker'],
+        ['patch', 'High Grade Patch', 'CSGO_Type_Patch'],
+        // Localized `type`, so this row lands on the tag branch the way non-English Steam does.
+        ['charm', 'Breloque extraordinaire', 'CSGO_Tool_Keychain'],
+        ['agent', 'Master Agent', 'Type_CustomPlayer'],
+    ])('accepts %s items with inspect data', (_kind, type, internalName) => {
+        const asset = {
+            assetid: '123',
+            asset_properties: [{propertyid: 6, string_value: 'a'.repeat(80)}],
+            description: {
+                market_hash_name: 'name',
+                type,
+                tags: [{category: 'Type', internal_name: internalName}],
+            },
+        } as unknown as InventoryAsset;
+
+        expect(toSkinCraftItem(asset)?.inspect).toBe('a'.repeat(80));
+    });
+
+    it('rejects item types SkinCraft cannot render', () => {
+        const asset = {
+            assetid: '123',
+            asset_properties: [{propertyid: 6, string_value: 'a'.repeat(80)}],
+            description: {
+                market_hash_name: 'Dreams & Nightmares Case',
+                type: 'Base Grade Container',
+                tags: [{category: 'Type', internal_name: 'CSGO_Type_WeaponCase'}],
+            },
+        } as unknown as InventoryAsset;
+
+        expect(toSkinCraftItem(asset)).toBeUndefined();
+    });
+
+    it('derives the steam launch link from the masked inspect action, wherever it sits', () => {
+        const asset = {
+            assetid: '123',
+            asset_properties: [{propertyid: 6, string_value: 'a'.repeat(80)}],
+            description: {
+                market_hash_name: 'AK-47 | Redline (Field-Tested)',
+                tags: [{category: 'Weapon', internal_name: 'weapon_ak47'}],
+                actions: [
+                    {name: 'View Wiki', link: 'https://example.com/wiki'},
+                    {name: 'Inspect in Game...', link: 'steam://run/730//+csgo_econ_action_preview%20%propid:6%'},
+                ],
+            },
+        } as unknown as InventoryAsset;
+
+        expect(toSkinCraftItem(asset)?.inspectUrl).toBe(
+            `steam://run/730//+csgo_econ_action_preview%20${'a'.repeat(80)}`
+        );
+    });
+
+    it('extracts the inspect from action links that embed the hex directly', () => {
+        const hex = 'A'.repeat(54);
+        const asset = {
+            assetid: '123',
+            description: {
+                market_hash_name: 'Sticker | Crown (Foil)',
+                type: 'High Grade Sticker',
+                tags: [{category: 'Type', internal_name: 'CSGO_Tool_Sticker'}],
+                actions: [{name: 'Inspect in Game...', link: `steam://run/730//+csgo_econ_action_preview%20${hex}`}],
+            },
+        } as unknown as InventoryAsset;
+        const target = toSkinCraftItem(asset);
+
+        expect(target?.inspect).toBe(hex);
+        expect(target?.inspectUrl).toBe(`steam://run/730//+csgo_econ_action_preview%20${hex}`);
+    });
+
+    it('omits the launch link when no action is a masked inspect launch', () => {
+        const asset = {
+            assetid: '123',
+            asset_properties: [{propertyid: 6, string_value: 'a'.repeat(80)}],
+            description: {
+                market_hash_name: 'AK-47 | Redline (Field-Tested)',
+                tags: [{category: 'Weapon', internal_name: 'weapon_ak47'}],
+                actions: [
+                    {name: 'View Wiki', link: 'https://example.com/wiki'},
+                    {name: 'Inspect in Game...', link: 'steam://rungame/730/123/+csgo_econ_action_preview%20S1A2D3'},
+                ],
+            },
+        } as unknown as InventoryAsset;
+
+        expect(toSkinCraftItem(asset)).toEqual(
+            expect.objectContaining({inspect: 'a'.repeat(80), inspectUrl: undefined})
+        );
+    });
+
+    it('ignores inspect-shaped actions that are not steam launch links', () => {
+        const hex = 'a'.repeat(80);
+        const asset = {
+            assetid: '123',
+            asset_properties: [{propertyid: 6, string_value: hex}],
+            description: {
+                market_hash_name: 'AK-47 | Redline (Field-Tested)',
+                tags: [{category: 'Weapon', internal_name: 'weapon_ak47'}],
+                actions: [
+                    {name: 'Inspect in Game...', link: `https://example.com/#+csgo_econ_action_preview%20${hex}`},
+                ],
+            },
+        } as unknown as InventoryAsset;
+
+        expect(toSkinCraftItem(asset)?.inspectUrl).toBeUndefined();
+    });
+
+    it('builds the launch link around the rendered hex, not the one embedded in the link', () => {
+        const property = 'a'.repeat(80);
+        const embedded = 'b'.repeat(80);
+        const asset = {
+            assetid: '123',
+            asset_properties: [{propertyid: 6, string_value: property}],
+            description: {
+                market_hash_name: 'AK-47 | Redline (Field-Tested)',
+                tags: [{category: 'Weapon', internal_name: 'weapon_ak47'}],
+                actions: [
+                    {name: 'Inspect in Game...', link: `steam://run/730//+csgo_econ_action_preview%20${embedded}`},
+                ],
+            },
+        } as unknown as InventoryAsset;
+        const target = toSkinCraftItem(asset);
+
+        expect(target?.inspect).toBe(property);
+        expect(target?.inspectUrl).toBe(`steam://run/730//+csgo_econ_action_preview%20${property}`);
+    });
+
+    it('produces items the viewer protocol accepts, including very long inspects', () => {
+        const asset = {
+            assetid: '123',
+            asset_properties: [{propertyid: 6, string_value: 'a'.repeat(5000)}],
+            description: {
+                market_hash_name: 'AK-47 | Redline (Field-Tested)',
+                tags: [{category: 'Weapon', internal_name: 'weapon_ak47'}],
+                actions: [
+                    {
+                        name: 'Inspect in Game...',
+                        link: 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20%propid:6%',
+                    },
+                ],
+            },
+        } as unknown as InventoryAsset;
+        const target = toSkinCraftItem(asset);
+
+        expect(target?.inspectUrl).toBeDefined();
+        expect(
+            isOpenSkinCraftViewerMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'open',
+                target,
+                inventory: [target],
+            })
+        ).toBe(true);
+    });
+
+    it('identifies half-hydrated descriptions by tag, without throwing on the missing type', () => {
+        const asset = {
+            assetid: '123',
+            asset_properties: [{propertyid: 6, string_value: 'a'.repeat(80)}],
+            description: {
+                market_hash_name: 'name',
+                tags: [{category: 'Type', internal_name: 'CSGO_Tool_Sticker'}],
+            },
+        } as unknown as InventoryAsset;
+
+        expect(toSkinCraftItem(asset)?.inspect).toBe('a'.repeat(80));
+    });
+
+    it('skips Steam assets whose descriptions are not initialized yet', () => {
+        const pendingAsset = {
+            assetid: '123',
+            description: undefined,
+        } as unknown as InventoryAsset;
+
+        expect(getLoadedInventoryTargets(createInventory([pendingAsset]))).toEqual([]);
+    });
+
+    it('falls back to the appwide parent property map when children carry none', () => {
+        const asset = {
+            assetid: '123',
+            description: {
+                market_hash_name: 'AK-47 | Redline (Field-Tested)',
+                tags: [{category: 'Weapon', internal_name: 'weapon_ak47'}],
+            },
+        } as unknown as InventoryAsset;
+        const appwide = {
+            m_rgChildInventories: {[ContextId.PRIMARY]: createInventory([asset])},
+            m_rgAssetProperties: {'123': [{propertyid: 6, string_value: 'a'.repeat(80)}]},
+        } as unknown as CAppwideInventory;
+
+        expect(getLoadedInventoryTargets(appwide)).toEqual([expect.objectContaining({inspect: 'a'.repeat(80)})]);
+    });
+
+    it('includes cached float metadata and Steam rarity colors', () => {
+        const asset = {
+            assetid: '123',
+            asset_properties: [{propertyid: 6, string_value: 'a'.repeat(80)}],
+            description: {
+                background_color: '20242d',
+                icon_url: 'icon',
+                icon_url_large: 'large-icon',
+                market_hash_name: 'USP-S | Sleeping Potion (Factory New)',
+                tags: [
+                    {category: 'Weapon', internal_name: 'weapon_usp_silencer'},
+                    {category: 'Rarity', internal_name: 'Rarity_Mythical', color: '8847ff'},
+                ],
+            },
+        } as unknown as InventoryAsset;
+        const itemInfo = {
+            paintindex: 0,
+            paintseed: 977,
+            floatvalue: 0.2953754,
+        } as ItemInfo;
+
+        expect(getLoadedInventoryTargets(createInventory([asset]), () => itemInfo)).toEqual([
+            expect.objectContaining({
+                assetId: '123',
+                seed: '977',
+                float: '0.295375',
+                rarityColor: '8847ff',
+                backgroundColor: '20242d',
+            }),
+        ]);
+    });
+});
