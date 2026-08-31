@@ -5,9 +5,6 @@ import {
     isRequestSkinCraftViewerItemsMessage,
     isSkinCraftBuyListingResultMessage,
     isSkinCraftViewerItemsMessage,
-    MAX_SKINCRAFT_ACCESSORIES,
-    MAX_SKINCRAFT_DETAIL_LINES,
-    MAX_SKINCRAFT_DETAIL_TEXT,
     MAX_SKINCRAFT_INVENTORY_TARGETS,
     SKINCRAFT_VIEWER_MESSAGE_SOURCE,
 } from './skincraft_viewer_protocol';
@@ -133,21 +130,10 @@ describe('SkinCraft viewer listing details', () => {
     });
 
     it.each([
-        ['a non-numeric listing id', {...details, listingId: 'not-a-listing'}],
-        ['an oversized line', {...details, lines: [{text: 'a'.repeat(MAX_SKINCRAFT_DETAIL_TEXT + 1)}]}],
         ['a malformed line colour', {...details, lines: [{text: 'x', color: 'red'}]}],
-        ['out-of-range restriction days', {...details, tradeRestrictionDays: 9000}],
         [
             'an accessory icon from an untrusted origin',
             {...details, accessories: [{name: 'Sticker | X', iconUrl: 'https://evil.example/x.png'}]},
-        ],
-        [
-            'too many accessories',
-            {...details, accessories: Array.from({length: MAX_SKINCRAFT_ACCESSORIES + 1}, () => ({name: 'Sticker'}))},
-        ],
-        [
-            'too many description lines',
-            {...details, lines: Array.from({length: MAX_SKINCRAFT_DETAIL_LINES + 1}, () => ({text: 'x'}))},
         ],
     ])('rejects details with %s', (_label, malformed) => {
         expect(

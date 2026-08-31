@@ -5,23 +5,9 @@ import type {
     MarketListingProps,
 } from '../components/market/react/types';
 import {getFiberProps} from '../utils/fiber';
-import {toBoundedIconUrl, toSkinCraftItem} from './skincraft_inventory_targets';
+import {toItemIconUrl, toSkinCraftItem} from './skincraft_inventory_targets';
 import type {CachedItemInfoLookup, SkinCraftSourceAsset} from './skincraft_inventory_targets';
-import {
-    ASSET_ID_PATTERN,
-    HEX_COLOR_PATTERN,
-    isRestrictionDays,
-    MAX_SKINCRAFT_ACCESSORIES,
-    MAX_SKINCRAFT_ACCESSORY_DETAIL,
-    MAX_SKINCRAFT_ACCESSORY_NAME,
-    MAX_SKINCRAFT_DETAIL_FIELD,
-    MAX_SKINCRAFT_DETAIL_LINES,
-    MAX_SKINCRAFT_DETAIL_TEXT,
-    MAX_SKINCRAFT_INVENTORY_TARGETS,
-    MAX_SKINCRAFT_PATTERN_TEMPLATE,
-    MAX_SKINCRAFT_PRICE,
-    MAX_SKINCRAFT_WEAR_RATING,
-} from './skincraft_viewer_protocol';
+import {HEX_COLOR_PATTERN, MAX_SKINCRAFT_INVENTORY_TARGETS} from './skincraft_viewer_protocol';
 import type {
     SkinCraftAccessory,
     SkinCraftDetailLine,
@@ -79,7 +65,7 @@ function toAccessoryDetail(accessory: MarketListingAccessory): string | undefine
     if (Number.isFinite(scrape)) return `Sticker Scrape Level: ${formatScrapeLevel(scrape)}`;
 
     const template = property(AssetPropertyId.CharmTemplate)?.int_value;
-    if (template) return `Charm Template: ${template}`.slice(0, MAX_SKINCRAFT_ACCESSORY_DETAIL);
+    if (template) return `Charm Template: ${template}`;
 
     // Steam spells out the zero on unscraped stickers rather than dropping the line.
     return accessory.description?.type?.endsWith('Sticker') ? 'Sticker Scrape Level: 0' : undefined;
@@ -92,62 +78,32 @@ function toAccessories(listing: MarketListing): SkinCraftAccessory[] | undefined
         if (typeof description?.market_hash_name !== 'string') continue;
 
         accessories.push({
-            name: description.market_hash_name.slice(0, MAX_SKINCRAFT_ACCESSORY_NAME),
-            iconUrl: toBoundedIconUrl(description.icon_url_large || description.icon_url),
+            name: description.market_hash_name,
+            iconUrl: toItemIconUrl(description.icon_url_large || description.icon_url),
             detail: toAccessoryDetail(accessory),
         });
-        if (accessories.length === MAX_SKINCRAFT_ACCESSORIES) break;
     }
     return accessories.length ? accessories : undefined;
 }
 
-/** Flattens Steam's HTML description entries into sanitized plain-text lines. */
+/** Flattens Steam's HTML description entries into plain-text lines, split at newlines and `<br>`s. */
 function toDetailLines(listing: MarketListing): SkinCraftDetailLine[] | undefined {
+    const parser = new DOMParser();
     const lines: SkinCraftDetailLine[] = [];
     for (const entry of listing.description.descriptions ?? []) {
         if ((entry.type && entry.type !== 'html') || typeof entry.value !== 'string') continue;
         if (ACCESSORY_INFO_ENTRIES.has(entry.name)) continue;
 
-        for (const raw of entry.value.split(/\n+/)) {
-            const italic = /^\s*<i>/i.test(raw);
-            const text = raw.replace(/<[^>]*>/g, '').trim();
+        for (const raw of entry.value.split(/\n+|<br[^>]*>/i)) {
+            const body = parser.parseFromString(raw, 'text/html').body;
+            const text = body.textContent?.trim();
             if (!text) continue;
 
             const color = entry.color && HEX_COLOR_PATTERN.test(entry.color) ? entry.color : undefined;
-            lines.push({text: text.slice(0, MAX_SKINCRAFT_DETAIL_TEXT), italic: italic || undefined, color});
-            if (lines.length === MAX_SKINCRAFT_DETAIL_LINES) return lines;
+            lines.push({text, italic: body.querySelector('i') ? true : undefined, color});
         }
     }
     return lines.length ? lines : undefined;
-}
-
-/**
- * The buyer-facing price (subtotal + fee, what Steam's cards show), formatted by rewriting the
- * numeric part of the localized `strSubtotal`; falls back to it whenever it doesn't parse as `unPrice`.
- */
-export function formatBuyerPrice(listing: MarketListing): string | undefined {
-    const subtotal = listing.strSubtotal;
-    if (!subtotal) return undefined;
-
-    const {unPrice, unFee} = listing;
-    if (!Number.isInteger(unPrice) || !Number.isInteger(unFee) || unFee <= 0) return subtotal;
-
-    const centsDigits = (cents: number): string => (cents / 100).toFixed(2).replace('.', '');
-    const numeric = /\d[\d.,'\s]*\d|\d/.exec(subtotal)?.[0];
-    // Two-decimal formats only: without that separator this could be a zero-decimal currency.
-    const decimalSeparator = numeric && numeric.length >= 4 ? numeric.charAt(numeric.length - 3) : '';
-    if (!numeric || !decimalSeparator || /\d/.test(decimalSeparator)) return subtotal;
-    if (numeric.replace(/\D/g, '') !== centsDigits(unPrice)) return subtotal;
-
-    const totalDigits = centsDigits(unPrice + unFee);
-    const groupSeparator = /\D/.exec(numeric.slice(0, -3))?.[0];
-    const integer = totalDigits.slice(0, -2);
-    const grouped = groupSeparator ? integer.replace(/\B(?=(\d{3})+$)/g, groupSeparator) : integer;
-    return subtotal.replace(numeric, `${grouped}${decimalSeparator}${totalDigits.slice(-2)}`);
-}
-
-function toRestrictionDays(value: number | undefined): number | undefined {
-    return value && isRestrictionDays(value) ? value : undefined;
 }
 
 function toListingDetails(listing: MarketListing): SkinCraftListingDetails {
@@ -155,20 +111,17 @@ function toListingDetails(listing: MarketListing): SkinCraftListingDetails {
     const property = (id: number): MarketAssetProperty | undefined =>
         listing.asset.asset_properties?.find((p) => p.propertyid === id);
     const wear = Number(property(AssetPropertyId.Wear)?.float_value);
-    const nameTag = property(AssetPropertyId.NameTag)?.string_value;
-    const template = property(AssetPropertyId.PatternTemplate)?.int_value;
 
-    // Clamped to the validator's bounds — one over-limit value would drop the whole message.
     return {
-        listingId: ASSET_ID_PATTERN.test(listing.listingid) ? listing.listingid : undefined,
+        listingId: listing.listingid,
         game: description.appid === 730 ? 'Counter-Strike 2' : undefined,
-        type: description.type ? description.type.slice(0, MAX_SKINCRAFT_DETAIL_FIELD) : undefined,
-        nameTag: typeof nameTag === 'string' ? nameTag.slice(0, MAX_SKINCRAFT_DETAIL_FIELD) : undefined,
-        patternTemplate: template ? String(template).slice(0, MAX_SKINCRAFT_PATTERN_TEMPLATE) : undefined,
-        wearRating: Number.isFinite(wear) ? wear.toFixed(8).slice(0, MAX_SKINCRAFT_WEAR_RATING) : undefined,
-        price: formatBuyerPrice(listing)?.slice(0, MAX_SKINCRAFT_PRICE),
-        tradeRestrictionDays: toRestrictionDays(description.market_tradable_restriction),
-        marketRestrictionDays: toRestrictionDays(description.market_marketable_restriction),
+        type: description.type || undefined,
+        nameTag: property(AssetPropertyId.NameTag)?.string_value || undefined,
+        patternTemplate: property(AssetPropertyId.PatternTemplate)?.int_value || undefined,
+        wearRating: Number.isFinite(wear) ? wear.toFixed(8) : undefined,
+        price: listing.strSubtotal || undefined,
+        tradeRestrictionDays: description.market_tradable_restriction || undefined,
+        marketRestrictionDays: description.market_marketable_restriction || undefined,
         accessories: toAccessories(listing),
         lines: toDetailLines(listing),
     };

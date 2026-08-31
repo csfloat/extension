@@ -9,19 +9,6 @@ export const STEAM_INSPECT_URL_PATTERN =
     /^steam:\/\/(?:run|rungame)\/730\/\d{0,20}\/\+csgo_econ_action_preview%20[0-9a-f]{40,8192}$/i;
 /** Also fits listing ids, which share the numeric-id format. */
 export const ASSET_ID_PATTERN = /^\d{1,32}$/;
-export const MAX_SKINCRAFT_DETAIL_LINES = 24;
-export const MAX_SKINCRAFT_DETAIL_TEXT = 2048;
-export const MAX_SKINCRAFT_ACCESSORIES = 8;
-
-// Producers must clamp to these same bounds: one over-limit field drops its whole message.
-export const MAX_SKINCRAFT_ITEM_NAME = 512;
-export const MAX_SKINCRAFT_ICON_URL = 4096;
-export const MAX_SKINCRAFT_ACCESSORY_NAME = 256;
-export const MAX_SKINCRAFT_ACCESSORY_DETAIL = 128;
-export const MAX_SKINCRAFT_DETAIL_FIELD = 256;
-export const MAX_SKINCRAFT_PATTERN_TEMPLATE = 16;
-export const MAX_SKINCRAFT_WEAR_RATING = 32;
-export const MAX_SKINCRAFT_PRICE = 64;
 
 /** One sanitized line of Steam's item description block (exterior, flavour text, collection, …). */
 export type SkinCraftDetailLine = {
@@ -111,16 +98,17 @@ export type SkinCraftBuyListingResultMessage = {
     success: boolean;
 };
 
-function isBoundedString(value: unknown, maxLength: number): value is string {
-    return typeof value === 'string' && value.length <= maxLength;
+function isOptionalString(value: unknown): value is string | undefined {
+    return value === undefined || typeof value === 'string';
 }
 
-function isOptional<T>(value: unknown, check: (value: unknown) => value is T): boolean {
-    return value === undefined || check(value);
+function isOptionalMatch(value: unknown, pattern: RegExp): value is string | undefined {
+    return value === undefined || (typeof value === 'string' && pattern.test(value));
 }
 
-export function isRestrictionDays(value: unknown): value is number {
-    return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 365;
+/** Icons render straight into the modal, so only Steam's own image CDN is accepted. */
+function isTrustedIconUrl(value: unknown): value is string {
+    return typeof value === 'string' && value.startsWith(STEAM_ECONOMY_IMAGE_PREFIX);
 }
 
 function isRequestId(value: unknown): value is number {
@@ -147,9 +135,9 @@ function isSkinCraftDetailLine(data: unknown): data is SkinCraftDetailLine {
 
     const line = data as Partial<SkinCraftDetailLine>;
     return (
-        isBoundedString(line.text, MAX_SKINCRAFT_DETAIL_TEXT) &&
+        typeof line.text === 'string' &&
         (line.italic === undefined || typeof line.italic === 'boolean') &&
-        (line.color === undefined || (typeof line.color === 'string' && HEX_COLOR_PATTERN.test(line.color)))
+        isOptionalMatch(line.color, HEX_COLOR_PATTERN)
     );
 }
 
@@ -158,11 +146,9 @@ function isSkinCraftAccessory(data: unknown): data is SkinCraftAccessory {
 
     const accessory = data as Partial<SkinCraftAccessory>;
     return (
-        isBoundedString(accessory.name, MAX_SKINCRAFT_ACCESSORY_NAME) &&
-        isOptional(accessory.detail, (v): v is string => isBoundedString(v, MAX_SKINCRAFT_ACCESSORY_DETAIL)) &&
-        (accessory.iconUrl === undefined ||
-            (isBoundedString(accessory.iconUrl, MAX_SKINCRAFT_ICON_URL) &&
-                accessory.iconUrl.startsWith(STEAM_ECONOMY_IMAGE_PREFIX)))
+        typeof accessory.name === 'string' &&
+        isOptionalString(accessory.detail) &&
+        (accessory.iconUrl === undefined || isTrustedIconUrl(accessory.iconUrl))
     );
 }
 
@@ -171,64 +157,43 @@ function isSkinCraftListingDetails(data: unknown): data is SkinCraftListingDetai
 
     const details = data as Partial<SkinCraftListingDetails>;
     return (
-        (details.listingId === undefined ||
-            (typeof details.listingId === 'string' && ASSET_ID_PATTERN.test(details.listingId))) &&
+        isOptionalString(details.listingId) &&
+        isOptionalString(details.game) &&
+        isOptionalString(details.type) &&
+        isOptionalString(details.nameTag) &&
+        isOptionalString(details.patternTemplate) &&
+        isOptionalString(details.wearRating) &&
+        isOptionalString(details.price) &&
+        (details.tradeRestrictionDays === undefined || typeof details.tradeRestrictionDays === 'number') &&
+        (details.marketRestrictionDays === undefined || typeof details.marketRestrictionDays === 'number') &&
         (details.accessories === undefined ||
-            (Array.isArray(details.accessories) &&
-                details.accessories.length <= MAX_SKINCRAFT_ACCESSORIES &&
-                details.accessories.every(isSkinCraftAccessory))) &&
-        isOptional(details.game, (v): v is string => isBoundedString(v, 128)) &&
-        isOptional(details.type, (v): v is string => isBoundedString(v, MAX_SKINCRAFT_DETAIL_FIELD)) &&
-        isOptional(details.nameTag, (v): v is string => isBoundedString(v, MAX_SKINCRAFT_DETAIL_FIELD)) &&
-        isOptional(details.patternTemplate, (v): v is string => isBoundedString(v, MAX_SKINCRAFT_PATTERN_TEMPLATE)) &&
-        isOptional(details.wearRating, (v): v is string => isBoundedString(v, MAX_SKINCRAFT_WEAR_RATING)) &&
-        isOptional(details.price, (v): v is string => isBoundedString(v, MAX_SKINCRAFT_PRICE)) &&
-        isOptional(details.tradeRestrictionDays, isRestrictionDays) &&
-        isOptional(details.marketRestrictionDays, isRestrictionDays) &&
-        (details.lines === undefined ||
-            (Array.isArray(details.lines) &&
-                details.lines.length <= MAX_SKINCRAFT_DETAIL_LINES &&
-                details.lines.every(isSkinCraftDetailLine)))
+            (Array.isArray(details.accessories) && details.accessories.every(isSkinCraftAccessory))) &&
+        (details.lines === undefined || (Array.isArray(details.lines) && details.lines.every(isSkinCraftDetailLine)))
     );
 }
 
-/** Structural check only: does the untyped message data have the shape of a {@link SkinCraftItem}? */
-function isSkinCraftItemShape(data: unknown): data is SkinCraftItem {
+/**
+ * Display fields only need to be strings — they render as text. The patterns guard the fields we
+ * *act* on: the inspect hex (sent to the embed and its URLs), the `steam://` launch link (assigned
+ * to `location.href`), colours (injected into styles), and icon URLs (loaded as images).
+ */
+function isSkinCraftItem(data: unknown): data is SkinCraftItem {
     if (!data || typeof data !== 'object') return false;
 
     const item = data as Partial<SkinCraftItem>;
     return (
         typeof item.inspect === 'string' &&
-        (item.inspectUrl === undefined || typeof item.inspectUrl === 'string') &&
+        SKINCRAFT_INSPECT_PATTERN.test(item.inspect) &&
+        isOptionalMatch(item.inspectUrl, STEAM_INSPECT_URL_PATTERN) &&
         typeof item.name === 'string' &&
-        (item.assetId === undefined || typeof item.assetId === 'string') &&
-        (item.seed === undefined || typeof item.seed === 'string') &&
-        (item.float === undefined || typeof item.float === 'string') &&
-        (item.rarityColor === undefined || typeof item.rarityColor === 'string') &&
-        (item.backgroundColor === undefined || typeof item.backgroundColor === 'string') &&
-        (item.iconUrl === undefined || typeof item.iconUrl === 'string') &&
+        isOptionalString(item.assetId) &&
+        isOptionalString(item.seed) &&
+        isOptionalString(item.float) &&
+        isOptionalMatch(item.rarityColor, HEX_COLOR_PATTERN) &&
+        isOptionalMatch(item.backgroundColor, HEX_COLOR_PATTERN) &&
+        (item.iconUrl === undefined || isTrustedIconUrl(item.iconUrl)) &&
         (item.details === undefined || isSkinCraftListingDetails(item.details))
     );
-}
-
-/** Content rules for a well-typed item: field bounds, patterns, and the trusted image origin. */
-function isValidSkinCraftItem(item: SkinCraftItem): boolean {
-    return (
-        SKINCRAFT_INSPECT_PATTERN.test(item.inspect) &&
-        (item.inspectUrl === undefined || STEAM_INSPECT_URL_PATTERN.test(item.inspectUrl)) &&
-        item.name.length <= MAX_SKINCRAFT_ITEM_NAME &&
-        (item.assetId === undefined || ASSET_ID_PATTERN.test(item.assetId)) &&
-        (item.seed === undefined || item.seed.length <= 64) &&
-        (item.float === undefined || item.float.length <= 64) &&
-        (item.rarityColor === undefined || HEX_COLOR_PATTERN.test(item.rarityColor)) &&
-        (item.backgroundColor === undefined || HEX_COLOR_PATTERN.test(item.backgroundColor)) &&
-        (item.iconUrl === undefined ||
-            (item.iconUrl.length <= MAX_SKINCRAFT_ICON_URL && item.iconUrl.startsWith(STEAM_ECONOMY_IMAGE_PREFIX)))
-    );
-}
-
-function isSkinCraftItem(data: unknown): data is SkinCraftItem {
-    return isSkinCraftItemShape(data) && isValidSkinCraftItem(data);
 }
 
 function isSkinCraftItemList(data: unknown): data is SkinCraftItem[] {

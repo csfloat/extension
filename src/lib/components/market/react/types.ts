@@ -1,4 +1,4 @@
-import type {Action, rgDescription, rgInternalDescription} from '../../../types/steam';
+import type {Action, rgAssetProperty, rgDescription, rgInternalDescription} from '../../../types/steam';
 
 /**
  * Shapes of the props Steam's React version of the Steam Market renders into its listing components. We read these
@@ -17,12 +17,7 @@ export interface MarketDescriptionLine extends rgInternalDescription {
 }
 
 /** An asset property as the React market hydrates it: `float_value` arrives as a number here, not the string the rg-asset form carries. */
-export interface MarketAssetProperty {
-    propertyid: number;
-    int_value?: string;
-    float_value?: number;
-    string_value?: string;
-}
+export type MarketAssetProperty = Omit<rgAssetProperty, 'float_value'> & {float_value?: number};
 
 // Fields the React fiber has been seen to omit are optional — nothing validates this payload
 // before we read it, so consumers must handle their absence.

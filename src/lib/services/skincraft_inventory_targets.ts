@@ -7,9 +7,7 @@ import {steamEconomyImageUrl} from '../utils/steam_images';
 import {gFloatFetcher} from './float_fetcher';
 import {
     HEX_COLOR_PATTERN,
-    MAX_SKINCRAFT_ICON_URL,
     MAX_SKINCRAFT_INVENTORY_TARGETS,
-    MAX_SKINCRAFT_ITEM_NAME,
     SKINCRAFT_INSPECT_PATTERN,
     STEAM_INSPECT_URL_PATTERN,
 } from './skincraft_viewer_protocol';
@@ -92,10 +90,8 @@ function getSkinCraftInspect(
     return {inspect, inspectUrl: inspectUrl && STEAM_INSPECT_URL_PATTERN.test(inspectUrl) ? inspectUrl : undefined};
 }
 
-/** Bounded per the viewer protocol; an over-long URL drops the icon, not the item. */
-export function toBoundedIconUrl(icon: string | undefined): string | undefined {
-    const iconUrl = icon ? steamEconomyImageUrl(icon) : undefined;
-    return iconUrl && iconUrl.length <= MAX_SKINCRAFT_ICON_URL ? iconUrl : undefined;
+export function toItemIconUrl(icon: string | undefined): string | undefined {
+    return icon ? steamEconomyImageUrl(icon) : undefined;
 }
 
 export function toSkinCraftItem(
@@ -113,8 +109,8 @@ export function toSkinCraftItem(
     const backgroundColor = asset.description.background_color;
     return {
         ...inspectFields,
-        name: asset.description.market_hash_name.slice(0, MAX_SKINCRAFT_ITEM_NAME),
-        iconUrl: toBoundedIconUrl(asset.description.icon_url_large || asset.description.icon_url),
+        name: asset.description.market_hash_name,
+        iconUrl: toItemIconUrl(asset.description.icon_url_large || asset.description.icon_url),
         assetId: asset.assetid,
         seed: itemInfo ? formatSeed(itemInfo) : undefined,
         float: itemInfo ? formatFloatWithRank(itemInfo, 6) : undefined,
