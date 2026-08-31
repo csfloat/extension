@@ -336,6 +336,9 @@ class SkinCraftEmbedService {
             onSelect: (target) => this.selectEmbeddedTarget(target),
             onItemsNearEnd: () => this.requestMoreItems(),
             onBuy: this.isMarketPage ? (listingId) => this.handleBuyRequest(listingId) : undefined,
+            onViewerKey: this.isMarketPage
+                ? (action, key, code) => this.post({type: 'key', action, key, code})
+                : undefined,
         });
         document.body.appendChild(modal.element);
         window.addEventListener('message', this.handleEmbedMessage);
@@ -426,6 +429,10 @@ class SkinCraftEmbedService {
                 this.showLoadingCover = false;
                 this.frameHasContent = false;
                 this.modal?.setError(message.message || 'SkinCraft could not load this item.');
+                break;
+            case 'key':
+                // The embed forwards navigation keys pressed while its iframe holds focus.
+                if (this.active) this.modal?.navigateByKey(message.key);
                 break;
             case 'inspect-requested': {
                 // A switch-in-place keeps the old model on screen while the next loads; only `loaded`

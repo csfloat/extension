@@ -24,6 +24,12 @@ export type SkinCraftViewerModalOptions = {
     onItemsNearEnd?: () => void;
     /** Enables the details panel's Buy button; the host hands off to the surface's purchase flow. */
     onBuy?: (listingId: string) => void;
+    /**
+     * The headless keyboard path: the dialog keeps real focus, and bare presses it doesn't bind
+     * are handed to the host to replay inside the embed. Enabling this also makes the modal
+     * reclaim focus whenever a click into the 3D view hands it to the iframe.
+     */
+    onViewerKey?: (action: 'down' | 'up', key: string, code: string) => void;
 };
 
 /** About two card rows — asking for more this early keeps strip scrolling seamless. */
@@ -98,6 +104,7 @@ export class SkinCraftViewerModal {
     private readonly dialogRef = createRef<HTMLDialogElement>();
     private readonly frameRef = createRef<HTMLIFrameElement>();
     private readonly itemGridRef = createRef<HTMLDivElement>();
+    private readonly detailsScrollRef = createRef<HTMLDivElement>();
 
     private target?: SkinCraftViewerTarget;
     private items: SkinCraftViewerTarget[] = [];
@@ -112,6 +119,9 @@ export class SkinCraftViewerModal {
     private closeTimer?: number;
     private entryFrame?: number;
     private iconRequest = 0;
+    private pageOverflow?: string;
+    private detailsGhost?: HTMLElement;
+    private detailsEnter?: Animation;
 
     constructor(private readonly options: SkinCraftViewerModalOptions) {
         // Closed so page scripts can't reach into the viewer we host on their document.
@@ -142,7 +152,12 @@ export class SkinCraftViewerModal {
     }
 
     show(target: SkinCraftViewerTarget): void {
+        const fromIndex = this.isOpen ? this.selectedIndex : -1;
         this.target = target;
+        const toIndex = this.selectedIndex;
+        const step = fromIndex >= 0 && toIndex >= 0 ? Math.sign(toIndex - fromIndex) : 0;
+        // Captured before the render below swaps the panel content in place.
+        const ghost = step ? this.captureDetailsGhost() : undefined;
         this.iconReady = false;
         this.buyNotice = '';
         const request = ++this.iconRequest;
@@ -154,7 +169,8 @@ export class SkinCraftViewerModal {
 
         void this.revealIconWhenDecoded(target.iconUrl, request);
         this.scrollSelectedIntoView();
-        this.maybeRequestMore(this.selectedIndex);
+        if (ghost) this.animateDetailsChange(ghost, step);
+        this.maybeRequestMore(toIndex);
         if (opening) this.openDialog();
     }
 
@@ -221,6 +237,7 @@ export class SkinCraftViewerModal {
                 @click="${this.handleDialogClick}"
                 @transitionend="${this.handleTransitionEnd}"
                 @keydown="${this.handleKeydown}"
+                @keyup="${this.handleKeyup}"
             >
                 ${details ? nothing : this.renderHeader()}
                 <div class="modal-body">
@@ -321,7 +338,7 @@ export class SkinCraftViewerModal {
                         ×
                     </button>
                 </div>
-                <div class="details-scroll">
+                <div ${ref(this.detailsScrollRef)} class="details-scroll">
                     <div
                         class="details-name"
                         id="skincraft-viewer-title"
@@ -408,7 +425,14 @@ export class SkinCraftViewerModal {
                 ${showBuy
                     ? html`
                           <span class="details-price">${details.price}</span>
-                          <button class="details-buy" type="button" @click="${this.handleBuy}">Buy</button>
+                          <button
+                              class="details-buy"
+                              type="button"
+                              aria-label="View listing on Steam"
+                              @click="${this.handleBuy}"
+                          >
+                              <span>View</span>${renderChevron('right')}
+                          </button>
                       `
                     : nothing}
             </div>
@@ -523,16 +547,87 @@ export class SkinCraftViewerModal {
         if (this.items.length - index <= ITEMS_NEAR_END_COUNT) this.options.onItemsNearEnd?.();
     }
 
-    private handleKeydown(event: KeyboardEvent): void {
-        if (this.layout !== 'details') return;
+    /** Steps the selection for a navigation hotkey; the embed's forwarded keys also land here. */
+    navigateByKey(key: string): boolean {
+        if (this.layout !== 'details') return false;
+        if (key !== 'ArrowLeft' && key !== 'ArrowRight') return false;
 
-        if (event.key === 'ArrowLeft') {
+        this.selectNeighbor(key === 'ArrowLeft' ? -1 : 1);
+        return true;
+    }
+
+    private handleKeydown(event: KeyboardEvent): void {
+        if (this.navigateByKey(event.key)) {
             event.preventDefault();
-            this.selectNeighbor(-1);
-        } else if (event.key === 'ArrowRight') {
-            event.preventDefault();
-            this.selectNeighbor(1);
+            // The key may have bubbled up from a focused nav button that is about to disable.
+            this.dropNavFocus();
+            return;
         }
+        this.forwardViewerKey('down', event);
+    }
+
+    private handleKeyup(event: KeyboardEvent): void {
+        this.forwardViewerKey('up', event);
+    }
+
+    // Bare presses on the dialog itself; Tab/Escape (focus and dismissal) and the nav arrows
+    // stay with the dialog, and anything on a focused control belongs to that control.
+    private forwardViewerKey(action: 'down' | 'up', event: KeyboardEvent): void {
+        if (event.altKey || event.ctrlKey || event.metaKey) return;
+        if (event.target !== this.dialogRef.value) return;
+        if (event.key === 'Tab' || event.key === 'Escape' || event.key.startsWith('Arrow')) return;
+        this.options.onViewerKey?.(action, event.key, event.code);
+    }
+
+    // The embed never needs real focus — its keys arrive over the bridge — so a click into the
+    // 3D view must not leave the dialog's own hotkeys dead.
+    private handleWindowBlur = (): void => {
+        if (this.root.activeElement !== this.frameRef.value) return;
+        window.setTimeout(() => {
+            if (this.isOpen) this.dropNavFocus();
+        });
+    };
+
+    /**
+     * A lit render swaps the panel content in place, so the outgoing content only exists as this
+     * throwaway clone, overlaid on the scroll area for {@link animateDetailsChange} to slide out.
+     */
+    private captureDetailsGhost(): HTMLElement | undefined {
+        const scroll = this.detailsScrollRef.value;
+        if (!scroll?.parentElement) return;
+
+        this.detailsGhost?.remove();
+        const ghost = scroll.cloneNode(true) as HTMLElement;
+        ghost.classList.add('details-ghost');
+        ghost.style.top = `${scroll.offsetTop}px`;
+        ghost.style.height = `${scroll.offsetHeight}px`;
+        ghost.setAttribute('aria-hidden', 'true');
+        ghost.querySelector('#skincraft-viewer-title')?.removeAttribute('id');
+        scroll.parentElement.appendChild(ghost);
+        ghost.scrollTop = scroll.scrollTop;
+        this.detailsGhost = ghost;
+        return ghost;
+    }
+
+    /**
+     * The prev/next swap: one continuous slide, the old content leaving as the new arrives from
+     * the direction of travel — same duration and curve, so the two read as a single strip. The
+     * panel restarts at the top; carrying one item's scroll offset into the next reads as a glitch.
+     */
+    private animateDetailsChange(ghost: HTMLElement, step: number): void {
+        const slide: KeyframeAnimationOptions = {duration: 320, easing: 'cubic-bezier(0.22, 1, 0.36, 1)'};
+
+        const exit = ghost.animate({transform: ['translateX(0)', `translateX(${step * -100}%)`]}, slide);
+        exit.onfinish = exit.oncancel = () => {
+            ghost.remove();
+            if (this.detailsGhost === ghost) this.detailsGhost = undefined;
+        };
+
+        const scroll = this.detailsScrollRef.value;
+        if (!scroll) return;
+        scroll.scrollTop = 0;
+        this.detailsEnter?.cancel();
+        this.detailsEnter = scroll.animate({transform: [`translateX(${step * 100}%)`, 'translateX(0)']}, slide);
     }
 
     private handleBuy(): void {
@@ -625,15 +720,32 @@ export class SkinCraftViewerModal {
         if (!dialog || dialog.open) return;
 
         dialog.showModal();
+        this.lockPageScroll();
+        if (this.options.onViewerKey) window.addEventListener('blur', this.handleWindowBlur);
         // Two frames: `entering` has to be painted before it is removed, or the transition never runs.
         this.entryFrame = requestAnimationFrame(() => {
             this.entryFrame = requestAnimationFrame(() => {
                 this.entryFrame = undefined;
                 this.entering = false;
                 this.update();
-                this.focusViewer();
+                // With the headless keyboard the dialog owns focus outright; otherwise the viewer
+                // takes it, since its hotkeys have no other way to work.
+                if (this.options.onViewerKey || this.layout === 'details') this.dropNavFocus();
+                else this.focusViewer();
             });
         });
+    }
+
+    // The dialog floats over a page that still scrolls under wheel events on the backdrop.
+    private lockPageScroll(): void {
+        this.pageOverflow = document.documentElement.style.overflow;
+        document.documentElement.style.overflow = 'hidden';
+    }
+
+    private unlockPageScroll(): void {
+        if (this.pageOverflow === undefined) return;
+        document.documentElement.style.overflow = this.pageOverflow;
+        this.pageOverflow = undefined;
     }
 
     private async revealIconWhenDecoded(iconUrl: string | undefined, request: number): Promise<void> {
@@ -752,5 +864,7 @@ export class SkinCraftViewerModal {
 
         const dialog = this.dialogRef.value;
         if (dialog?.open) dialog.close();
+        window.removeEventListener('blur', this.handleWindowBlur);
+        this.unlockPageScroll();
     }
 }
