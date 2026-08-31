@@ -570,12 +570,13 @@ export class SkinCraftViewerModal {
         this.forwardViewerKey('up', event);
     }
 
-    // Bare presses on the dialog itself; Tab/Escape (focus and dismissal) and the nav arrows
-    // stay with the dialog, and anything on a focused control belongs to that control.
+    // Bare presses on the dialog itself; only the keys the dialog binds (nav arrows, Tab,
+    // Escape) stay with it, and anything on a focused control belongs to that control.
     private forwardViewerKey(action: 'down' | 'up', event: KeyboardEvent): void {
         if (event.altKey || event.ctrlKey || event.metaKey) return;
         if (event.target !== this.dialogRef.value) return;
-        if (event.key === 'Tab' || event.key === 'Escape' || event.key.startsWith('Arrow')) return;
+        if (event.key === 'Tab' || event.key === 'Escape') return;
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') return;
         this.options.onViewerKey?.(action, event.key, event.code);
     }
 
@@ -738,6 +739,7 @@ export class SkinCraftViewerModal {
 
     // The dialog floats over a page that still scrolls under wheel events on the backdrop.
     private lockPageScroll(): void {
+        if (this.pageOverflow !== undefined) return;
         this.pageOverflow = document.documentElement.style.overflow;
         document.documentElement.style.overflow = 'hidden';
     }
@@ -746,6 +748,15 @@ export class SkinCraftViewerModal {
         if (this.pageOverflow === undefined) return;
         document.documentElement.style.overflow = this.pageOverflow;
         this.pageOverflow = undefined;
+    }
+
+    /** The market grid paginates by scrolling the window, so the lock yields to an items load. */
+    suspendPageScrollLock(): void {
+        this.unlockPageScroll();
+    }
+
+    resumePageScrollLock(): void {
+        if (this.isOpen && !this.closing) this.lockPageScroll();
     }
 
     private async revealIconWhenDecoded(iconUrl: string | undefined, request: number): Promise<void> {

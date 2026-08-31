@@ -218,6 +218,8 @@ class SkinCraftEmbedService {
     private requestMoreItems(): void {
         if (this.itemsRequestPending || !this.active || !this.isMarketPage) return;
         this.itemsRequestPending = true;
+        // Steam's own loader paginates by scrolling the grid, so the modal's scroll lock yields.
+        this.modal?.suspendPageScrollLock();
         window.postMessage(
             {
                 source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
@@ -279,6 +281,7 @@ class SkinCraftEmbedService {
         if (!this.itemsRequestPending || requestId !== this.itemsRequestId) return;
 
         this.itemsRequestPending = false;
+        this.modal?.resumePageScrollLock();
         if (!this.active || !this.modal) return;
 
         const items = inventory.map((item) => this.toViewerTarget(item));
