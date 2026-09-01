@@ -187,7 +187,7 @@ export const detailsPanelStyles = `
 
     /* Reads as navigation on purpose: it only takes the user to Steam's own purchase dialog,
        so it must not look or read like a Buy button. */
-    .details-buy {
+    .details-view {
         display: inline-flex;
         align-items: center;
         gap: 4px;
@@ -204,11 +204,11 @@ export const detailsPanelStyles = `
         transition: background-color 150ms ease;
     }
 
-    .details-buy:hover {
+    .details-view:hover {
         background: #6468f0;
     }
 
-    .details-buy-notice {
+    .details-view-notice {
         margin: -8px 0 16px;
         color: #ff8585;
         font-size: 12.5px;

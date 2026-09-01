@@ -22,8 +22,8 @@ export type SkinCraftViewerModalOptions = {
     onSelect: (target: SkinCraftViewerTarget) => void;
     /** Fired when the user nears the end of the loaded items — strip scroll in `grid`, selection proximity in `details`. */
     onItemsNearEnd?: () => void;
-    /** Enables the details panel's Buy button; the host hands off to the surface's purchase flow. */
-    onBuy?: (listingId: string) => void;
+    /** Enables the details panel's View action; the host hands off to the surface's purchase flow. */
+    onViewMarketListing?: (listingId: string) => void;
     /**
      * The headless keyboard path: the dialog keeps real focus, and bare presses it doesn't bind
      * are handed to the host to replay inside the embed. Enabling this also makes the modal
@@ -111,7 +111,7 @@ export class SkinCraftViewerModal {
     private phase: LoadPhase = 'loading';
     private progress: number | null = null;
     private errorMessage = '';
-    private buyNotice = '';
+    private viewNotice = '';
     private entering = false;
     private closing = false;
     private iconReady = false;
@@ -159,7 +159,7 @@ export class SkinCraftViewerModal {
         // Captured before the render below swaps the panel content in place.
         const ghost = step ? this.captureDetailsGhost() : undefined;
         this.iconReady = false;
-        this.buyNotice = '';
+        this.viewNotice = '';
         const request = ++this.iconRequest;
 
         this.cancelClose();
@@ -202,9 +202,9 @@ export class SkinCraftViewerModal {
         this.update();
     }
 
-    /** Surfaces a failed buy hand-off next to the Buy button; cleared on the next selection. */
-    setBuyNotice(message: string): void {
-        this.buyNotice = message;
+    /** Surfaces a failed hand-off next to the View action; cleared on the next selection. */
+    setViewNotice(message: string): void {
+        this.viewNotice = message;
         this.update();
     }
 
@@ -416,27 +416,27 @@ export class SkinCraftViewerModal {
         details?: SkinCraftListingDetails
     ): TemplateResult | typeof nothing {
         const inspectUrl = target?.inspectUrl;
-        const showBuy = !!details?.price && !!details.listingId && !!this.options.onBuy;
-        if (!inspectUrl && !showBuy) return nothing;
+        const showViewAction = !!details?.price && !!details.listingId && !!this.options.onViewMarketListing;
+        if (!inspectUrl && !showViewAction) return nothing;
 
         return html`
             <div class="details-actions">
                 ${inspectUrl ? html`<a class="details-inspect" href="${inspectUrl}">Inspect in Game...</a>` : nothing}
-                ${showBuy
+                ${showViewAction
                     ? html`
                           <span class="details-price">${details.price}</span>
                           <button
-                              class="details-buy"
+                              class="details-view"
                               type="button"
                               aria-label="View listing on Steam"
-                              @click="${this.handleBuy}"
+                              @click="${this.handleViewMarketListing}"
                           >
                               <span>View</span>${renderChevron('right')}
                           </button>
                       `
                     : nothing}
             </div>
-            ${this.buyNotice ? html`<div class="details-buy-notice" role="alert">${this.buyNotice}</div>` : nothing}
+            ${this.viewNotice ? html`<div class="details-view-notice" role="alert">${this.viewNotice}</div>` : nothing}
         `;
     }
 
@@ -631,9 +631,9 @@ export class SkinCraftViewerModal {
         this.detailsEnter = scroll.animate({transform: [`translateX(${step * 100}%)`, 'translateX(0)']}, slide);
     }
 
-    private handleBuy(): void {
+    private handleViewMarketListing(): void {
         const listingId = this.target?.details?.listingId;
-        if (listingId) this.options.onBuy?.(listingId);
+        if (listingId) this.options.onViewMarketListing?.(listingId);
     }
 
     // Both status blocks stay mounted and toggle `hidden` so the item icon survives an error →

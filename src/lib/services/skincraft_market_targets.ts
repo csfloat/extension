@@ -208,7 +208,7 @@ function findBuyButton(scope: HTMLElement): HTMLButtonElement | undefined {
 }
 
 /** Hands off to Steam's own purchase flow by clicking the listing card's native Buy button. */
-export function buyListing(listingId: string): boolean {
+export function openNativeBuyDialog(listingId: string): boolean {
     for (const scope of document.querySelectorAll<HTMLElement>(MARKET_LISTING_CARD_SELECTOR)) {
         if (getFiberListing(scope)?.listingid !== listingId) continue;
 

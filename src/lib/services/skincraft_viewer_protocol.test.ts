@@ -1,9 +1,9 @@
 import {describe, expect, it} from 'vitest';
 import {
-    isBuySkinCraftListingMessage,
+    isViewSkinCraftListingMessage,
     isOpenSkinCraftViewerMessage,
     isRequestSkinCraftViewerItemsMessage,
-    isSkinCraftBuyListingResultMessage,
+    isSkinCraftViewListingResultMessage,
     isSkinCraftViewerItemsMessage,
     MAX_SKINCRAFT_INVENTORY_TARGETS,
     SKINCRAFT_VIEWER_MESSAGE_SOURCE,
@@ -147,46 +147,46 @@ describe('SkinCraft viewer listing details', () => {
     });
 });
 
-describe('SkinCraft viewer buy messages', () => {
+describe('SkinCraft viewer listing hand-off messages', () => {
     it('accepts only well-formed listing ids from this protocol', () => {
         expect(
-            isBuySkinCraftListingMessage({
+            isViewSkinCraftListingMessage({
                 source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
-                type: 'buy-listing',
+                type: 'view-listing',
                 listingId: '556910233323745386',
             })
         ).toBe(true);
         expect(
-            isBuySkinCraftListingMessage({
+            isViewSkinCraftListingMessage({
                 source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
-                type: 'buy-listing',
+                type: 'view-listing',
                 listingId: 'javascript:alert(1)',
             })
         ).toBe(false);
-        expect(isBuySkinCraftListingMessage({source: 'other', type: 'buy-listing', listingId: '1'})).toBe(false);
+        expect(isViewSkinCraftListingMessage({source: 'other', type: 'view-listing', listingId: '1'})).toBe(false);
     });
 
-    it('holds buy results to the same listing id and source rules', () => {
+    it('holds hand-off results to the same listing id and source rules', () => {
         expect(
-            isSkinCraftBuyListingResultMessage({
+            isSkinCraftViewListingResultMessage({
                 source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
-                type: 'buy-result',
+                type: 'view-result',
                 listingId: '556910233323745386',
                 success: false,
             })
         ).toBe(true);
         expect(
-            isSkinCraftBuyListingResultMessage({
+            isSkinCraftViewListingResultMessage({
                 source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
-                type: 'buy-result',
+                type: 'view-result',
                 listingId: 'javascript:alert(1)',
                 success: true,
             })
         ).toBe(false);
         expect(
-            isSkinCraftBuyListingResultMessage({
+            isSkinCraftViewListingResultMessage({
                 source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
-                type: 'buy-result',
+                type: 'view-result',
                 listingId: '1',
                 success: 'yes',
             })

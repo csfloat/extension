@@ -76,9 +76,9 @@ export type RequestSkinCraftViewerItemsMessage = {
 };
 
 /** Content script → page: hand the user off to Steam's own purchase flow for a listing. */
-export type BuySkinCraftListingMessage = {
+export type ViewSkinCraftListingMessage = {
     source: typeof SKINCRAFT_VIEWER_MESSAGE_SOURCE;
-    type: 'buy-listing';
+    type: 'view-listing';
     listingId: string;
 };
 
@@ -90,10 +90,10 @@ export type SkinCraftViewerItemsMessage = {
     inventory: SkinCraftItem[];
 };
 
-/** Page → content script: whether the `buy-listing` hand-off reached Steam's purchase flow. */
-export type SkinCraftBuyListingResultMessage = {
+/** Page → content script: whether the `view-listing` hand-off reached Steam's purchase flow. */
+export type SkinCraftViewListingResultMessage = {
     source: typeof SKINCRAFT_VIEWER_MESSAGE_SOURCE;
-    type: 'buy-result';
+    type: 'view-result';
     listingId: string;
     success: boolean;
 };
@@ -223,13 +223,13 @@ export function isRequestSkinCraftViewerItemsMessage(data: unknown): data is Req
     );
 }
 
-export function isBuySkinCraftListingMessage(data: unknown): data is BuySkinCraftListingMessage {
+export function isViewSkinCraftListingMessage(data: unknown): data is ViewSkinCraftListingMessage {
     if (!data || typeof data !== 'object') return false;
 
-    const message = data as Partial<BuySkinCraftListingMessage>;
+    const message = data as Partial<ViewSkinCraftListingMessage>;
     return (
         message.source === SKINCRAFT_VIEWER_MESSAGE_SOURCE &&
-        message.type === 'buy-listing' &&
+        message.type === 'view-listing' &&
         typeof message.listingId === 'string' &&
         ASSET_ID_PATTERN.test(message.listingId)
     );
@@ -247,13 +247,13 @@ export function isSkinCraftViewerItemsMessage(data: unknown): data is SkinCraftV
     );
 }
 
-export function isSkinCraftBuyListingResultMessage(data: unknown): data is SkinCraftBuyListingResultMessage {
+export function isSkinCraftViewListingResultMessage(data: unknown): data is SkinCraftViewListingResultMessage {
     if (!data || typeof data !== 'object') return false;
 
-    const message = data as Partial<SkinCraftBuyListingResultMessage>;
+    const message = data as Partial<SkinCraftViewListingResultMessage>;
     return (
         message.source === SKINCRAFT_VIEWER_MESSAGE_SOURCE &&
-        message.type === 'buy-result' &&
+        message.type === 'view-result' &&
         typeof message.listingId === 'string' &&
         ASSET_ID_PATTERN.test(message.listingId) &&
         typeof message.success === 'boolean'
