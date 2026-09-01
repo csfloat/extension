@@ -5,7 +5,8 @@ import '../components/market/react/filter_panel';
 import '../components/market/react/rank';
 import '../components/market/react/seed_info';
 import '../components/market/react/highlight';
-import '../components/market/react/view_3d';
+import '../components/market/react/listing_view_3d';
+import '../components/market/react/dialog_view_3d';
 import {gSkinCraftEmbed} from '../services/skincraft_embed';
 import {buyListing, loadMoreListingTargets} from '../services/skincraft_market_targets';
 
