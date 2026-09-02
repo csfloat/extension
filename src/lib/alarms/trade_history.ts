@@ -50,7 +50,7 @@ export async function pingTradeHistory(
 
 async function getTradeHistory(): Promise<{history: TradeHistoryStatus[]; type: TradeHistoryType}> {
     try {
-        const history = await getTradeHistoryFromAPI(MAX_TRADE_HISTORY_FETCH);
+        const history = await getTradeHistoryFromAPI(MAX_TRADE_HISTORY_FETCH, {includeFailed: true});
         if (history.length > 0) {
             // Hedge in case this endpoint gets killed, only return if there are results, fallback to HTML parser
             return {history, type: TradeHistoryType.API};
@@ -146,8 +146,9 @@ export async function getTradeHistoryFromAPI(
             (e) =>
                 e.status === TradeStatus.Committed ||
                 e.status === TradeStatus.Complete ||
+                e.status === TradeStatus.Failed ||
                 e.status === TradeStatus.TradeProtectionRollback
-        ) // Only report exchanged/completed trades or trade-protection rollbacks
+        ) // Only report exchanged/completed trades or failed/rolled-back trades
         .filter((e) => !e.time_escrow_end || new Date(parseInt(e.time_escrow_end) * 1000).getTime() < Date.now())
         .map((e) => {
             return {

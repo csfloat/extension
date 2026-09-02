@@ -23,7 +23,7 @@ export interface ReactListingCardContext {
 }
 
 export const ReactMarketListingScope = defineInjectionScope<ReactListingContext>({
-    selector: 'div[style*="--grid-rows"]:has([style*="market_listings/"])',
+    selector: 'div[style*="--grid-rows"]:has([style*="market_listings/"], [style*="economy/image/"])',
     mode: InjectionMode.CONTINUOUS,
     guard: isReactSteamMarket,
     context: buildReactListingContext,
