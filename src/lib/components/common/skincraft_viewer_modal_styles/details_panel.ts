@@ -38,6 +38,7 @@ export const detailsPanelStyles = `
         border: 1px solid rgba(193, 206, 255, 0.12);
         border-radius: 8px;
         cursor: pointer;
+        user-select: none;
         transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
     }
 
@@ -96,12 +97,13 @@ export const detailsPanelStyles = `
         background-clip: padding-box;
     }
 
-    /* The outgoing clone of the prev/next crossfade, pinned over the live scroll area
-       (top/height are set inline from the live element). */
+    /* The outgoing clone of the prev/next slide, pinned over the live scroll area
+       (top/height are set inline from the live element's offset box, hence border-box). */
     .details-scroll.details-ghost {
         position: absolute;
         right: 0;
         left: 0;
+        box-sizing: border-box;
         overflow: hidden;
         background: #181b21;
         pointer-events: none;
@@ -201,6 +203,7 @@ export const detailsPanelStyles = `
         border: 0;
         border-radius: 6px;
         cursor: pointer;
+        user-select: none;
         transition: background-color 150ms ease;
     }
 
