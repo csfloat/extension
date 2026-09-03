@@ -14,6 +14,7 @@ export enum StorageKey {
     LAST_TRADE_PING_ATTEMPT = 'last_trade_ping_attempt',
     LAST_TRADE_BLOCKED_PING_ATTEMPT = 'last_trade_blocked_ping_attempt',
     LAST_NOTARY_BG_PROOF_FAILURE = 'last_notary_bg_proof_failure',
+    NOTARY_OFFER_STATE_PROOF_ATTEMPTS = 'notary_offer_state_proof_attempts', // `${trade_id}:${local_state}` -> attempt ms
     PRICE_CACHE = 'price_cache', // Stores market hash name -> price mapping (~0.86MB)
     SCHEMA_CACHE = 'schema_cache', // Stores the full CSFloat schema payload
     THRESHOLD_CACHE = 'threshold_cache', // Stores FloatDB rank thresholds
