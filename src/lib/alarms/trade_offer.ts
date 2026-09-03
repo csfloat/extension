@@ -11,8 +11,27 @@ import {HasPermissions} from '../bridge/handlers/has_permissions';
 import {convertSteamID32To64} from '../utils/userinfo';
 import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 
-export async function pingSentTradeOffers(pendingTrades: SlimTrade[], steamID?: string | null) {
-    const {offers, type} = await getSentTradeOffers();
+export interface SentAndReceivedOffers {
+    received: OfferStatus[];
+    sent: OfferStatus[];
+    steam_id?: string | null;
+}
+
+export function allOffers(tradeOffers: SentAndReceivedOffers | null): OfferStatus[] {
+    return [...(tradeOffers?.sent || []), ...(tradeOffers?.received || [])];
+}
+
+/**
+ * @param tradeOffers Sent + received offers already fetched for this alarm run, falls back to fetching sent offers
+ */
+export async function pingSentTradeOffers(
+    pendingTrades: SlimTrade[],
+    steamID?: string | null,
+    tradeOffers?: SentAndReceivedOffers | null
+) {
+    const {offers, type} = tradeOffers
+        ? {offers: tradeOffers.sent, type: TradeOffersType.API}
+        : await getSentTradeOffers();
 
     const offersToFind = pendingTrades.reduce(
         (acc, e) => {
@@ -81,16 +100,23 @@ export async function pingSentTradeOffers(pendingTrades: SlimTrade[], steamID?: 
     }
 }
 
-export async function pingCancelTrades(pendingTrades: SlimTrade[], tradeHistory: TradeHistoryStatus[]) {
+/**
+ * @param tradeOffers Sent + received offers already fetched for this alarm run, fetched here if absent
+ */
+export async function pingCancelTrades(
+    pendingTrades: SlimTrade[],
+    tradeHistory: TradeHistoryStatus[],
+    tradeOffers?: SentAndReceivedOffers | null
+) {
     const hasWaitForCancelPing = pendingTrades.find((e) => e.state === TradeState.PENDING && e.wait_for_cancel_ping);
     if (!hasWaitForCancelPing) {
         // Nothing to process/ping, exit
         return;
     }
 
-    const tradeOffers = await getSentAndReceivedTradeOffersFromAPI();
+    tradeOffers = tradeOffers || (await getSentAndReceivedTradeOffersFromAPI());
 
-    const allTradeOffers = [...(tradeOffers.sent || []), ...(tradeOffers.received || [])];
+    const allTradeOffers = allOffers(tradeOffers);
 
     for (const trade of pendingTrades) {
         if (trade.state !== TradeState.PENDING) {
@@ -281,11 +307,7 @@ async function getSentTradeOffersFromAPI(): Promise<OfferStatus[]> {
     return (data.response?.trade_offers_sent || []).map(offerStateMapper);
 }
 
-export async function getSentAndReceivedTradeOffersFromAPI(): Promise<{
-    received: OfferStatus[];
-    sent: OfferStatus[];
-    steam_id?: string | null;
-}> {
+export async function getSentAndReceivedTradeOffersFromAPI(): Promise<SentAndReceivedOffers> {
     const access = await getAccessToken();
 
     const resp = await fetch(
