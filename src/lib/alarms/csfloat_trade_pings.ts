@@ -1,6 +1,12 @@
 import {SlimTrade} from '../types/float_market';
 import {pingTradeHistory} from './trade_history';
-import {cancelUnconfirmedTradeOffers, pingCancelTrades, pingSentTradeOffers} from './trade_offer';
+import {
+    cancelUnconfirmedTradeOffers,
+    getSentAndReceivedTradeOffersFromAPI,
+    pingCancelTrades,
+    pingSentTradeOffers,
+    SentAndReceivedOffers,
+} from './trade_offer';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
 import {PingExtensionStatus} from '../bridge/handlers/ping_extension_status';
 import {AccessToken, getAccessToken} from './access_token';
@@ -102,8 +108,16 @@ async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null):
         errors.history_error = (e as any).toString();
     }
 
+    // One Steam request shared by the offer ping, offer state proofs, and cancel pings
+    let tradeOffers: SentAndReceivedOffers | null = null;
     try {
-        await pingSentTradeOffers(pendingTrades, steamID);
+        tradeOffers = await getSentAndReceivedTradeOffersFromAPI();
+    } catch (e) {
+        console.error('failed to fetch trade offers', e);
+    }
+
+    try {
+        await pingSentTradeOffers(pendingTrades, steamID, tradeOffers);
     } catch (e) {
         console.error('failed to ping sent trade offer state', e);
         errors.trade_offer_error = (e as any).toString();
@@ -111,13 +125,13 @@ async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null):
 
     try {
         // Before the untrusted cancel ping so a notarized offer state can settle the trade first
-        await proveOfferStates(pendingTrades, steamID);
+        await proveOfferStates(pendingTrades, tradeOffers);
     } catch (e) {
         console.error('failed to prove offer states', e);
     }
 
     try {
-        await pingCancelTrades(pendingTrades, tradeHistory);
+        await pingCancelTrades(pendingTrades, tradeHistory, tradeOffers);
     } catch (e) {
         console.error('failed to ping cancel ping trade offers', e);
     }
