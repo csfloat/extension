@@ -1,6 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import {
+    isViewSkinCraftListingMessage,
     isOpenSkinCraftViewerMessage,
+    isRequestSkinCraftViewerItemsMessage,
+    isSkinCraftViewListingResultMessage,
+    isSkinCraftViewerItemsMessage,
     MAX_SKINCRAFT_INVENTORY_TARGETS,
     SKINCRAFT_VIEWER_MESSAGE_SOURCE,
 } from './skincraft_viewer_protocol';
@@ -87,6 +91,131 @@ describe('SkinCraft viewer open messages', () => {
                 source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
                 type: 'open',
                 target,
+                inventory: Array.from({length: MAX_SKINCRAFT_INVENTORY_TARGETS + 1}, () => target),
+            })
+        ).toBe(false);
+    });
+});
+
+describe('SkinCraft viewer listing details', () => {
+    const details = {
+        listingId: '556910233323745386',
+        game: 'Counter-Strike 2',
+        type: 'Classified Rifle',
+        nameTag: 'AK-47| Nerfed',
+        patternTemplate: '515',
+        wearRating: '0.52918148',
+        price: '$35.20',
+        tradeRestrictionDays: 7,
+        marketRestrictionDays: 7,
+        accessories: [
+            {
+                name: 'Sticker | dupreeh | Katowice 2019',
+                iconUrl: 'https://community.akamai.steamstatic.com/economy/image/dupreeh/330x192',
+                detail: 'Sticker Scrape Level: 0.680000007',
+            },
+        ],
+        lines: [{text: 'Exterior: Battle-Scarred'}, {text: 'Never be afraid', italic: true, color: '9da1a9'}],
+    };
+
+    it('accepts a target carrying well-formed details', () => {
+        expect(
+            isOpenSkinCraftViewerMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'open',
+                target: {...target, details},
+                inventory: [],
+            })
+        ).toBe(true);
+    });
+
+    it.each([
+        ['a malformed line colour', {...details, lines: [{text: 'x', color: 'red'}]}],
+        [
+            'an accessory icon from an untrusted origin',
+            {...details, accessories: [{name: 'Sticker | X', iconUrl: 'https://evil.example/x.png'}]},
+        ],
+    ])('rejects details with %s', (_label, malformed) => {
+        expect(
+            isOpenSkinCraftViewerMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'open',
+                target: {...target, details: malformed},
+                inventory: [],
+            })
+        ).toBe(false);
+    });
+});
+
+describe('SkinCraft viewer listing hand-off messages', () => {
+    it('accepts only well-formed listing ids from this protocol', () => {
+        expect(
+            isViewSkinCraftListingMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'view-listing',
+                listingId: '556910233323745386',
+            })
+        ).toBe(true);
+        expect(
+            isViewSkinCraftListingMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'view-listing',
+                listingId: 'javascript:alert(1)',
+            })
+        ).toBe(false);
+        expect(isViewSkinCraftListingMessage({source: 'other', type: 'view-listing', listingId: '1'})).toBe(false);
+    });
+
+    it('holds hand-off results to the same listing id and source rules', () => {
+        expect(
+            isSkinCraftViewListingResultMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'view-result',
+                listingId: '556910233323745386',
+                success: false,
+            })
+        ).toBe(true);
+        expect(
+            isSkinCraftViewListingResultMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'view-result',
+                listingId: 'javascript:alert(1)',
+                success: true,
+            })
+        ).toBe(false);
+        expect(
+            isSkinCraftViewListingResultMessage({
+                source: SKINCRAFT_VIEWER_MESSAGE_SOURCE,
+                type: 'view-result',
+                listingId: '1',
+                success: 'yes',
+            })
+        ).toBe(false);
+    });
+});
+
+describe('SkinCraft viewer items messages', () => {
+    it('accepts a request for more items only from this protocol, carrying a request id', () => {
+        const request = {source: SKINCRAFT_VIEWER_MESSAGE_SOURCE, type: 'request-items', requestId: 1};
+        expect(isRequestSkinCraftViewerItemsMessage(request)).toBe(true);
+        expect(isRequestSkinCraftViewerItemsMessage({...request, source: 'other'})).toBe(false);
+        expect(isRequestSkinCraftViewerItemsMessage({...request, type: 'items'})).toBe(false);
+        expect(isRequestSkinCraftViewerItemsMessage({...request, requestId: undefined})).toBe(false);
+        expect(isRequestSkinCraftViewerItemsMessage({...request, requestId: '1'})).toBe(false);
+        expect(isRequestSkinCraftViewerItemsMessage({...request, requestId: -1})).toBe(false);
+        expect(isRequestSkinCraftViewerItemsMessage({...request, requestId: 1.5})).toBe(false);
+    });
+
+    it('holds item updates to the same target validation as open messages', () => {
+        const update = {source: SKINCRAFT_VIEWER_MESSAGE_SOURCE, type: 'items', requestId: 1, inventory: [target]};
+        expect(isSkinCraftViewerItemsMessage(update)).toBe(true);
+        expect(isSkinCraftViewerItemsMessage({...update, requestId: undefined})).toBe(false);
+        expect(isSkinCraftViewerItemsMessage({...update, inventory: [{...target, inspect: 'not-an-inspect'}]})).toBe(
+            false
+        );
+        expect(
+            isSkinCraftViewerItemsMessage({
+                ...update,
                 inventory: Array.from({length: MAX_SKINCRAFT_INVENTORY_TARGETS + 1}, () => target),
             })
         ).toBe(false);

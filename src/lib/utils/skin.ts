@@ -22,6 +22,15 @@ export function rangeFromWear(wear: number): [number, number] | null {
     return null;
 }
 
+/** The float condition bands and their bar colours, as percentages of the full 0–1 wear range. */
+export const FLOAT_CONDITION_BANDS = [
+    {min: 0, max: 7, color: 'green'},
+    {min: 7, max: 15, color: '#18a518'},
+    {min: 15, max: 38, color: '#9acd32'},
+    {min: 38, max: 45, color: '#cd5c5c'},
+    {min: 45, max: 100, color: '#f92424'},
+] as const;
+
 export function getLowestRank(info: ItemInfo): number | undefined {
     if (!info.low_rank && !info.high_rank) {
         // Item has no rank to return
@@ -103,6 +112,9 @@ export function renderClickableRank(info: ItemInfo): TemplateResult<1> {
     </a>`;
 }
 
+/** The description fields the item-type guards read; full `rgAsset`s and market fiber descriptions both qualify. */
+export type AssetTypeSource = Pick<rgAsset, 'market_hash_name' | 'type' | 'tags'>;
+
 export function isSellableOnCSFloat(asset: rgAsset): boolean {
     return (
         isSkin(asset) ||
@@ -115,7 +127,7 @@ export function isSellableOnCSFloat(asset: rgAsset): boolean {
         isPin(asset)
     );
 }
-export function isSkin(asset: rgAsset): boolean {
+export function isSkin(asset: AssetTypeSource): boolean {
     return asset.tags
         ? asset.tags.some((a) => a.category === 'Weapon' || (a.category === 'Type' && a.internal_name === 'Type_Hands'))
         : ['★', 'Factory New', 'Minimal Wear', 'Field-Tested', 'Well-Worn', 'Battle-Scarred'].some((keyword) =>
@@ -123,39 +135,39 @@ export function isSkin(asset: rgAsset): boolean {
           );
 }
 
-export function isCharm(asset: rgAsset): boolean {
+export function isCharm(asset: AssetTypeSource): boolean {
     return isAbstractType(asset, 'Charm', 'CSGO_Tool_Keychain');
 }
 
-export function isHighlightCharm(asset: rgAsset): boolean {
+export function isHighlightCharm(asset: AssetTypeSource): boolean {
     return isCharm(asset) && !!asset.tags && asset.tags.some((a) => a.internal_name === 'highlight');
 }
 
-export function isAgent(asset: rgAsset): boolean {
+export function isAgent(asset: AssetTypeSource): boolean {
     return isAbstractType(asset, 'Agent', 'Type_CustomPlayer');
 }
 
-export function isSticker(asset: rgAsset): boolean {
+export function isSticker(asset: AssetTypeSource): boolean {
     return isAbstractType(asset, 'Sticker', 'CSGO_Tool_Sticker');
 }
 
-export function isPatch(asset: rgAsset): boolean {
+export function isPatch(asset: AssetTypeSource): boolean {
     return isAbstractType(asset, 'Patch', 'CSGO_Type_Patch');
 }
 
-export function isCase(asset: rgAsset): boolean {
+export function isCase(asset: AssetTypeSource): boolean {
     return isAbstractType(asset, 'Container', 'CSGO_Type_WeaponCase');
 }
 
-export function isMusicKit(asset: rgAsset): boolean {
+export function isMusicKit(asset: AssetTypeSource): boolean {
     return isAbstractType(asset, 'Music Kit', 'CSGO_Type_MusicKit');
 }
 
-export function isPin(asset: rgAsset): boolean {
+export function isPin(asset: AssetTypeSource): boolean {
     return isAbstractType(asset, 'Pin', 'CSGO_Type_Collectible');
 }
 
-function isAbstractType(asset: rgAsset, type: string, internalName: string): boolean {
+function isAbstractType(asset: AssetTypeSource, type: string, internalName: string): boolean {
     // Half-hydrated descriptions can arrive without `type`, despite the declared shape.
     if (typeof asset.type === 'string' && asset.type.endsWith(type)) {
         return true;

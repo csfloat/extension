@@ -1,7 +1,8 @@
 import type {ScopedInjectionArgs} from '../../injectors';
+import {MARKET_PRICE_ROW_SELECTOR} from '../../../services/skincraft_market_targets';
 import {getFadePercentage, isBlueSkin, parseRank} from '../../../utils/skin';
 import {hasDopplerPhase} from '../../../utils/dopplers';
-import type {ReactListingContext} from './listing';
+import type {ReactListingCardContext, ReactListingContext} from './listing';
 
 function hasSeedDetail(context: ReactListingContext): boolean {
     return (
@@ -27,6 +28,15 @@ export function findWearSpan({
     }
 
     return undefined;
+}
+
+export function findPriceRow({scope}: ScopedInjectionArgs<ReactListingCardContext>): HTMLElement | null | undefined {
+    return scope.querySelector<HTMLElement>(MARKET_PRICE_ROW_SELECTOR) ?? undefined;
+}
+
+/** The dialog scope is the inspect link itself; the launcher lands right beside it. */
+export function findDialogInspectLink({scope}: ScopedInjectionArgs<ReactListingCardContext>): HTMLElement {
+    return scope;
 }
 
 export function findSeedSpan({
