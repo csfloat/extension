@@ -85,6 +85,8 @@ export interface SteamOffer {
     id: string;
     state: TradeOfferState;
     sent_at: string;
+    // Last time the offer state was written from a notarized GetTradeOffer proof
+    notarized_at?: string;
 }
 
 export interface Trade {

@@ -11,6 +11,7 @@ import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 import {pingFailedTrades} from './failed_trade';
 import {pingRollbackTrades} from './rollback';
 import {pingAcceptedTrades} from './accepted_trade';
+import {proveOfferStates} from './offer_state';
 import {FetchSlimTrades} from '../bridge/handlers/fetch_slim_trades';
 
 export const PING_CSFLOAT_TRADE_STATUS_ALARM_NAME = 'ping_csfloat_trade_status_alarm';
@@ -108,6 +109,13 @@ async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null):
     } catch (e) {
         console.error('failed to ping sent trade offer state', e);
         errors.trade_offer_error = (e as any).toString();
+    }
+
+    try {
+        // Before the untrusted cancel ping so a notarized offer state can settle the trade first
+        await proveOfferStates(pendingTrades, steamID);
+    } catch (e) {
+        console.error('failed to prove offer states', e);
     }
 
     try {

@@ -281,7 +281,7 @@ async function getSentTradeOffersFromAPI(): Promise<OfferStatus[]> {
     return (data.response?.trade_offers_sent || []).map(offerStateMapper);
 }
 
-async function getSentAndReceivedTradeOffersFromAPI(): Promise<{
+export async function getSentAndReceivedTradeOffersFromAPI(): Promise<{
     received: OfferStatus[];
     sent: OfferStatus[];
     steam_id?: string | null;

@@ -15,6 +15,10 @@ export function isBackgroundNotaryAcceptedEnabled(): Promise<boolean> {
     return isBackgroundNotaryEnabled('accepted');
 }
 
+export function isBackgroundNotaryOfferStateEnabled(): Promise<boolean> {
+    return isBackgroundNotaryEnabled('offer_state');
+}
+
 async function isBackgroundNotaryEnabled(setting: keyof NotaryMeta): Promise<boolean> {
     if (isFirefox()) {
         return false;
@@ -52,14 +56,20 @@ export function buildProveRequest(trades: TradeHistoryStatus[]): NotaryProveRequ
     };
 }
 
-export async function proveTradesInBackground(trades: TradeHistoryStatus[]): Promise<void> {
+export function proveTradesInBackground(trades: TradeHistoryStatus[]): Promise<void> {
     if (trades.length === 0) {
-        return;
+        return Promise.resolve();
     }
 
+    return submitNotaryProof(buildProveRequest(trades));
+}
+
+/**
+ * Generates a notary proof for the given Steam request and submits it to CSFloat's trade notary endpoint.
+ */
+export async function submitNotaryProof(proveRequest: NotaryProveRequest): Promise<void> {
     const notaryToken = await FetchNotaryToken.handleRequest({}, {});
-    const proveRequest = buildProveRequest(trades);
-    proveRequest.meta = {notary_token: notaryToken.token};
+    proveRequest.meta = {...proveRequest.meta, notary_token: notaryToken.token};
 
     const result = await NotaryProve.handleRequest(proveRequest, {});
 
