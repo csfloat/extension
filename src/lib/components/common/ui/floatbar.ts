@@ -1,5 +1,6 @@
 import {html, css} from 'lit';
 import {property} from 'lit/decorators.js';
+import {FLOAT_CONDITION_BANDS} from '../../../utils/skin';
 import {FloatElement} from '../../custom';
 import {CustomElement} from '../../injectors';
 
@@ -44,13 +45,7 @@ export class FloatBar extends FloatElement {
         `,
     ];
 
-    private readonly floatConditions = [
-        {min: 0, max: 7, color: 'green'},
-        {min: 7, max: 15, color: '#18a518'},
-        {min: 15, max: 38, color: '#9acd32'},
-        {min: 38, max: 45, color: '#cd5c5c'},
-        {min: 45, max: 100, color: '#f92424'},
-    ];
+    private readonly floatConditions = FLOAT_CONDITION_BANDS;
 
     get minFloatPercentage(): number {
         return this.minFloat * 100;

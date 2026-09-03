@@ -53,6 +53,7 @@
         "file-replace-loader": "^1.4.2",
         "glob": "^11.0.1",
         "globals": "^16.0.0",
+        "happy-dom": "^20.12.0",
         "html-loader": "^5.1.0",
         "ignore-loader": "^0.1.2",
         "lit": "^3.2.1",

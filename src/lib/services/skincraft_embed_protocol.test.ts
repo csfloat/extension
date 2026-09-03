@@ -12,12 +12,14 @@ describe('SkinCraft embed messages', () => {
             isSkinCraftEmbedEvent({...envelope, type: 'error', id: '1', code: 'load-failed', message: 'Failed'})
         ).toBe(true);
         expect(isSkinCraftEmbedEvent({...envelope, type: 'inspect-requested'})).toBe(true);
+        expect(isSkinCraftEmbedEvent({...envelope, type: 'key', key: 'ArrowRight'})).toBe(true);
     });
 
     it('rejects spoofed, malformed, and unknown messages', () => {
         expect(isSkinCraftEmbedEvent({source: 'other', v: 1, type: 'ready'})).toBe(false);
         expect(isSkinCraftEmbedEvent({source: 'skincraft-embed', v: 2, type: 'ready'})).toBe(false);
         expect(isSkinCraftEmbedEvent({...envelope, type: 'error', code: 'failed', message: 5})).toBe(false);
+        expect(isSkinCraftEmbedEvent({...envelope, type: 'key'})).toBe(false);
         expect(isSkinCraftEmbedEvent({...envelope, type: 'future-event'})).toBe(false);
     });
 });

@@ -4,7 +4,8 @@ import {classMap} from 'lit/directives/class-map.js';
 import {guard} from 'lit/directives/guard.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import {styleMap} from 'lit/directives/style-map.js';
-import type {SkinCraftViewerTarget} from '../../services/skincraft_viewer_protocol';
+import type {SkinCraftListingDetails, SkinCraftViewerTarget} from '../../services/skincraft_viewer_protocol';
+import {FLOAT_CONDITION_BANDS} from '../../utils/skin';
 import {MODAL_TRANSITION_MS, skinCraftViewerModalStyles} from './skincraft_viewer_modal_styles';
 
 type LoadPhase = 'loading' | 'revealed' | 'error';
@@ -14,10 +15,55 @@ export type SkinCraftViewerModalOptions = {
     embedSrc: string;
     /** Heading for the item strip, e.g. "Inventory" — the modal itself is surface-agnostic. */
     itemsTitle: string;
+    /** `grid` shows the item strip; `details` swaps it for a listing-details panel with prev/next. */
+    layout?: 'grid' | 'details';
     onClose: () => void;
     onRetry: () => void;
     onSelect: (target: SkinCraftViewerTarget) => void;
+    /** Fired when the user nears the end of the loaded items — strip scroll in `grid`, selection proximity in `details`. */
+    onItemsNearEnd?: () => void;
+    /** Enables the details panel's View action; the host hands off to the surface's purchase flow. */
+    onViewMarketListing?: (listingId: string) => void;
+    /**
+     * The headless keyboard path: the dialog keeps real focus, and bare presses it doesn't bind
+     * are handed to the host to replay inside the embed. Enabling this also makes the modal
+     * reclaim focus whenever a click into the 3D view hands it to the iframe.
+     */
+    onViewerKey?: (action: 'down' | 'up', key: string, code: string) => void;
 };
+
+/** About two card rows — asking for more this early keeps strip scrolling seamless. */
+const ITEMS_NEAR_END_PX = 240;
+
+/** In details mode, prefetch the next page once selection comes within this many items of the end. */
+const ITEMS_NEAR_END_COUNT = 5;
+
+/** Full 0–1 wear range in the same bands the float bar uses. */
+const WEAR_SEGMENTS = FLOAT_CONDITION_BANDS.map((band) => ({width: band.max - band.min, color: band.color}));
+
+function renderChevron(direction: 'left' | 'right'): TemplateResult {
+    return html`
+        <svg
+            viewBox="0 0 24 24"
+            width="15"
+            height="15"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+        >
+            <path d="${direction === 'left' ? 'M15 18l-6-6 6-6' : 'M9 18l6-6-6-6'}" />
+        </svg>
+    `;
+}
+
+function formatRestrictionDays(days: number): string {
+    if (days === 7) return 'one week';
+    if (days === 1) return 'one day';
+    return `${days} days`;
+}
 
 function mixHexColors(base: string, tint: string, tintAmount: number): string {
     const mixChannel = (offset: number): number => {
@@ -57,12 +103,15 @@ export class SkinCraftViewerModal {
     private readonly root: ShadowRoot;
     private readonly dialogRef = createRef<HTMLDialogElement>();
     private readonly frameRef = createRef<HTMLIFrameElement>();
+    private readonly itemGridRef = createRef<HTMLDivElement>();
+    private readonly detailsScrollRef = createRef<HTMLDivElement>();
 
     private target?: SkinCraftViewerTarget;
     private items: SkinCraftViewerTarget[] = [];
     private phase: LoadPhase = 'loading';
     private progress: number | null = null;
     private errorMessage = '';
+    private viewNotice = '';
     private entering = false;
     private closing = false;
     private iconReady = false;
@@ -70,6 +119,9 @@ export class SkinCraftViewerModal {
     private closeTimer?: number;
     private entryFrame?: number;
     private iconRequest = 0;
+    private pageOverflow?: string;
+    private detailsGhost?: HTMLElement;
+    private detailsEnter?: Animation;
 
     constructor(private readonly options: SkinCraftViewerModalOptions) {
         // Closed so page scripts can't reach into the viewer we host on their document.
@@ -100,8 +152,14 @@ export class SkinCraftViewerModal {
     }
 
     show(target: SkinCraftViewerTarget): void {
+        const fromIndex = this.isOpen ? this.selectedIndex : -1;
         this.target = target;
+        const toIndex = this.selectedIndex;
+        const step = fromIndex >= 0 && toIndex >= 0 ? Math.sign(toIndex - fromIndex) : 0;
+        // Captured before the render below swaps the panel content in place.
+        const ghost = step ? this.captureDetailsGhost() : undefined;
         this.iconReady = false;
+        this.viewNotice = '';
         const request = ++this.iconRequest;
 
         this.cancelClose();
@@ -111,6 +169,8 @@ export class SkinCraftViewerModal {
 
         void this.revealIconWhenDecoded(target.iconUrl, request);
         this.scrollSelectedIntoView();
+        if (ghost) this.animateDetailsChange(ghost, step);
+        this.maybeRequestMore(toIndex);
         if (opening) this.openDialog();
     }
 
@@ -142,66 +202,46 @@ export class SkinCraftViewerModal {
         this.update();
     }
 
+    /** Surfaces a failed hand-off next to the View action; cleared on the next selection. */
+    setViewNotice(message: string): void {
+        this.viewNotice = message;
+        this.update();
+    }
+
     // `host` binds `this` inside the template's @event handlers, the way LitElement does it.
     private update(): void {
         render(this.template(), this.root, {host: this});
     }
 
+    private get layout(): 'grid' | 'details' {
+        return this.options.layout ?? 'grid';
+    }
+
     private template(): TemplateResult {
         const revealed = this.phase === 'revealed';
+        const details = this.layout === 'details';
 
         return html`
             <dialog
                 ${ref(this.dialogRef)}
                 class="${classMap({
-                    'has-items': this.items.length > 1,
+                    'has-items': !details && this.items.length > 1,
+                    'has-details': details,
                     entering: this.entering,
                     closing: this.closing,
                 })}"
                 aria-labelledby="skincraft-viewer-title"
+                tabindex="-1"
                 @cancel="${this.handleCancel}"
                 @pointerdown="${this.handleDialogPointerDown}"
                 @click="${this.handleDialogClick}"
                 @transitionend="${this.handleTransitionEnd}"
+                @keydown="${this.handleKeydown}"
+                @keyup="${this.handleKeyup}"
             >
-                <header class="modal-header">
-                    <div class="modal-title" id="skincraft-viewer-title">${this.target?.name ?? ''}</div>
-                    <div class="modal-header-actions">
-                        <a
-                            class="skincraft-attribution"
-                            href="${this.target?.itemUrl ?? ''}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label="Open on SkinCraft"
-                        >
-                            <img
-                                class="skincraft-logo-mark"
-                                src="https://csfloat.com/assets/skincraft-logo-mark.svg"
-                                alt=""
-                                aria-hidden="true"
-                            />
-                            <span class="skincraft-wordmark">skincraft<span>.gg</span></span>
-                        </a>
-                        <button
-                            class="close-button"
-                            type="button"
-                            aria-label="Close 3D viewer"
-                            @click="${this.options.onClose}"
-                        >
-                            ×
-                        </button>
-                    </div>
-                </header>
+                ${details ? nothing : this.renderHeader()}
                 <div class="modal-body">
-                    <aside class="item-panel" aria-label="${this.options.itemsTitle}">
-                        <div class="item-panel-header">
-                            <span>${this.options.itemsTitle}</span>
-                            <span class="item-count">${this.items.length}</span>
-                        </div>
-                        <div class="item-grid" @click="${this.handleItemsClick}">
-                            ${guard([this.items, this.selectedKey], () => this.renderItemCards())}
-                        </div>
-                    </aside>
+                    ${details ? nothing : this.renderItemPanel()}
                     <div class="viewer-stage">
                         <iframe
                             ${ref(this.frameRef)}
@@ -216,13 +256,384 @@ export class SkinCraftViewerModal {
                             ${this.renderLoading()}${this.renderError()}
                         </div>
                     </div>
+                    ${details ? this.renderDetailsPanel() : nothing}
                 </div>
             </dialog>
         `;
     }
 
+    private renderHeader(): TemplateResult {
+        return html`
+            <header class="modal-header">
+                <div class="modal-title" id="skincraft-viewer-title">${this.target?.name ?? ''}</div>
+                <div class="modal-header-actions">
+                    ${this.renderAttribution()}
+                    <button
+                        class="close-button"
+                        type="button"
+                        aria-label="Close 3D viewer"
+                        @click="${this.options.onClose}"
+                    >
+                        ×
+                    </button>
+                </div>
+            </header>
+        `;
+    }
+
+    private renderAttribution(): TemplateResult {
+        return html`
+            <a
+                class="skincraft-attribution"
+                href="${this.target?.itemUrl ?? ''}"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Open on SkinCraft"
+            >
+                <img
+                    class="skincraft-logo-mark"
+                    src="https://csfloat.com/assets/skincraft-logo-mark.svg"
+                    alt=""
+                    aria-hidden="true"
+                />
+                <span class="skincraft-wordmark">skincraft<span>.gg</span></span>
+            </a>
+        `;
+    }
+
+    private renderItemPanel(): TemplateResult {
+        return html`
+            <aside class="item-panel" aria-label="${this.options.itemsTitle}">
+                <div class="item-panel-header">
+                    <span>${this.options.itemsTitle}</span>
+                    <span class="item-count">${this.items.length}</span>
+                </div>
+                <div
+                    ${ref(this.itemGridRef)}
+                    class="item-grid"
+                    @click="${this.handleItemsClick}"
+                    @scroll="${this.handleItemsScroll}"
+                >
+                    ${guard([this.items, this.selectedKey], () => this.renderItemCards())}
+                </div>
+            </aside>
+        `;
+    }
+
+    private renderDetailsPanel(): TemplateResult {
+        const target = this.target;
+        const details = target?.details;
+        const index = this.selectedIndex;
+
+        return html`
+            <aside class="details-panel" aria-label="${this.options.itemsTitle}">
+                <div class="details-header">
+                    ${this.renderAttribution()}
+                    <button
+                        class="close-button"
+                        type="button"
+                        aria-label="Close 3D viewer"
+                        @click="${this.options.onClose}"
+                    >
+                        ×
+                    </button>
+                </div>
+                <div ${ref(this.detailsScrollRef)} class="details-scroll">
+                    <div
+                        class="details-name"
+                        id="skincraft-viewer-title"
+                        style="${styleMap({color: target?.rarityColor ? `#${target.rarityColor}` : undefined})}"
+                    >
+                        ${target?.name ?? ''}
+                    </div>
+                    ${details?.game || details?.type
+                        ? html`<div class="details-type">
+                              ${[details.game, details.type].filter(Boolean).join(' · ')}
+                          </div>`
+                        : nothing}
+                    ${this.renderWearBar(details)} ${this.renderDetailProps(details)}
+                    ${this.renderDetailActions(target, details)} ${this.renderAccessories(details)}
+                    ${this.renderRestrictions(details)} ${this.renderDetailLines(details)}
+                </div>
+                <div class="details-footer">
+                    <button
+                        class="details-nav-btn"
+                        type="button"
+                        ?disabled="${index <= 0}"
+                        @click="${this.handlePrevious}"
+                    >
+                        ${renderChevron('left')}
+                        <span>Previous</span>
+                    </button>
+                    <button
+                        class="details-nav-btn"
+                        type="button"
+                        ?disabled="${index < 0 || index >= this.items.length - 1}"
+                        @click="${this.handleNext}"
+                    >
+                        <span>Next</span>
+                        ${renderChevron('right')}
+                    </button>
+                </div>
+            </aside>
+        `;
+    }
+
+    private renderWearBar(details?: SkinCraftListingDetails): TemplateResult | typeof nothing {
+        const wear = Number(details?.wearRating);
+        if (!Number.isFinite(wear)) return nothing;
+
+        const percent = (Math.min(Math.max(wear, 0), 1) * 100).toFixed(3);
+        return html`
+            <div class="details-wear-bar">
+                <div class="details-wear-track">
+                    ${WEAR_SEGMENTS.map(
+                        (segment) =>
+                            html`<div
+                                style="${styleMap({width: `${segment.width}%`, backgroundColor: segment.color})}"
+                            ></div>`
+                    )}
+                </div>
+                <div class="details-wear-marker" style="${styleMap({left: `${percent}%`})}"></div>
+            </div>
+        `;
+    }
+
+    private renderDetailProps(details?: SkinCraftListingDetails): TemplateResult | typeof nothing {
+        if (!details?.nameTag && !details?.patternTemplate && !details?.wearRating) return nothing;
+
+        return html`
+            <div class="details-props">
+                ${details.nameTag ? html`<div>Name Tag: ${details.nameTag}</div>` : nothing}
+                ${details.patternTemplate ? html`<div>Pattern Template: ${details.patternTemplate}</div>` : nothing}
+                ${details.wearRating ? html`<div>Wear Rating: ${details.wearRating}</div>` : nothing}
+            </div>
+        `;
+    }
+
+    private renderDetailActions(
+        target?: SkinCraftViewerTarget,
+        details?: SkinCraftListingDetails
+    ): TemplateResult | typeof nothing {
+        const inspectUrl = target?.inspectUrl;
+        const showViewAction = !!details?.price && !!details.listingId && !!this.options.onViewMarketListing;
+        if (!inspectUrl && !showViewAction) return nothing;
+
+        return html`
+            <div class="details-actions">
+                ${inspectUrl ? html`<a class="details-inspect" href="${inspectUrl}">Inspect in Game...</a>` : nothing}
+                ${showViewAction
+                    ? html`
+                          <span class="details-price">${details.price}</span>
+                          <button
+                              class="details-view"
+                              type="button"
+                              aria-label="View listing on Steam"
+                              @click="${this.handleViewMarketListing}"
+                          >
+                              <span>View</span>${renderChevron('right')}
+                          </button>
+                      `
+                    : nothing}
+            </div>
+            ${this.viewNotice ? html`<div class="details-view-notice" role="alert">${this.viewNotice}</div>` : nothing}
+        `;
+    }
+
+    private renderAccessories(details?: SkinCraftListingDetails): TemplateResult | typeof nothing {
+        if (!details?.accessories?.length) return nothing;
+
+        return html`
+            <div class="details-accessories">
+                <div class="details-section-title">Accessories</div>
+                ${details.accessories.map(
+                    (accessory) => html`
+                        <div class="details-accessory">
+                            ${accessory.iconUrl
+                                ? html`<img src="${accessory.iconUrl}" alt="" loading="lazy" draggable="false" />`
+                                : nothing}
+                            <span class="details-accessory-text">
+                                <span>${accessory.name}</span>
+                                ${accessory.detail
+                                    ? html`<span class="details-accessory-detail">${accessory.detail}</span>`
+                                    : nothing}
+                            </span>
+                        </div>
+                    `
+                )}
+            </div>
+        `;
+    }
+
+    private renderRestrictions(details?: SkinCraftListingDetails): TemplateResult | typeof nothing {
+        const restrictions: string[] = [];
+        if (details?.tradeRestrictionDays) {
+            restrictions.push(`will not be tradable for ${formatRestrictionDays(details.tradeRestrictionDays)}`);
+        }
+        if (details?.marketRestrictionDays) {
+            restrictions.push(
+                `cannot be listed on the Steam Community Market for ${formatRestrictionDays(
+                    details.marketRestrictionDays
+                )}`
+            );
+        }
+        if (!restrictions.length) return nothing;
+
+        return html`
+            <div class="details-restrictions">
+                <div>After purchase, this item:</div>
+                <ul>
+                    ${restrictions.map((line) => html`<li>${line}</li>`)}
+                </ul>
+            </div>
+        `;
+    }
+
+    private renderDetailLines(details?: SkinCraftListingDetails): TemplateResult | typeof nothing {
+        if (!details?.lines?.length) return nothing;
+
+        return html`
+            <div class="details-lines">
+                ${details.lines.map(
+                    (line) =>
+                        html`<p
+                            class="${line.italic ? 'italic' : ''}"
+                            style="${styleMap({color: line.color ? `#${line.color}` : undefined})}"
+                        >
+                            ${line.text}
+                        </p>`
+                )}
+            </div>
+        `;
+    }
+
     private get selectedKey(): string | undefined {
         return this.target ? targetKey(this.target) : undefined;
+    }
+
+    private get selectedIndex(): number {
+        const key = this.selectedKey;
+        if (!key) return -1;
+        return this.items.findIndex((item) => targetKey(item) === key);
+    }
+
+    private handlePrevious(): void {
+        this.selectNeighbor(-1);
+        this.dropNavFocus();
+    }
+
+    private handleNext(): void {
+        this.selectNeighbor(1);
+        this.dropNavFocus();
+    }
+
+    // A nav button must not keep focus: keys would re-trigger it, and once it disables at the
+    // list's end, focus falls to <body> and the dialog stops hearing the arrow hotkeys.
+    private dropNavFocus(): void {
+        this.dialogRef.value?.focus({preventScroll: true});
+    }
+
+    private selectNeighbor(step: number): void {
+        const index = this.selectedIndex;
+        const neighbor = index >= 0 ? this.items[index + step] : undefined;
+        if (!neighbor) return;
+
+        // `onSelect` leads back into `show()`, which runs `maybeRequestMore` for the new index.
+        this.options.onSelect(neighbor);
+    }
+
+    private maybeRequestMore(index: number): void {
+        if (this.layout !== 'details' || index < 0) return;
+        if (this.items.length - index <= ITEMS_NEAR_END_COUNT) this.options.onItemsNearEnd?.();
+    }
+
+    /** Steps the selection for a navigation hotkey; the embed's forwarded keys also land here. */
+    navigateByKey(key: string): boolean {
+        if (this.layout !== 'details') return false;
+        if (key !== 'ArrowLeft' && key !== 'ArrowRight') return false;
+
+        this.selectNeighbor(key === 'ArrowLeft' ? -1 : 1);
+        return true;
+    }
+
+    private handleKeydown(event: KeyboardEvent): void {
+        if (this.navigateByKey(event.key)) {
+            event.preventDefault();
+            // The key may have bubbled up from a focused nav button that is about to disable.
+            this.dropNavFocus();
+            return;
+        }
+        this.forwardViewerKey('down', event);
+    }
+
+    private handleKeyup(event: KeyboardEvent): void {
+        this.forwardViewerKey('up', event);
+    }
+
+    // Bare presses on the dialog itself; only the keys the dialog binds (nav arrows, Tab,
+    // Escape) stay with it, and anything on a focused control belongs to that control.
+    private forwardViewerKey(action: 'down' | 'up', event: KeyboardEvent): void {
+        if (event.altKey || event.ctrlKey || event.metaKey) return;
+        if (event.target !== this.dialogRef.value) return;
+        if (event.key === 'Tab' || event.key === 'Escape') return;
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') return;
+        this.options.onViewerKey?.(action, event.key, event.code);
+    }
+
+    // The embed never needs real focus — its keys arrive over the bridge — so a click into the
+    // 3D view must not leave the dialog's own hotkeys dead.
+    private handleWindowBlur = (): void => {
+        if (this.root.activeElement !== this.frameRef.value) return;
+        window.setTimeout(() => {
+            if (this.isOpen) this.dropNavFocus();
+        });
+    };
+
+    /**
+     * A lit render swaps the panel content in place, so the outgoing content only exists as this
+     * throwaway clone, overlaid on the scroll area for {@link animateDetailsChange} to slide out.
+     */
+    private captureDetailsGhost(): HTMLElement | undefined {
+        const scroll = this.detailsScrollRef.value;
+        if (!scroll?.parentElement) return;
+
+        this.detailsGhost?.remove();
+        const ghost = scroll.cloneNode(true) as HTMLElement;
+        ghost.classList.add('details-ghost');
+        ghost.style.top = `${scroll.offsetTop}px`;
+        ghost.style.height = `${scroll.offsetHeight}px`;
+        ghost.setAttribute('aria-hidden', 'true');
+        ghost.querySelector('#skincraft-viewer-title')?.removeAttribute('id');
+        scroll.parentElement.appendChild(ghost);
+        ghost.scrollTop = scroll.scrollTop;
+        this.detailsGhost = ghost;
+        return ghost;
+    }
+
+    /**
+     * The prev/next swap: one continuous slide, the old content leaving as the new arrives from
+     * the direction of travel — same duration and curve, so the two read as a single strip. The
+     * panel restarts at the top; carrying one item's scroll offset into the next reads as a glitch.
+     */
+    private animateDetailsChange(ghost: HTMLElement, step: number): void {
+        const slide: KeyframeAnimationOptions = {duration: 320, easing: 'cubic-bezier(0.22, 1, 0.36, 1)'};
+
+        const exit = ghost.animate({transform: ['translateX(0)', `translateX(${step * -100}%)`]}, slide);
+        exit.onfinish = exit.oncancel = () => {
+            ghost.remove();
+            if (this.detailsGhost === ghost) this.detailsGhost = undefined;
+        };
+
+        const scroll = this.detailsScrollRef.value;
+        if (!scroll) return;
+        scroll.scrollTop = 0;
+        this.detailsEnter?.cancel();
+        this.detailsEnter = scroll.animate({transform: [`translateX(${step * 100}%)`, 'translateX(0)']}, slide);
+    }
+
+    private handleViewMarketListing(): void {
+        const listingId = this.target?.details?.listingId;
+        if (listingId) this.options.onViewMarketListing?.(listingId);
     }
 
     // Both status blocks stay mounted and toggle `hidden` so the item icon survives an error →
@@ -310,15 +721,42 @@ export class SkinCraftViewerModal {
         if (!dialog || dialog.open) return;
 
         dialog.showModal();
+        this.lockPageScroll();
+        if (this.options.onViewerKey) window.addEventListener('blur', this.handleWindowBlur);
         // Two frames: `entering` has to be painted before it is removed, or the transition never runs.
         this.entryFrame = requestAnimationFrame(() => {
             this.entryFrame = requestAnimationFrame(() => {
                 this.entryFrame = undefined;
                 this.entering = false;
                 this.update();
-                this.focusViewer();
+                // With the headless keyboard the dialog owns focus outright; otherwise the viewer
+                // takes it, since its hotkeys have no other way to work.
+                if (this.options.onViewerKey || this.layout === 'details') this.dropNavFocus();
+                else this.focusViewer();
             });
         });
+    }
+
+    // The dialog floats over a page that still scrolls under wheel events on the backdrop.
+    private lockPageScroll(): void {
+        if (this.pageOverflow !== undefined) return;
+        this.pageOverflow = document.documentElement.style.overflow;
+        document.documentElement.style.overflow = 'hidden';
+    }
+
+    private unlockPageScroll(): void {
+        if (this.pageOverflow === undefined) return;
+        document.documentElement.style.overflow = this.pageOverflow;
+        this.pageOverflow = undefined;
+    }
+
+    /** The market grid paginates by scrolling the window, so the lock yields to an items load. */
+    suspendPageScrollLock(): void {
+        this.unlockPageScroll();
+    }
+
+    resumePageScrollLock(): void {
+        if (this.isOpen && !this.closing) this.lockPageScroll();
     }
 
     private async revealIconWhenDecoded(iconUrl: string | undefined, request: number): Promise<void> {
@@ -383,6 +821,22 @@ export class SkinCraftViewerModal {
         if (event.target === this.dialogRef.value && event.propertyName === 'transform') this.finishClose();
     }
 
+    /** Whether the user sits near the end of the loaded items — strip scroll in `grid`, selection proximity in `details`. */
+    itemsNearEnd(): boolean {
+        if (this.layout === 'details') {
+            const index = this.selectedIndex;
+            return index >= 0 && this.items.length - index <= ITEMS_NEAR_END_COUNT;
+        }
+
+        const grid = this.itemGridRef.value;
+        if (!grid) return false;
+        return grid.scrollTop + grid.clientHeight >= grid.scrollHeight - ITEMS_NEAR_END_PX;
+    }
+
+    private handleItemsScroll(): void {
+        if (this.itemsNearEnd()) this.options.onItemsNearEnd?.();
+    }
+
     private handleItemsClick(event: MouseEvent): void {
         const node = event.target;
         if (!(node instanceof Element)) return;
@@ -421,5 +875,7 @@ export class SkinCraftViewerModal {
 
         const dialog = this.dialogRef.value;
         if (dialog?.open) dialog.close();
+        window.removeEventListener('blur', this.handleWindowBlur);
+        this.unlockPageScroll();
     }
 }

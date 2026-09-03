@@ -16,11 +16,16 @@ export interface MarketDescriptionLine extends rgInternalDescription {
     name: string;
 }
 
+/** An asset property as the React market hydrates it: `float_value` arrives as a number here, not the string the rg-asset form carries. */
+export type MarketAssetProperty = Omit<rgAssetProperty, 'float_value'> & {float_value?: number};
+
+// Fields the React fiber has been seen to omit are optional — nothing validates this payload
+// before we read it, so consumers must handle their absence.
 export interface MarketListingDescription
-    extends Omit<rgDescription, 'commodity' | 'tradable' | 'marketable' | 'tags'> {
+    extends Omit<rgDescription, 'commodity' | 'tradable' | 'marketable' | 'tags' | 'descriptions'> {
     commodity: boolean;
     currency: boolean;
-    descriptions: MarketDescriptionLine[];
+    descriptions?: MarketDescriptionLine[];
     fraudwarnings: string[];
     tradable: boolean;
     market_marketable_restriction: number;
@@ -32,14 +37,25 @@ export interface MarketListingDescription
     owner_descriptions: rgInternalDescription[];
     sealed: boolean;
     sealed_type: number;
-    tags: unknown[];
+    tags?: rgDescription['tags'];
+}
+
+/** A sticker/charm applied to a listed item, with its own description and slot properties. */
+export interface MarketListingAccessory {
+    classid: string;
+    standalone_properties?: MarketAssetProperty[];
+    /** Properties tying the accessory to its host item, e.g. propertyid 4 = sticker scrape level. */
+    parent_relationship_properties?: MarketAssetProperty[];
+    nested_accessories?: MarketListingAccessory[];
+    description?: MarketListingDescription;
 }
 
 export interface MarketListingAsset {
-    asset_properties: rgAssetProperty[];
+    asset_properties?: MarketAssetProperty[];
     amount: number;
     appid: number;
-    accessory_properties: rgAssetProperty[];
+    accessory_properties?: MarketAssetProperty[];
+    asset_accessories?: MarketListingAccessory[];
     assetid: string;
     classid: string;
     contextid: string;
