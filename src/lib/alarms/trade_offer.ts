@@ -17,10 +17,6 @@ export interface SentAndReceivedOffers {
     steam_id?: string | null;
 }
 
-export function allOffers(tradeOffers: SentAndReceivedOffers): OfferStatus[] {
-    return [...(tradeOffers.sent || []), ...(tradeOffers.received || [])];
-}
-
 /**
  * @param tradeOffers Sent + received offers already fetched for this alarm run
  */
@@ -113,7 +109,7 @@ export async function pingCancelTrades(
         return;
     }
 
-    const allTradeOffers = allOffers(tradeOffers);
+    const allTradeOffers = [...(tradeOffers.sent || []), ...(tradeOffers.received || [])];
 
     for (const trade of pendingTrades) {
         if (trade.state !== TradeState.PENDING) {
