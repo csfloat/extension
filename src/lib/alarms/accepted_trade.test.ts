@@ -54,7 +54,7 @@ describe('findAcceptedTrades', () => {
         expect(findAcceptedTrades([{...pendingTrade, state: TradeState.VERIFIED}], history, sellerID)).toEqual([]);
         expect(findAcceptedTrades([{...pendingTrade, accepted_at: undefined}], history, sellerID)).toEqual([]);
         expect(
-            findAcceptedTrades([{...pendingTrade, accepted_proof_verified_at: acceptedAt}], history, sellerID)
+            findAcceptedTrades([{...pendingTrade, notary_accepted_at: acceptedAt}], history, sellerID)
         ).toEqual([]);
         expect(findAcceptedTrades([pendingTrade], history, buyerID)).toEqual([]);
     });

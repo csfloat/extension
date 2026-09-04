@@ -11,7 +11,7 @@ interface AcceptedTradeInfo {
     csfloatTrade: SlimTrade;
 }
 
-// The ping alarm runs every 3 minutes; if the server declines a sale, accepted_proof_verified_at stays null,
+// The ping alarm runs every 3 minutes; if the server declines a sale, notary_accepted_at stays null,
 // so without this we would re-prove the same sale every tick.
 export const ACCEPTED_PROOF_RETRY_MS = 6 * 60 * 60 * 1000;
 
@@ -31,7 +31,7 @@ export function findAcceptedTrades(
             csfloatTrade.state !== TradeState.PENDING ||
             csfloatTrade.seller_id !== sellerSteamID ||
             !csfloatTrade.accepted_at ||
-            csfloatTrade.accepted_proof_verified_at
+            csfloatTrade.notary_accepted_at
         ) {
             continue;
         }
