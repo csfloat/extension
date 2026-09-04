@@ -36,19 +36,15 @@ describe('buyer offer state notary candidates', () => {
         ]);
     });
 
-    it('proves when CSFloat thinks the offer is active but it is not visible', () => {
-        const t = trade(TradeOfferState.Active);
-        expect(findBuyerOfferStateCandidates([t], [], now)).toEqual([{csfloatTrade: t, localState: undefined}]);
-    });
-
     it('gives seller telemetry first crack: skips offers that changed under 5 minutes ago', () => {
         const t = trade(TradeOfferState.CreatedNeedsConfirmation);
         const fresh = offer(TradeOfferState.Active, BUYER_MIN_OFFER_AGE_MS - 1000);
         expect(findBuyerOfferStateCandidates([t], [fresh], now)).toEqual([]);
     });
 
-    it('does not treat an unconfirmed offer that the buyer cannot see as a divergence', () => {
+    it('does not treat an offer the buyer cannot see as a divergence until waiting on a cancel ping', () => {
         expect(findBuyerOfferStateCandidates([trade(TradeOfferState.CreatedNeedsConfirmation)], [], now)).toEqual([]);
+        expect(findBuyerOfferStateCandidates([trade(TradeOfferState.Active)], [], now)).toEqual([]);
     });
 
     it('proves when waiting on a cancel ping and the offer is gone', () => {
