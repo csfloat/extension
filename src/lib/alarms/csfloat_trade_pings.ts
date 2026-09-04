@@ -141,8 +141,8 @@ async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null):
     }
 
     if (tradeOffers) {
-        // Proving is slow and can fail, so it runs after the telemetry above. It runs before the cancel ping
-        // so a notarized offer state lands before the untrusted "offer is gone" signal for the same trade.
+        // Proving takes a few seconds and depends on the notary, so it runs after the telemetry above. It runs
+        // before the cancel ping so a notarized offer state lands before the untrusted "offer is gone" signal.
         try {
             await proveBuyerOfferStates(
                 pendingTrades.filter((t) => t.buyer_id === tradeOffers.steam_id),
