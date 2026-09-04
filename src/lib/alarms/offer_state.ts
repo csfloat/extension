@@ -7,8 +7,6 @@ import {TradeOfferState} from '../types/steam_constants';
 import {reportTradeError} from './error_report';
 import {isBackgroundNotaryOfferStateEnabled, submitNotaryProof} from './notary';
 
-// Re-prove the same (trade, locally observed offer state) at most this often
-const PROOF_INTERVAL_MS = 6 * 60 * 60 * 1000;
 // Only prove offers that changed at least this long ago, giving the seller's telemetry first crack
 export const BUYER_MIN_OFFER_AGE_MS = 5 * 60 * 1000;
 
@@ -112,27 +110,10 @@ export async function proveBuyerOfferStates(buyerTrades: SlimTrade[], receivedOf
         return;
     }
 
-    const now = Date.now();
-    const attempts: Record<string, number> = Object.fromEntries(
-        Object.entries(
-            (await gStore.getWithStorage<Record<string, number>>(
-                chrome.storage.local,
-                StorageKey.NOTARY_OFFER_STATE_PROOF_ATTEMPTS
-            )) || {}
-        ).filter(([, ts]) => ts > now - PROOF_INTERVAL_MS)
-    );
-
-    const candidates = findBuyerOfferStateCandidates(buyerTrades, receivedOffers, now).filter(
-        (c) => !attempts[`${c.csfloatTrade.id}:${c.localState ?? 'none'}`]
-    );
+    const candidates = findBuyerOfferStateCandidates(buyerTrades, receivedOffers);
     if (candidates.length === 0) {
         return;
     }
-
-    for (const c of candidates) {
-        attempts[`${c.csfloatTrade.id}:${c.localState ?? 'none'}`] = now;
-    }
-    await gStore.setWithStorage(chrome.storage.local, StorageKey.NOTARY_OFFER_STATE_PROOF_ATTEMPTS, attempts);
 
     try {
         await submitNotaryProof(buildOfferStateProveRequest(candidates));
