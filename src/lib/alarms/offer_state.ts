@@ -21,7 +21,8 @@ export interface OfferStateCandidate {
 /**
  * Picks the buyer's pending trades worth proving: the offer state Steam shows them differs from what
  * CSFloat has (seller telemetry offline), or the trade is waiting on a cancel ping and the offer is not active.
- * An offer that is not visible to the buyer is only a divergence if CSFloat thinks it is in progress.
+ * An offer the buyer cannot see is not a divergence on its own: the proof of a hidden offer is empty, and
+ * "offer is gone" is already covered once the trade is waiting on a cancel ping.
  * Offers that changed less than BUYER_MIN_OFFER_AGE_MS ago are skipped so the seller's own ping can resolve it.
  * Accepted offers are skipped since the trade history proof owns that transition.
  *
@@ -47,8 +48,7 @@ export function findBuyerOfferStateCandidates(
             continue;
         }
 
-        const serverThinksVisible = serverState === TradeOfferState.Active || serverState === TradeOfferState.InEscrow;
-        const diverged = localState !== undefined ? localState !== serverState : serverThinksVisible;
+        const diverged = localState !== undefined && localState !== serverState;
         const waitingOnCancel = !!trade.wait_for_cancel_ping && localState !== TradeOfferState.Active;
         if (!diverged && !waitingOnCancel) {
             continue;
