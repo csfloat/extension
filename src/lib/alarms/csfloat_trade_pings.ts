@@ -110,7 +110,7 @@ async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null):
         errors.history_error = (e as any).toString();
     }
 
-    // One Steam request shared by the offer ping, offer state proofs, and cancel pings; if it fails, none of them can run
+    // One Steam request shared by the offer ping, cancel pings, and offer state proofs; if it fails, none of them can run
     let tradeOffers: SentAndReceivedOffers | null = null;
     try {
         tradeOffers = await getSentAndReceivedTradeOffersFromAPI();
@@ -125,13 +125,6 @@ async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null):
         } catch (e) {
             console.error('failed to ping sent trade offer state', e);
             errors.trade_offer_error = (e as any).toString();
-        }
-
-        try {
-            // Before the untrusted cancel ping so a notarized offer state can settle the trade first
-            await proveOfferStates(pendingTrades, tradeOffers);
-        } catch (e) {
-            console.error('failed to prove offer states', e);
         }
 
         try {
@@ -160,6 +153,15 @@ async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null):
     } catch (e) {
         console.error('failed to prove accepted trades', e);
         errors.accepted_trades_error = (e as any).toString();
+    }
+
+    // Last since proving is slow and can fail, it must not hold up the untrusted telemetry above
+    if (tradeOffers) {
+        try {
+            await proveOfferStates(pendingTrades, tradeOffers);
+        } catch (e) {
+            console.error('failed to prove offer states', e);
+        }
     }
 
     return errors;
