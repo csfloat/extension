@@ -105,6 +105,8 @@ export interface Trade {
     trade_url: string;
     steam_offer: SteamOffer;
     steam_trade_failed_id?: string;
+    // Set once a notarized Steam trade history proof showed this trade as accepted
+    notary_accepted_at?: string;
     wait_for_cancel_ping?: boolean;
     seller_blocked_buyer_at?: string;
     buyer_blocked_seller_at?: string;
