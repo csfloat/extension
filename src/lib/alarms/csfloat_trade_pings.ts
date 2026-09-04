@@ -108,32 +108,35 @@ async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null):
         errors.history_error = (e as any).toString();
     }
 
-    // One Steam request shared by the offer ping, offer state proofs, and cancel pings
+    // One Steam request shared by the offer ping, offer state proofs, and cancel pings; if it fails, none of them can run
     let tradeOffers: SentAndReceivedOffers | null = null;
     try {
         tradeOffers = await getSentAndReceivedTradeOffersFromAPI();
     } catch (e) {
         console.error('failed to fetch trade offers', e);
-    }
-
-    try {
-        await pingSentTradeOffers(pendingTrades, steamID, tradeOffers);
-    } catch (e) {
-        console.error('failed to ping sent trade offer state', e);
         errors.trade_offer_error = (e as any).toString();
     }
 
-    try {
-        // Before the untrusted cancel ping so a notarized offer state can settle the trade first
-        await proveOfferStates(pendingTrades, tradeOffers);
-    } catch (e) {
-        console.error('failed to prove offer states', e);
-    }
+    if (tradeOffers) {
+        try {
+            await pingSentTradeOffers(pendingTrades, steamID, tradeOffers);
+        } catch (e) {
+            console.error('failed to ping sent trade offer state', e);
+            errors.trade_offer_error = (e as any).toString();
+        }
 
-    try {
-        await pingCancelTrades(pendingTrades, tradeHistory, tradeOffers);
-    } catch (e) {
-        console.error('failed to ping cancel ping trade offers', e);
+        try {
+            // Before the untrusted cancel ping so a notarized offer state can settle the trade first
+            await proveOfferStates(pendingTrades, tradeOffers);
+        } catch (e) {
+            console.error('failed to prove offer states', e);
+        }
+
+        try {
+            await pingCancelTrades(pendingTrades, tradeHistory, tradeOffers);
+        } catch (e) {
+            console.error('failed to ping cancel ping trade offers', e);
+        }
     }
 
     try {
