@@ -16,7 +16,7 @@ import {reportBlockedBuyers} from './blocked_users';
 import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 import {pingFailedTrades} from './failed_trade';
 import {pingRollbackTrades} from './rollback';
-import {proveOfferStates} from './offer_state';
+import {proveBuyerOfferStates} from './offer_state';
 import {FetchSlimTrades} from '../bridge/handlers/fetch_slim_trades';
 
 export const PING_CSFLOAT_TRADE_STATUS_ALARM_NAME = 'ping_csfloat_trade_status_alarm';
@@ -144,7 +144,10 @@ async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null):
         // Proving is slow and can fail, so it runs after the telemetry above. It runs before the cancel ping
         // so a notarized offer state lands before the untrusted "offer is gone" signal for the same trade.
         try {
-            await proveOfferStates(pendingTrades, tradeOffers);
+            await proveBuyerOfferStates(
+                pendingTrades.filter((t) => t.buyer_id === tradeOffers.steam_id),
+                tradeOffers.received || []
+            );
         } catch (e) {
             console.error('failed to prove offer states', e);
         }
