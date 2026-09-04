@@ -124,12 +124,6 @@ async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null):
             console.error('failed to ping sent trade offer state', e);
             errors.trade_offer_error = (e as any).toString();
         }
-
-        try {
-            await pingCancelTrades(pendingTrades, tradeHistory, tradeOffers);
-        } catch (e) {
-            console.error('failed to ping cancel ping trade offers', e);
-        }
     }
 
     try {
@@ -146,12 +140,19 @@ async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null):
         errors.failed_trades_error = (e as any).toString();
     }
 
-    // Last since proving is slow and can fail, it must not hold up the untrusted telemetry above
     if (tradeOffers) {
+        // Proving is slow and can fail, so it runs after the telemetry above. It runs before the cancel ping
+        // so a notarized offer state lands before the untrusted "offer is gone" signal for the same trade.
         try {
             await proveOfferStates(pendingTrades, tradeOffers);
         } catch (e) {
             console.error('failed to prove offer states', e);
+        }
+
+        try {
+            await pingCancelTrades(pendingTrades, tradeHistory, tradeOffers);
+        } catch (e) {
+            console.error('failed to ping cancel ping trade offers', e);
         }
     }
 
