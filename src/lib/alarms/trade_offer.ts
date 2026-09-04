@@ -17,21 +17,20 @@ export interface SentAndReceivedOffers {
     steam_id?: string | null;
 }
 
-export function allOffers(tradeOffers: SentAndReceivedOffers | null): OfferStatus[] {
-    return [...(tradeOffers?.sent || []), ...(tradeOffers?.received || [])];
+export function allOffers(tradeOffers: SentAndReceivedOffers): OfferStatus[] {
+    return [...(tradeOffers.sent || []), ...(tradeOffers.received || [])];
 }
 
 /**
- * @param tradeOffers Sent + received offers already fetched for this alarm run, falls back to fetching sent offers
+ * @param tradeOffers Sent + received offers already fetched for this alarm run
  */
 export async function pingSentTradeOffers(
     pendingTrades: SlimTrade[],
-    steamID?: string | null,
-    tradeOffers?: SentAndReceivedOffers | null
+    steamID: string | null | undefined,
+    tradeOffers: SentAndReceivedOffers
 ) {
-    const {offers, type} = tradeOffers
-        ? {offers: tradeOffers.sent, type: TradeOffersType.API}
-        : await getSentTradeOffers();
+    const offers = tradeOffers.sent;
+    const type = TradeOffersType.API;
 
     const offersToFind = pendingTrades.reduce(
         (acc, e) => {
@@ -101,20 +100,18 @@ export async function pingSentTradeOffers(
 }
 
 /**
- * @param tradeOffers Sent + received offers already fetched for this alarm run, fetched here if absent
+ * @param tradeOffers Sent + received offers already fetched for this alarm run
  */
 export async function pingCancelTrades(
     pendingTrades: SlimTrade[],
     tradeHistory: TradeHistoryStatus[],
-    tradeOffers?: SentAndReceivedOffers | null
+    tradeOffers: SentAndReceivedOffers
 ) {
     const hasWaitForCancelPing = pendingTrades.find((e) => e.state === TradeState.PENDING && e.wait_for_cancel_ping);
     if (!hasWaitForCancelPing) {
         // Nothing to process/ping, exit
         return;
     }
-
-    tradeOffers = tradeOffers || (await getSentAndReceivedTradeOffersFromAPI());
 
     const allTradeOffers = allOffers(tradeOffers);
 

@@ -98,8 +98,8 @@ export function buildOfferStateProveRequest(candidates: OfferStateCandidate[]): 
  *
  * @param tradeOffers Sent + received offers already fetched for this alarm run
  */
-export async function proveOfferStates(pendingTrades: SlimTrade[], tradeOffers: SentAndReceivedOffers | null) {
-    const steamID = tradeOffers?.steam_id;
+export async function proveOfferStates(pendingTrades: SlimTrade[], tradeOffers: SentAndReceivedOffers) {
+    const steamID = tradeOffers.steam_id;
     if (!steamID || !pendingTrades.some((e) => e.state === TradeState.PENDING && e.steam_offer?.id)) {
         return;
     }
