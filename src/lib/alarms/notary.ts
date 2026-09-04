@@ -1,20 +1,28 @@
 import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 import {NotaryProve} from '../bridge/handlers/notary_prove';
 import {FetchNotaryToken} from '../bridge/handlers/fetch_notary_token';
-import {FetchNotaryMeta} from '../bridge/handlers/fetch_notary_meta';
+import {FetchNotaryMeta, NotaryMeta} from '../bridge/handlers/fetch_notary_meta';
 import {ProofType, NotaryProveRequest} from '../notary/types';
 import {MAX_TRADE_HISTORY_FETCH} from './constants';
 import {isFirefox} from '../utils/detect';
 import {environment} from '../../environment';
 
-export async function isBackgroundNotaryRollbackEnabled(): Promise<boolean> {
+export function isBackgroundNotaryRollbackEnabled(): Promise<boolean> {
+    return isBackgroundNotaryEnabled('rollback');
+}
+
+export function isBackgroundNotaryOfferStateEnabled(): Promise<boolean> {
+    return isBackgroundNotaryEnabled('offer_state');
+}
+
+async function isBackgroundNotaryEnabled(setting: keyof NotaryMeta): Promise<boolean> {
     if (isFirefox()) {
         return false;
     }
 
     try {
         const meta = await FetchNotaryMeta.handleRequest({}, {});
-        return meta.rollback?.background === true;
+        return meta[setting]?.background === true;
     } catch (e) {
         console.error('failed to fetch notary meta', e);
         return false;
@@ -44,14 +52,20 @@ export function buildProveRequest(trades: TradeHistoryStatus[]): NotaryProveRequ
     };
 }
 
-export async function proveTradesInBackground(trades: TradeHistoryStatus[]): Promise<void> {
+export function proveTradesInBackground(trades: TradeHistoryStatus[]): Promise<void> {
     if (trades.length === 0) {
-        return;
+        return Promise.resolve();
     }
 
+    return submitNotaryProof(buildProveRequest(trades));
+}
+
+/**
+ * Generates a notary proof for the given Steam request and submits it to CSFloat's trade notary endpoint.
+ */
+export async function submitNotaryProof(proveRequest: NotaryProveRequest): Promise<void> {
     const notaryToken = await FetchNotaryToken.handleRequest({}, {});
-    const proveRequest = buildProveRequest(trades);
-    proveRequest.meta = {notary_token: notaryToken.token};
+    proveRequest.meta = {...proveRequest.meta, notary_token: notaryToken.token};
 
     const result = await NotaryProve.handleRequest(proveRequest, {});
 

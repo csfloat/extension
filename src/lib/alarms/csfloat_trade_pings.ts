@@ -1,6 +1,12 @@
 import {SlimTrade} from '../types/float_market';
 import {pingTradeHistory} from './trade_history';
-import {cancelUnconfirmedTradeOffers, pingCancelTrades, pingSentTradeOffers} from './trade_offer';
+import {
+    cancelUnconfirmedTradeOffers,
+    getSentAndReceivedTradeOffersFromAPI,
+    pingCancelTrades,
+    pingSentTradeOffers,
+    SentAndReceivedOffers,
+} from './trade_offer';
 import {HasPermissions} from '../bridge/handlers/has_permissions';
 import {PingExtensionStatus} from '../bridge/handlers/ping_extension_status';
 import {AccessToken, getAccessToken} from './access_token';
@@ -10,6 +16,7 @@ import {reportBlockedBuyers} from './blocked_users';
 import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 import {pingFailedTrades} from './failed_trade';
 import {pingRollbackTrades} from './rollback';
+import {proveBuyerOfferStates} from './offer_state';
 import {FetchSlimTrades} from '../bridge/handlers/fetch_slim_trades';
 
 export const PING_CSFLOAT_TRADE_STATUS_ALARM_NAME = 'ping_csfloat_trade_status_alarm';
@@ -101,17 +108,22 @@ async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null):
         errors.history_error = (e as any).toString();
     }
 
+    // One Steam request shared by the offer ping, cancel pings, and offer state proofs; if it fails, none of them can run
+    let tradeOffers: SentAndReceivedOffers | null = null;
     try {
-        await pingSentTradeOffers(pendingTrades, steamID);
+        tradeOffers = await getSentAndReceivedTradeOffersFromAPI();
     } catch (e) {
-        console.error('failed to ping sent trade offer state', e);
+        console.error('failed to fetch trade offers', e);
         errors.trade_offer_error = (e as any).toString();
     }
 
-    try {
-        await pingCancelTrades(pendingTrades, tradeHistory);
-    } catch (e) {
-        console.error('failed to ping cancel ping trade offers', e);
+    if (tradeOffers) {
+        try {
+            await pingSentTradeOffers(pendingTrades, steamID, tradeOffers);
+        } catch (e) {
+            console.error('failed to ping sent trade offer state', e);
+            errors.trade_offer_error = (e as any).toString();
+        }
     }
 
     try {
@@ -126,6 +138,25 @@ async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null):
     } catch (e) {
         console.error('failed to report failed trades', e);
         errors.failed_trades_error = (e as any).toString();
+    }
+
+    if (tradeOffers) {
+        // Proving takes a few seconds and depends on the notary, so it runs after the telemetry above. It runs
+        // before the cancel ping so a notarized offer state lands before the untrusted "offer is gone" signal.
+        try {
+            await proveBuyerOfferStates(
+                pendingTrades.filter((t) => t.buyer_id === tradeOffers.steam_id),
+                tradeOffers.received || []
+            );
+        } catch (e) {
+            console.error('failed to prove offer states', e);
+        }
+
+        try {
+            await pingCancelTrades(pendingTrades, tradeHistory, tradeOffers);
+        } catch (e) {
+            console.error('failed to ping cancel ping trade offers', e);
+        }
     }
 
     return errors;
