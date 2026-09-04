@@ -6,61 +6,59 @@ import {SlimTrade, TradeState} from '../types/float_market';
 import {TradeOfferState} from '../types/steam_constants';
 import {reportTradeError} from './error_report';
 import {isBackgroundNotaryOfferStateEnabled, submitNotaryProof} from './notary';
-import {allOffers, SentAndReceivedOffers} from './trade_offer';
 
 // Re-prove the same (trade, locally observed offer state) at most this often
 const PROOF_INTERVAL_MS = 6 * 60 * 60 * 1000;
-// Buyers only prove offers that changed at least this long ago, giving the seller's telemetry first crack
+// Only prove offers that changed at least this long ago, giving the seller's telemetry first crack
 export const BUYER_MIN_OFFER_AGE_MS = 5 * 60 * 1000;
 
 export interface OfferStateCandidate {
     csfloatTrade: SlimTrade;
-    isBuyer: boolean;
-    // State of the offer as seen by this user on Steam, undefined if not visible to them
+    // State of the offer as seen by the buyer on Steam, undefined if not visible to them
     localState?: TradeOfferState;
 }
 
 /**
- * Picks pending trades worth proving:
- * - Buyer: the offer state Steam shows them differs from what CSFloat has (seller telemetry offline).
- *   An offer that is not visible to the buyer is only a divergence if CSFloat thinks it is in progress.
- * - Either party: the trade is waiting on a cancel ping and the offer is no longer active.
- * Buyers skip offers that changed less than BUYER_MIN_OFFER_AGE_MS ago so the seller's own ping can resolve it.
+ * Picks the buyer's pending trades worth proving: the offer state Steam shows them differs from what
+ * CSFloat has (seller telemetry offline), or the trade is waiting on a cancel ping and the offer is not active.
+ * An offer that is not visible to the buyer is only a divergence if CSFloat thinks it is in progress.
+ * Offers that changed less than BUYER_MIN_OFFER_AGE_MS ago are skipped so the seller's own ping can resolve it.
  * Accepted offers are skipped since the trade history proof owns that transition.
+ *
+ * @param buyerTrades Pending trades where this user is the buyer
+ * @param receivedOffers Trade offers received by this user on Steam
  */
-export function findOfferStateCandidates(
-    pendingTrades: SlimTrade[],
-    offers: OfferStatus[],
-    steamID: string,
+export function findBuyerOfferStateCandidates(
+    buyerTrades: SlimTrade[],
+    receivedOffers: OfferStatus[],
     now = Date.now()
 ): OfferStateCandidate[] {
     const candidates: OfferStateCandidate[] = [];
 
-    for (const trade of pendingTrades) {
+    for (const trade of buyerTrades) {
         if (trade.state !== TradeState.PENDING || !trade.steam_offer?.id) {
             continue;
         }
 
         const serverState = trade.steam_offer.state;
-        const localOffer = offers.find((e) => e.offer_id === trade.steam_offer.id);
+        const localOffer = receivedOffers.find((e) => e.offer_id === trade.steam_offer.id);
         const localState = localOffer?.state;
         if (serverState === TradeOfferState.Accepted || localState === TradeOfferState.Accepted) {
             continue;
         }
 
-        const isBuyer = trade.buyer_id === steamID;
         const serverThinksVisible = serverState === TradeOfferState.Active || serverState === TradeOfferState.InEscrow;
-        const buyerDiverged = isBuyer && (localState !== undefined ? localState !== serverState : serverThinksVisible);
+        const diverged = localState !== undefined ? localState !== serverState : serverThinksVisible;
         const waitingOnCancel = !!trade.wait_for_cancel_ping && localState !== TradeOfferState.Active;
-        if (!buyerDiverged && !waitingOnCancel) {
+        if (!diverged && !waitingOnCancel) {
             continue;
         }
 
-        if (isBuyer && now - offerLastChangedMs(trade, localOffer) < BUYER_MIN_OFFER_AGE_MS) {
+        if (now - offerLastChangedMs(trade, localOffer) < BUYER_MIN_OFFER_AGE_MS) {
             continue;
         }
 
-        candidates.push({csfloatTrade: trade, isBuyer, localState});
+        candidates.push({csfloatTrade: trade, localState});
     }
 
     return candidates;
@@ -76,31 +74,28 @@ function offerLastChangedMs(trade: SlimTrade, localOffer?: OfferStatus): number 
 }
 
 /**
- * One GetTradeOffer proof for a single candidate, otherwise a single GetTradeOffers proof covering every
- * candidate. Same unfiltered dump the untrusted ping reads, so the server sees the offers we evaluated.
+ * One GetTradeOffer proof for a single candidate, otherwise a single GetTradeOffers proof of the buyer's
+ * received offers. Same unfiltered dump the untrusted ping reads, so the server sees the offers we evaluated.
  */
 export function buildOfferStateProveRequest(candidates: OfferStateCandidate[]): NotaryProveRequest {
     if (candidates.length === 1) {
         return {type: ProofType.TRADE_OFFER, tradeofferid: candidates[0].csfloatTrade.steam_offer.id};
     }
 
-    return {
-        type: ProofType.TRADE_OFFERS,
-        get_sent_offers: candidates.some((c) => !c.isBuyer),
-        get_received_offers: candidates.some((c) => c.isBuyer),
-    };
+    return {type: ProofType.TRADE_OFFERS, get_sent_offers: false, get_received_offers: true};
 }
 
 /**
- * Submits notarized trade offer proofs so CSFloat can update the Steam offer state from trusted data.
- * Lets a buyer supply offer state when the seller's telemetry is offline, and gives both parties a way
- * to settle a trade that is waiting on a cancel ping without relying on untrusted pings.
+ * Submits notarized trade offer proofs for trades where this user is the buyer, so CSFloat can update the
+ * Steam offer state from trusted data when the seller's telemetry is offline.
+ * Seller-side proofs are deliberately not sent: pingSentTradeOffers already reports the same state and the
+ * server does not yet prefer notarized state over it, so proving would be redundant work.
  *
- * @param tradeOffers Sent + received offers already fetched for this alarm run
+ * @param buyerTrades Pending trades where this user is the buyer
+ * @param receivedOffers Trade offers received by this user on Steam, already fetched for this alarm run
  */
-export async function proveOfferStates(pendingTrades: SlimTrade[], tradeOffers: SentAndReceivedOffers) {
-    const steamID = tradeOffers.steam_id;
-    if (!steamID || !pendingTrades.some((e) => e.state === TradeState.PENDING && e.steam_offer?.id)) {
+export async function proveBuyerOfferStates(buyerTrades: SlimTrade[], receivedOffers: OfferStatus[]) {
+    if (!buyerTrades.some((e) => e.state === TradeState.PENDING && e.steam_offer?.id)) {
         return;
     }
 
@@ -127,7 +122,7 @@ export async function proveOfferStates(pendingTrades: SlimTrade[], tradeOffers: 
         ).filter(([, ts]) => ts > now - PROOF_INTERVAL_MS)
     );
 
-    const candidates = findOfferStateCandidates(pendingTrades, allOffers(tradeOffers), steamID, now).filter(
+    const candidates = findBuyerOfferStateCandidates(buyerTrades, receivedOffers, now).filter(
         (c) => !attempts[`${c.csfloatTrade.id}:${c.localState ?? 'none'}`]
     );
     if (candidates.length === 0) {
