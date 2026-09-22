@@ -4,9 +4,12 @@ import {state} from 'lit/decorators.js';
 import {rgAsset} from '../../types/steam';
 import {gFloatFetcher} from '../../services/float_fetcher';
 import {ItemInfo} from '../../bridge/handlers/fetch_inspect_info';
+import {FetchRecommendedPrice} from '../../bridge/handlers/fetch_recommended_price';
 import {
+    isSellableOnCSFloat,
     formatFloatWithRank,
     formatSeed,
+    formatPrice,
     getFadePercentage,
     getLowestRank,
     isBlueSkin,
@@ -27,10 +30,21 @@ export abstract class ItemHolderMetadata extends FloatElement {
         ...FloatElement.styles,
         patternDetailStyles,
         css`
+            .price {
+                position: absolute;
+                bottom: 3px;
+                left: 3px;
+                right: 48px;
+                font-size: 12px;
+                text-align: left;
+                z-index: 2;
+            }
+
             .float {
                 position: absolute;
                 bottom: 3px;
                 right: 3px;
+                left: 50px;
                 font-size: 12px;
                 text-align: right;
             }
@@ -55,6 +69,9 @@ export abstract class ItemHolderMetadata extends FloatElement {
     @state()
     private bluegemData: FetchBluegemResponse | undefined;
 
+    @state()
+    private itemPrice: number | undefined;
+
     get assetId(): string | undefined {
         return $J(this).parent().attr('id')?.split('_')[2];
     }
@@ -65,6 +82,11 @@ export abstract class ItemHolderMetadata extends FloatElement {
 
     abstract get asset(): rgAsset | undefined;
     abstract get ownerSteamId(): string | undefined;
+
+    get isSellable(): boolean {
+        if (!this.asset) return false;
+        return isSellableOnCSFloat(this.asset);
+    }
 
     get inspectLink(): string | undefined {
         if (!this.asset) return;
@@ -85,7 +107,17 @@ export abstract class ItemHolderMetadata extends FloatElement {
     }
 
     protected render(): HTMLTemplateResult {
-        if (!this.itemInfo || !this.asset) return html``;
+        if (!this.asset) return html``;
+
+        if (!this.itemInfo) {
+            return html`
+            <span>
+                ${this.itemPrice
+                    ? html`<span class="price">$${formatPrice(this.itemPrice / 100)}</span>`
+                    : nothing}
+            </span>
+            `
+        }
 
         if (isSkin(this.asset)) {
             const fadeDetails = this.asset && getFadePercentage(this.asset.market_hash_name, this.itemInfo);
@@ -98,7 +130,10 @@ export abstract class ItemHolderMetadata extends FloatElement {
 
             return html`
                 <span>
-                    <span class="float">${formatFloatWithRank(this.itemInfo, 6)}</span>
+                    <span class="float">${formatFloatWithRank(this.itemInfo, 3)}</span>
+                    ${this.itemPrice
+                        ? html`<span class="price">$${formatPrice(this.itemPrice / 100)}</span>`
+                        : nothing}
                     <span class="seed">
                         ${formatSeed(this.itemInfo)}
                         ${fadeDetails
@@ -111,9 +146,10 @@ export abstract class ItemHolderMetadata extends FloatElement {
         } else if (isCharm(this.asset) && !isHighlightCharm(this.asset)) {
             return html`
                 <span>
-                    <span class="seed"
-                        >#${this.itemInfo.keychains?.length > 0 ? this.itemInfo.keychains[0].pattern : 'NA'}</span
-                    >
+                    ${this.itemPrice
+                        ? html`<span class="price">$${formatPrice(this.itemPrice / 100)}</span>`
+                        : nothing}
+                    <span class="seed">#${this.itemInfo.keychains?.length > 0 ? this.itemInfo.keychains[0].pattern : 'NA'}</span>
                 </span>
             `;
         } else {
@@ -124,14 +160,14 @@ export abstract class ItemHolderMetadata extends FloatElement {
     async connectedCallback() {
         super.connectedCallback();
 
-        if (this.inspectLink) {
+        if (this.isSellable) {
             this.onInit();
         } else {
             // Wait until the asset exists
             Observe(
-                () => this.inspectLink,
+                () => this.isSellable,
                 () => {
-                    if (this.inspectLink) {
+                    if (this.isSellable) {
                         this.onInit();
                     }
                 },
@@ -142,19 +178,28 @@ export abstract class ItemHolderMetadata extends FloatElement {
 
     async onInit() {
         if (!this.asset) return;
+        
+        if ((isSkin(this.asset) || isCharm(this.asset)) && this.inspectLink && this.assetId) {
+            try {
+                this.itemInfo = await gFloatFetcher.fetch({
+                    link: this.inspectLink,
+                    asset_id: this.assetId,
+                });
+            } catch (e: any) {
+                console.error(`Failed to fetch float for ${this.assetId}: ${e.toString()}`);
+            }
+        }
 
-        if (!isSkin(this.asset) && !isCharm(this.asset)) return;
-
-        // Commodities won't have inspect links
-        if (!this.inspectLink || !this.assetId) return;
-
-        try {
-            this.itemInfo = await gFloatFetcher.fetch({
-                link: this.inspectLink,
-                asset_id: this.assetId,
-            });
-        } catch (e: any) {
-            console.error(`Failed to fetch float for ${this.assetId}: ${e.toString()}`);
+        if (isSellableOnCSFloat(this.asset)) {
+            try {
+                const result = await ClientSend(FetchRecommendedPrice, {
+                    market_hash_name: this.asset.market_hash_name,
+                    paint_index: this.itemInfo?.paintindex,
+                });
+                this.itemPrice = result.price;
+            } catch (e: any) {
+                console.error(`Failed to fetch price for ${this.asset.market_hash_name}: ${e.toString()}`);
+            }
         }
 
         if (this.itemInfo) {
