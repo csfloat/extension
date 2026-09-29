@@ -1,20 +1,28 @@
 import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 import {NotaryProve} from '../bridge/handlers/notary_prove';
 import {FetchNotaryToken} from '../bridge/handlers/fetch_notary_token';
-import {FetchNotaryMeta} from '../bridge/handlers/fetch_notary_meta';
+import {FetchNotaryMeta, NotaryMeta} from '../bridge/handlers/fetch_notary_meta';
 import {ProofType, NotaryProveRequest} from '../notary/types';
 import {MAX_TRADE_HISTORY_FETCH} from './constants';
 import {isFirefox} from '../utils/detect';
 import {environment} from '../../environment';
 
-export async function isBackgroundNotaryRollbackEnabled(): Promise<boolean> {
+export function isBackgroundNotaryRollbackEnabled(): Promise<boolean> {
+    return isBackgroundNotaryEnabled('rollback');
+}
+
+export function isBackgroundNotaryAcceptedEnabled(): Promise<boolean> {
+    return isBackgroundNotaryEnabled('accepted');
+}
+
+async function isBackgroundNotaryEnabled(setting: keyof NotaryMeta): Promise<boolean> {
     if (isFirefox()) {
         return false;
     }
 
     try {
         const meta = await FetchNotaryMeta.handleRequest({}, {});
-        return meta.rollback?.background === true;
+        return meta[setting]?.background === true;
     } catch (e) {
         console.error('failed to fetch notary meta', e);
         return false;

@@ -10,6 +10,7 @@ import {reportBlockedBuyers} from './blocked_users';
 import {TradeHistoryStatus} from '../bridge/handlers/trade_history_status';
 import {pingFailedTrades} from './failed_trade';
 import {pingRollbackTrades} from './rollback';
+import {pingAcceptedTrades} from './accepted_trade';
 import {FetchSlimTrades} from '../bridge/handlers/fetch_slim_trades';
 
 export const PING_CSFLOAT_TRADE_STATUS_ALARM_NAME = 'ping_csfloat_trade_status_alarm';
@@ -75,6 +76,7 @@ interface UpdateErrors {
     blocked_buyers_error?: string;
     rollback_trades_error?: string;
     failed_trades_error?: string;
+    accepted_trades_error?: string;
 }
 
 async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null): Promise<UpdateErrors> {
@@ -126,6 +128,13 @@ async function pingUpdates(pendingTrades: SlimTrade[], steamID?: string | null):
     } catch (e) {
         console.error('failed to report failed trades', e);
         errors.failed_trades_error = (e as any).toString();
+    }
+
+    try {
+        await pingAcceptedTrades(pendingTrades, tradeHistory, steamID);
+    } catch (e) {
+        console.error('failed to prove accepted trades', e);
+        errors.accepted_trades_error = (e as any).toString();
     }
 
     return errors;
