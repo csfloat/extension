@@ -247,7 +247,7 @@ export class SkinCraftViewerModal {
                             ${ref(this.frameRef)}
                             class="${revealed ? 'loaded' : ''}"
                             src="${this.options.embedSrc}"
-                            title="SkinCraft 3D viewer"
+                            aria-label="SkinCraft 3D viewer"
                             referrerpolicy="no-referrer"
                             sandbox="allow-scripts allow-same-origin allow-downloads"
                             allow="fullscreen"
