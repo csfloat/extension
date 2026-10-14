@@ -85,6 +85,10 @@ export interface SteamOffer {
     id: string;
     state: TradeOfferState;
     sent_at: string;
+    // Steam's time_updated for the offer as last reported to CSFloat
+    updated_at?: string;
+    // Last time the offer state was written from a notarized GetTradeOffer proof
+    notarized_at?: string;
 }
 
 export interface Trade {

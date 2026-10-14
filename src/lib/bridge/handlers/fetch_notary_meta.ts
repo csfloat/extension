@@ -10,6 +10,7 @@ interface NotarySetting {
 export interface NotaryMeta {
     rollback: NotarySetting;
     accepted: NotarySetting;
+    offer_state: NotarySetting;
 }
 
 export interface FetchNotaryMetaRequest {}
