@@ -7,6 +7,11 @@ import {MAX_TRADE_HISTORY_FETCH} from './constants';
 import {isFirefox} from '../utils/detect';
 import {environment} from '../../environment';
 
+const NOTARY_META_CACHE_MS = 30 * 60 * 1000;
+
+// In-memory, so a service worker restart refetches
+let cachedNotaryMeta: {meta: NotaryMeta; fetchedAt: number} | null = null;
+
 export function isBackgroundNotaryRollbackEnabled(): Promise<boolean> {
     return isBackgroundNotaryEnabled('rollback');
 }
@@ -15,18 +20,26 @@ export function isBackgroundNotaryAcceptedEnabled(): Promise<boolean> {
     return isBackgroundNotaryEnabled('accepted');
 }
 
+export function isBackgroundNotaryOfferStateEnabled(): Promise<boolean> {
+    return isBackgroundNotaryEnabled('offer_state');
+}
+
 async function isBackgroundNotaryEnabled(setting: keyof NotaryMeta): Promise<boolean> {
     if (isFirefox()) {
         return false;
     }
 
-    try {
-        const meta = await FetchNotaryMeta.handleRequest({}, {});
-        return meta[setting]?.background === true;
-    } catch (e) {
-        console.error('failed to fetch notary meta', e);
-        return false;
+    if (!cachedNotaryMeta || cachedNotaryMeta.fetchedAt <= Date.now() - NOTARY_META_CACHE_MS) {
+        // Failed fetches are not cached so a transient error doesn't disable notary proving for the whole window
+        try {
+            cachedNotaryMeta = {meta: await FetchNotaryMeta.handleRequest({}, {}), fetchedAt: Date.now()};
+        } catch (e) {
+            console.error('failed to fetch notary meta', e);
+            return false;
+        }
     }
+
+    return cachedNotaryMeta.meta[setting]?.background === true;
 }
 
 export function buildProveRequest(trades: TradeHistoryStatus[]): NotaryProveRequest {
@@ -52,14 +65,20 @@ export function buildProveRequest(trades: TradeHistoryStatus[]): NotaryProveRequ
     };
 }
 
-export async function proveTradesInBackground(trades: TradeHistoryStatus[]): Promise<void> {
+export function proveTradesInBackground(trades: TradeHistoryStatus[]): Promise<void> {
     if (trades.length === 0) {
-        return;
+        return Promise.resolve();
     }
 
+    return submitNotaryProof(buildProveRequest(trades));
+}
+
+/**
+ * Generates a notary proof for the given Steam request and submits it to CSFloat's trade notary endpoint.
+ */
+export async function submitNotaryProof(proveRequest: NotaryProveRequest): Promise<void> {
     const notaryToken = await FetchNotaryToken.handleRequest({}, {});
-    const proveRequest = buildProveRequest(trades);
-    proveRequest.meta = {notary_token: notaryToken.token};
+    proveRequest.meta = {...proveRequest.meta, notary_token: notaryToken.token};
 
     const result = await NotaryProve.handleRequest(proveRequest, {});
 
