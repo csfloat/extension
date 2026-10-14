@@ -31,9 +31,7 @@ function offer(state: TradeOfferState, ageMs = 2 * BUYER_MIN_OFFER_AGE_MS): Offe
 describe('buyer offer state notary candidates', () => {
     it('proves when the visible offer state differs from CSFloat', () => {
         const t = trade(TradeOfferState.CreatedNeedsConfirmation);
-        expect(findBuyerOfferStateCandidates([t], [offer(TradeOfferState.Active)], now)).toEqual([
-            {csfloatTrade: t, localState: TradeOfferState.Active},
-        ]);
+        expect(findBuyerOfferStateCandidates([t], [offer(TradeOfferState.Active)], now)).toEqual([t]);
     });
 
     it('gives seller telemetry first crack: skips offers that changed under 5 minutes ago', () => {
@@ -49,12 +47,17 @@ describe('buyer offer state notary candidates', () => {
 
     it('proves when waiting on a cancel ping and the offer is gone', () => {
         const t = trade(TradeOfferState.CreatedNeedsConfirmation, true);
-        expect(findBuyerOfferStateCandidates([t], [], now)).toEqual([{csfloatTrade: t, localState: undefined}]);
+        expect(findBuyerOfferStateCandidates([t], [], now)).toEqual([t]);
     });
 
     it('does not prove when waiting on a cancel ping but the offer is still active', () => {
         const t = trade(TradeOfferState.Active, true);
         expect(findBuyerOfferStateCandidates([t], [offer(TradeOfferState.Active)], now)).toEqual([]);
+    });
+
+    it('does not prove when waiting on a cancel ping but CSFloat already has the same state', () => {
+        const t = trade(TradeOfferState.InEscrow, true);
+        expect(findBuyerOfferStateCandidates([t], [offer(TradeOfferState.InEscrow)], now)).toEqual([]);
     });
 
     it('skips accepted offers since trade history owns that transition', () => {
@@ -70,7 +73,7 @@ describe('buyer offer state notary candidates', () => {
 
 describe('offer state prove request', () => {
     it('proves a single offer directly', () => {
-        expect(buildOfferStateProveRequest([{csfloatTrade: trade(TradeOfferState.Active)}])).toEqual({
+        expect(buildOfferStateProveRequest([trade(TradeOfferState.Active)])).toEqual({
             type: ProofType.TRADE_OFFER,
             tradeofferid: offerID,
         });
@@ -79,8 +82,8 @@ describe('offer state prove request', () => {
     it('batches multiple offers into one unfiltered GetTradeOffers proof of received offers', () => {
         expect(
             buildOfferStateProveRequest([
-                {csfloatTrade: trade(TradeOfferState.Active, false, 'a')},
-                {csfloatTrade: trade(TradeOfferState.Active, true, 'b')},
+                trade(TradeOfferState.Active, false, 'a'),
+                trade(TradeOfferState.Active, true, 'b'),
             ])
         ).toEqual({type: ProofType.TRADE_OFFERS, get_sent_offers: false, get_received_offers: true});
     });

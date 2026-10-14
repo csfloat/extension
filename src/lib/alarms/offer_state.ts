@@ -10,15 +10,10 @@ import {isBackgroundNotaryOfferStateEnabled, submitNotaryProof} from './notary';
 // Only prove offers that changed at least this long ago, giving the seller's telemetry first crack
 export const BUYER_MIN_OFFER_AGE_MS = 5 * 60 * 1000;
 
-export interface OfferStateCandidate {
-    csfloatTrade: SlimTrade;
-    // State of the offer as seen by the buyer on Steam, undefined if not visible to them
-    localState?: TradeOfferState;
-}
-
 /**
  * Picks the buyer's pending trades worth proving: the offer state Steam shows them differs from what
  * CSFloat has (seller telemetry offline), or the trade is waiting on a cancel ping and the offer is not active.
+ * An offer state that already matches CSFloat is never proven, re-proving it would not change the trade.
  * An offer the buyer cannot see is not a divergence on its own: the proof of a hidden offer is empty, and
  * "offer is gone" is already covered once the trade is waiting on a cancel ping.
  * Offers that changed less than BUYER_MIN_OFFER_AGE_MS ago are skipped so the seller's own ping can resolve it.
@@ -31,8 +26,8 @@ export function findBuyerOfferStateCandidates(
     buyerTrades: SlimTrade[],
     receivedOffers: OfferStatus[],
     now = Date.now()
-): OfferStateCandidate[] {
-    const candidates: OfferStateCandidate[] = [];
+): SlimTrade[] {
+    const candidates: SlimTrade[] = [];
 
     for (const trade of buyerTrades) {
         if (trade.state !== TradeState.PENDING || !trade.steam_offer?.id) {
@@ -47,7 +42,8 @@ export function findBuyerOfferStateCandidates(
         }
 
         const diverged = localState !== undefined && localState !== serverState;
-        const waitingOnCancel = !!trade.wait_for_cancel_ping && localState !== TradeOfferState.Active;
+        const waitingOnCancel =
+            !!trade.wait_for_cancel_ping && localState !== TradeOfferState.Active && localState !== serverState;
         if (!diverged && !waitingOnCancel) {
             continue;
         }
@@ -56,7 +52,7 @@ export function findBuyerOfferStateCandidates(
             continue;
         }
 
-        candidates.push({csfloatTrade: trade, localState});
+        candidates.push(trade);
     }
 
     return candidates;
@@ -75,9 +71,9 @@ function offerLastChangedMs(trade: SlimTrade, localOffer?: OfferStatus): number 
  * One GetTradeOffer proof for a single candidate, otherwise a single GetTradeOffers proof of the buyer's
  * received offers. Same unfiltered dump the untrusted ping reads, so the server sees the offers we evaluated.
  */
-export function buildOfferStateProveRequest(candidates: OfferStateCandidate[]): NotaryProveRequest {
+export function buildOfferStateProveRequest(candidates: SlimTrade[]): NotaryProveRequest {
     if (candidates.length === 1) {
-        return {type: ProofType.TRADE_OFFER, tradeofferid: candidates[0].csfloatTrade.steam_offer.id};
+        return {type: ProofType.TRADE_OFFER, tradeofferid: candidates[0].steam_offer.id};
     }
 
     return {type: ProofType.TRADE_OFFERS, get_sent_offers: false, get_received_offers: true};
@@ -121,6 +117,6 @@ export async function proveBuyerOfferStates(buyerTrades: SlimTrade[], receivedOf
     } catch (e) {
         console.error('offer state notary proving failed', e);
         await gStore.setWithStorage(chrome.storage.local, StorageKey.LAST_NOTARY_BG_PROOF_FAILURE, Date.now());
-        reportTradeError(candidates[0].csfloatTrade.id, `background extension offer state notary failed: ${e}`);
+        reportTradeError(candidates[0].id, `background extension offer state notary failed: ${e}`);
     }
 }

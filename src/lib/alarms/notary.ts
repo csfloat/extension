@@ -7,6 +7,11 @@ import {MAX_TRADE_HISTORY_FETCH} from './constants';
 import {isFirefox} from '../utils/detect';
 import {environment} from '../../environment';
 
+const NOTARY_META_CACHE_MS = 30 * 60 * 1000;
+
+// In-memory, so a service worker restart refetches
+let cachedNotaryMeta: {meta: NotaryMeta; fetchedAt: number} | null = null;
+
 export function isBackgroundNotaryRollbackEnabled(): Promise<boolean> {
     return isBackgroundNotaryEnabled('rollback');
 }
@@ -24,13 +29,17 @@ async function isBackgroundNotaryEnabled(setting: keyof NotaryMeta): Promise<boo
         return false;
     }
 
-    try {
-        const meta = await FetchNotaryMeta.handleRequest({}, {});
-        return meta[setting]?.background === true;
-    } catch (e) {
-        console.error('failed to fetch notary meta', e);
-        return false;
+    if (!cachedNotaryMeta || cachedNotaryMeta.fetchedAt <= Date.now() - NOTARY_META_CACHE_MS) {
+        // Failed fetches are not cached so a transient error doesn't disable notary proving for the whole window
+        try {
+            cachedNotaryMeta = {meta: await FetchNotaryMeta.handleRequest({}, {}), fetchedAt: Date.now()};
+        } catch (e) {
+            console.error('failed to fetch notary meta', e);
+            return false;
+        }
     }
+
+    return cachedNotaryMeta.meta[setting]?.background === true;
 }
 
 export function buildProveRequest(trades: TradeHistoryStatus[]): NotaryProveRequest {
