@@ -25,7 +25,8 @@ export function isBackgroundNotaryOfferStateEnabled(): Promise<boolean> {
 }
 
 async function isBackgroundNotaryEnabled(setting: keyof NotaryMeta): Promise<boolean> {
-    if (isFirefox()) {
+    // Some older Chrome versions don't define the offscreen WORKERS reason, so the offscreen document can't be created
+    if (isFirefox() || !chrome.offscreen?.Reason?.WORKERS) {
         return false;
     }
 

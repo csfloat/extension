@@ -22,7 +22,20 @@ import {FetchSlimTrades} from '../bridge/handlers/fetch_slim_trades';
 
 export const PING_CSFLOAT_TRADE_STATUS_ALARM_NAME = 'ping_csfloat_trade_status_alarm';
 
-export async function pingTradeStatus(expectedSteamID?: string) {
+let inFlightPing: Promise<void> | null = null;
+
+/**
+ * Shares one run between overlapping triggers (alarm, service worker wake-up, page bridge), otherwise
+ * each would build the same notary proofs concurrently and collide in the offscreen document.
+ */
+export function pingTradeStatus(expectedSteamID?: string): Promise<void> {
+    inFlightPing ??= runPingTradeStatus(expectedSteamID).finally(() => {
+        inFlightPing = null;
+    });
+    return inFlightPing;
+}
+
+async function runPingTradeStatus(expectedSteamID?: string) {
     await gStore.setWithStorage(chrome.storage.local, StorageKey.LAST_TRADE_PING_ATTEMPT, Date.now());
 
     const hasPermissions = await HasPermissions.handleRequest(

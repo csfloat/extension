@@ -1,6 +1,11 @@
 import type {VerificationResults} from './types';
 import {environment} from '../../environment';
 
+// Older Chrome versions reject http(s) URLs in the WebSocket constructor
+export function toWebSocketUrl(url: string): string {
+    return url.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:');
+}
+
 type ClientMessage = {
     type: 'register';
     maxRecvData: number;
@@ -47,7 +52,7 @@ export class NotarySessionClient {
     }
 
     private static buildSessionUrl(token?: string): string {
-        let url = `${environment.notary.tlsn}/session`;
+        let url = toWebSocketUrl(`${environment.notary.tlsn}/session`);
         if (token) {
             url += `?token=${token}`;
         }
