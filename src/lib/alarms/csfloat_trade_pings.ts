@@ -22,7 +22,25 @@ import {FetchSlimTrades} from '../bridge/handlers/fetch_slim_trades';
 
 export const PING_CSFLOAT_TRADE_STATUS_ALARM_NAME = 'ping_csfloat_trade_status_alarm';
 
-export async function pingTradeStatus(expectedSteamID?: string) {
+let inFlightPing: Promise<void> | null = null;
+
+/**
+ * Shares one run between overlapping background triggers (alarm, service worker wake-up) so they don't
+ * duplicate the same pings and notary proofs. Page bridge calls pass a steam ID and run on their own, since
+ * joining an in-flight run would ignore that steam ID and return trade data fetched before the user's action.
+ */
+export function pingTradeStatus(expectedSteamID?: string): Promise<void> {
+    if (expectedSteamID) {
+        return runPingTradeStatus(expectedSteamID);
+    }
+
+    inFlightPing ??= runPingTradeStatus().finally(() => {
+        inFlightPing = null;
+    });
+    return inFlightPing;
+}
+
+async function runPingTradeStatus(expectedSteamID?: string) {
     await gStore.setWithStorage(chrome.storage.local, StorageKey.LAST_TRADE_PING_ATTEMPT, Date.now());
 
     const hasPermissions = await HasPermissions.handleRequest(

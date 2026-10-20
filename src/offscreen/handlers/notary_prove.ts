@@ -8,7 +8,7 @@ import {getSteamRequestURL} from '../../lib/notary/utils';
 import * as Comlink from 'comlink';
 import {environment} from '../../environment';
 import type {IoChannel, LoggingLevel, Method, Prover as TProver, ProverMode, Reveal} from '@csfloat/tlsn-wasm';
-import {NotarySessionClient} from './notary_session_client';
+import {NotarySessionClient, toWebSocketUrl} from './notary_session_client';
 import {Remote} from 'comlink';
 import {wait} from '../../lib/utils/snips';
 import {WebSocketIoChannel} from '../io_channel';
@@ -145,10 +145,6 @@ export const TLSNProveOffscreenHandler = new ClosableOffscreenHandler<
         return totalProveRequests >= 5;
     }
 );
-
-function toWebSocketUrl(url: string): string {
-    return url.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:');
-}
 
 /**
  * Estimates the total request byte size over the wire if sent over HTTP 1.1

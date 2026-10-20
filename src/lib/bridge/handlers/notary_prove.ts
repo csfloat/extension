@@ -44,5 +44,6 @@ export const NotaryProve = MaxConcurrency(
             };
         }
     ),
-    2
+    // The offscreen document is periodically closed after a proof responds, which kills any other in-flight proof
+    1
 );

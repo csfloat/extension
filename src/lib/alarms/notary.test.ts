@@ -4,6 +4,7 @@ import {isBackgroundNotaryOfferStateEnabled, isBackgroundNotaryRollbackEnabled} 
 
 vi.mock('../bridge/handlers/fetch_notary_meta', () => ({FetchNotaryMeta: {handleRequest: vi.fn()}}));
 vi.mock('../utils/detect', () => ({isFirefox: () => false}));
+vi.stubGlobal('chrome', {offscreen: {Reason: {WORKERS: 'WORKERS'}}});
 
 describe('background notary meta', () => {
     it('caches the meta for 30 minutes, but not failed fetches', async () => {
