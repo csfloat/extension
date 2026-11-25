@@ -18,7 +18,7 @@ export async function getAccessToken(expectedSteamID?: string): Promise<AccessTo
     }
 
     // Need to fetch a new one
-    const resp = await fetch(`https://steamcommunity.com`, {
+    await fetch(`https://store.steampowered.com`, {
         credentials: 'include',
         headers: {
             // Required for Steam to refresh the JWT when it expires
@@ -26,15 +26,17 @@ export async function getAccessToken(expectedSteamID?: string): Promise<AccessTo
         },
     });
 
-    const body = await resp.text();
+    const resp = await fetch(`https://store.steampowered.com/pointssummary/ajaxgetasyncconfig`, {
+        credentials: 'include',
+    });
+    const body = await resp.json();
 
-    const webAPITokenMatch = /data-loyalty_webapi_token="&quot;([a-zA-Z0-9_.-]+)&quot;"/.exec(body);
-    if (!webAPITokenMatch || webAPITokenMatch.length === 0) {
+    const token: string | undefined = body?.data?.webapi_token;
+    if (!token) {
         throw new Error('failed to parse web api token');
     }
 
-    const token = webAPITokenMatch[1];
-    const steamID = extractSteamID(body);
+    const steamID = extractSteamID(token);
 
     if (steamID && expectedSteamID && steamID !== expectedSteamID) {
         throw new Error('user is not logged into the expected steam account');
@@ -49,13 +51,14 @@ export async function getAccessToken(expectedSteamID?: string): Promise<AccessTo
     return {token, steam_id: steamID, updated_at: Date.now()};
 }
 
-function extractSteamID(body: string): string | null {
-    const steamIDMatch = /g_steamID = "(\d+?)"/.exec(body);
-    if (!steamIDMatch || steamIDMatch.length === 0) {
+export function extractSteamID(token: string): string | null {
+    try {
+        const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        const {sub} = JSON.parse(atob(payload));
+        return /^\d+$/.test(sub) ? sub : null;
+    } catch {
         return null;
     }
-
-    return steamIDMatch[1];
 }
 
 export function saveAccessToken(token: string, steamID: string | null): Promise<void> {
