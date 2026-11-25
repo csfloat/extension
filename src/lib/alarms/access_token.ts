@@ -29,7 +29,13 @@ export async function getAccessToken(expectedSteamID?: string): Promise<AccessTo
     const resp = await fetch(`https://store.steampowered.com/pointssummary/ajaxgetasyncconfig`, {
         credentials: 'include',
     });
-    const body = await resp.json();
+    if (!resp.ok) {
+        throw new Error(`failed to fetch steam store config (status ${resp.status})`);
+    }
+
+    const body = await resp.json().catch(() => {
+        throw new Error('failed to parse steam store config');
+    });
 
     const token: string | undefined = body?.data?.webapi_token;
     if (!token) {

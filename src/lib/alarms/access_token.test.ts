@@ -8,7 +8,7 @@ const payload = btoa(JSON.stringify({sub: '76561198000000001', aud: ['web:store'
 const token = `eyJhbGciOiJFZERTQSJ9.${payload}.c2ln`;
 
 function stubStore(data: unknown) {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({json: () => Promise.resolve({success: 1, data})}));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok: true, json: () => Promise.resolve({success: 1, data})}));
 }
 
 describe('getAccessToken', () => {
@@ -28,6 +28,11 @@ describe('getAccessToken', () => {
     it('fails when the store session is logged out', async () => {
         stubStore([]);
         await expect(getAccessToken()).rejects.toThrow('failed to parse web api token');
+    });
+
+    it('explains non-JSON store responses', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok: true, json: () => Promise.reject(new SyntaxError())}));
+        await expect(getAccessToken()).rejects.toThrow('failed to parse steam store config');
     });
 
     it('returns null for malformed tokens', () => {
