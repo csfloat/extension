@@ -26,18 +26,10 @@ export async function getAccessToken(expectedSteamID?: string): Promise<AccessTo
         },
     });
 
-    const resp = await fetch(`https://store.steampowered.com/pointssummary/ajaxgetasyncconfig`, {
-        credentials: 'include',
-    });
-    if (!resp.ok) {
-        throw new Error(`failed to fetch steam store config (status ${resp.status})`);
+    let token = await fetchStoreWebAPIToken();
+    if (!token && (await renewStoreSession())) {
+        token = await fetchStoreWebAPIToken();
     }
-
-    const body = await resp.json().catch(() => {
-        throw new Error('failed to parse steam store config');
-    });
-
-    const token: string | undefined = body?.data?.webapi_token;
     if (!token) {
         throw new Error('failed to parse web api token');
     }
@@ -55,6 +47,66 @@ export async function getAccessToken(expectedSteamID?: string): Promise<AccessTo
     }
 
     return {token, steam_id: steamID, updated_at: Date.now()};
+}
+
+async function fetchStoreWebAPIToken(): Promise<string | undefined> {
+    const resp = await fetch(`https://store.steampowered.com/pointssummary/ajaxgetasyncconfig`, {
+        credentials: 'include',
+    });
+    if (!resp.ok) {
+        throw new Error(`failed to fetch steam store config (status ${resp.status})`);
+    }
+
+    const body = await resp.json().catch(() => {
+        throw new Error('failed to parse steam store config');
+    });
+
+    return body?.data?.webapi_token;
+}
+
+/**
+ * The store login cookie can expire while the Steam login session is still valid (ie. steamcommunity.com still
+ * works), so renew it the same way the store page does. Returns whether it renewed.
+ */
+async function renewStoreSession(): Promise<boolean> {
+    const lastAttempt = await gStore.getWithStorage<number>(
+        chrome.storage.local,
+        StorageKey.LAST_STORE_SESSION_RENEWAL_ATTEMPT
+    );
+    if (lastAttempt && lastAttempt > Date.now() - 60 * 60 * 1000) {
+        // Already tried within the last hour, they're likely logged out of Steam entirely
+        return false;
+    }
+    await gStore.setWithStorage(chrome.storage.local, StorageKey.LAST_STORE_SESSION_RENEWAL_ATTEMPT, Date.now());
+
+    try {
+        const refreshForm = new FormData();
+        refreshForm.append('redir', 'https://store.steampowered.com/');
+        const refreshResp = await fetch(`https://login.steampowered.com/jwt/ajaxrefresh`, {
+            method: 'POST',
+            credentials: 'include',
+            body: refreshForm,
+        });
+        const refresh = await refreshResp.json();
+        // Only ever send the auth to the store
+        if (!refresh?.success || refresh.login_url !== 'https://store.steampowered.com/login/settoken') {
+            return false;
+        }
+
+        const tokenForm = new FormData();
+        for (const key of ['steamID', 'nonce', 'redir', 'auth']) {
+            tokenForm.append(key, refresh[key]);
+        }
+        const tokenResp = await fetch(refresh.login_url, {
+            method: 'POST',
+            credentials: 'include',
+            body: tokenForm,
+        });
+        return tokenResp.ok;
+    } catch (e) {
+        console.error('failed to renew steam store session', e);
+        return false;
+    }
 }
 
 export function extractSteamID(token: string): string | null {
