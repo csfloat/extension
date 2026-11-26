@@ -13,6 +13,7 @@ export enum StorageKey {
     ACCESS_TOKEN = 'access_token',
     LAST_TRADE_PING_ATTEMPT = 'last_trade_ping_attempt',
     LAST_TRADE_BLOCKED_PING_ATTEMPT = 'last_trade_blocked_ping_attempt',
+    LAST_STORE_SESSION_RENEWAL_ATTEMPT = 'last_store_session_renewal_attempt',
     LAST_NOTARY_BG_PROOF_FAILURE = 'last_notary_bg_proof_failure',
     NOTARY_ACCEPTED_PROOF_ATTEMPTS = 'notary_accepted_proof_attempts', // csfloat trade id -> last attempt ms
     PRICE_CACHE = 'price_cache', // Stores market hash name -> price mapping (~0.86MB)
