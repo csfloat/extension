@@ -26,11 +26,18 @@ const REFRESH = {
 
 /** Routes Steam requests to canned JSON bodies, the store config is logged in once settoken succeeds */
 function stubSteam(
-    opts: {loggedIn?: boolean; refresh?: unknown; refreshFails?: boolean; settokenResult?: number} = {}
+    opts: {
+        loggedIn?: boolean;
+        refresh?: unknown;
+        refreshFails?: boolean;
+        refreshStatus?: number;
+        settokenResult?: number;
+    } = {}
 ) {
     let loggedIn = !!opts.loggedIn;
     const fetchMock = vi.fn(async (url: string, _?: RequestInit) => {
         let body: unknown = {};
+        let status = 200;
         if (url.endsWith('/ajaxgetasyncconfig')) {
             body = {success: 1, data: loggedIn ? {webapi_token: token} : []};
         } else if (url.endsWith('/jwt/ajaxrefresh')) {
@@ -38,11 +45,12 @@ function stubSteam(
                 throw new TypeError('Failed to fetch');
             }
             body = opts.refresh ?? REFRESH;
+            status = opts.refreshStatus ?? 200;
         } else if (url.endsWith('/login/settoken')) {
             body = {result: opts.settokenResult ?? 1};
             loggedIn = opts.settokenResult === undefined;
         }
-        return {ok: true, status: 200, json: () => Promise.resolve(body)};
+        return {ok: status < 400, status, json: () => Promise.resolve(body)};
     });
     vi.stubGlobal('fetch', fetchMock);
     return (path: string) => fetchMock.mock.calls.filter(([url]) => url.endsWith(path));
@@ -96,12 +104,16 @@ describe('getAccessToken', () => {
         await expect(getAccessToken()).resolves.toMatchObject({token});
     });
 
-    it('retries right away after a network error', async () => {
+    it('retries right away after a network error, but not after a Steam error', async () => {
         stubSteam({refreshFails: true});
         await expect(getAccessToken()).rejects.toThrow('failed to parse web api token');
 
-        stubSteam();
-        await expect(getAccessToken()).resolves.toMatchObject({token});
+        stubSteam({refreshStatus: 500});
+        await expect(getAccessToken()).rejects.toThrow('failed to parse web api token');
+
+        const throttled = stubSteam();
+        await expect(getAccessToken()).rejects.toThrow('failed to parse web api token');
+        expect(throttled('/jwt/ajaxrefresh')).toHaveLength(0);
     });
 
     it('never posts incomplete or misdirected auth to settoken', async () => {

@@ -94,7 +94,7 @@ async function renewStoreSession(): Promise<boolean> {
         return false;
     }
 
-    // Only Steam answering counts towards the hourly throttle, network errors and 5xx are retried on the next call
+    // Only Steam answering counts towards the hourly throttle, network errors are retried on the next call
     const steamAnswered = () =>
         gStore.setWithStorage(chrome.storage.local, StorageKey.LAST_STORE_SESSION_RENEWAL_ATTEMPT, Date.now());
 
@@ -106,9 +106,6 @@ async function renewStoreSession(): Promise<boolean> {
             credentials: 'include',
             body: refreshForm,
         });
-        if (refreshResp.status >= 500) {
-            return false;
-        }
 
         const refresh = refreshResp.ok ? await refreshResp.json().catch(() => null) : null;
         if (
@@ -132,9 +129,6 @@ async function renewStoreSession(): Promise<boolean> {
             // A redirect would resend the auth wherever it points
             redirect: 'error',
         });
-        if (tokenResp.status >= 500) {
-            return false;
-        }
 
         await steamAnswered();
         // Rejections are still HTTP 200, ie. `{"result": 8}`
