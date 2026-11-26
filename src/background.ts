@@ -69,10 +69,11 @@ async function checkTradeStatus() {
 checkTradeStatus();
 
 if (isFirefox()) {
-    // Need to manually update the rules to allow the extension to send trade offers and renew the store session
+    // Need to manually update the rule to allow the extension to send trade offers
     // Since Firefox IDs are random and we still want to scope it to only this extension
     browser.declarativeNetRequest
         .updateDynamicRules({
+            // 1795650406 and 1795650407 were the 5.19.3 store session renewal rules, dynamic rules survive updates
             removeRuleIds: [1738196326, 1795650406, 1795650407],
             addRules: [
                 {
@@ -94,27 +95,6 @@ if (isFirefox()) {
                         initiatorDomains: [new URL(browser.runtime.getURL('')).hostname],
                     },
                 },
-                ...(
-                    [
-                        [1795650406, 'https://login.steampowered.com/jwt/ajaxrefresh'],
-                        [1795650407, 'https://store.steampowered.com/login/settoken'],
-                    ] as const
-                ).map(([id, urlFilter]) => ({
-                    id,
-                    priority: 2,
-                    action: {
-                        type: 'modifyHeaders' as const,
-                        requestHeaders: [
-                            {header: 'origin', operation: 'set' as const, value: 'https://store.steampowered.com'},
-                            {header: 'referer', operation: 'set' as const, value: 'https://store.steampowered.com/'},
-                        ],
-                    },
-                    condition: {
-                        urlFilter,
-                        resourceTypes: ['xmlhttprequest' as const],
-                        initiatorDomains: [new URL(browser.runtime.getURL('')).hostname],
-                    },
-                })),
             ],
         })
         .then(() => {

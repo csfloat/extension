@@ -49,7 +49,7 @@
         "type": "module"
     },
     "minimum_chrome_version": "109",
-    "permissions": ["storage", "scripting", "alarms", "declarativeNetRequestWithHostAccess", "offscreen"],
+    "permissions": ["storage", "scripting", "alarms", "declarativeNetRequestWithHostAccess", "offscreen", "cookies"],
     "host_permissions": [
         "*://*.steamcommunity.com/market/listings/730/*",
         "*://*.steamcommunity.com/id/*/inventory*",

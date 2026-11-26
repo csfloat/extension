@@ -18,7 +18,7 @@ export async function getAccessToken(expectedSteamID?: string): Promise<AccessTo
     }
 
     // Need to fetch a new one
-    await fetch(`https://store.steampowered.com`, {
+    const resp = await fetch(`https://steamcommunity.com`, {
         credentials: 'include',
         headers: {
             // Required for Steam to refresh the JWT when it expires
@@ -26,9 +26,19 @@ export async function getAccessToken(expectedSteamID?: string): Promise<AccessTo
         },
     });
 
-    const token = (await fetchStoreWebAPIToken()) || (await renewStoreWebAPIToken());
+    const cookie = await chrome.cookies.get({url: 'https://steamcommunity.com', name: 'steamLoginSecure'});
+    // Structured as `<steamid64>||<jwt>`
+    const token = decodeURIComponent(cookie?.value ?? '').split('||')[1];
     if (!token) {
         throw new Error('failed to parse web api token');
+    }
+
+    // Steam leaves the expired JWT in the cookie when it can't refresh the session.
+    // Compared against Steam's clock since the user's can drift.
+    const steamNow = Date.parse(resp.headers.get('date') ?? '') || Date.now();
+    const {exp} = decodeJWTPayload(token) ?? {};
+    if (typeof exp !== 'number' || exp * 1000 <= steamNow) {
+        throw new Error('steam web api token is expired');
     }
 
     const steamID = extractSteamID(token);
@@ -46,108 +56,18 @@ export async function getAccessToken(expectedSteamID?: string): Promise<AccessTo
     return {token, steam_id: steamID, updated_at: Date.now()};
 }
 
-async function fetchStoreWebAPIToken(): Promise<string | undefined> {
-    const resp = await fetch(`https://store.steampowered.com/pointssummary/ajaxgetasyncconfig`, {
-        credentials: 'include',
-    });
-    if (!resp.ok) {
-        throw new Error(`failed to fetch steam store config (status ${resp.status})`);
-    }
-
-    const body = await resp.json().catch(() => {
-        throw new Error('failed to parse steam store config');
-    });
-
-    return body?.data?.webapi_token;
-}
-
-let storeTokenRenewal: Promise<string | undefined> | null = null;
-
-/**
- * Overlapping callers share one renewal, so they don't race the hourly throttle or send Steam competing nonces
- */
-function renewStoreWebAPIToken(): Promise<string | undefined> {
-    storeTokenRenewal ??= (async () => {
-        try {
-            return (await renewStoreSession()) ? await fetchStoreWebAPIToken() : undefined;
-        } finally {
-            storeTokenRenewal = null;
-        }
-    })();
-    return storeTokenRenewal;
-}
-
-const STORE_SETTOKEN_URL = 'https://store.steampowered.com/login/settoken';
-const SETTOKEN_FIELDS = ['steamID', 'nonce', 'redir', 'auth'];
-
-/**
- * The store login cookie can expire while the Steam login session is still valid (ie. steamcommunity.com still
- * works), so renew it the same way the store page does. Returns whether it renewed.
- */
-async function renewStoreSession(): Promise<boolean> {
-    const lastAttempt = await gStore.getWithStorage<number>(
-        chrome.storage.local,
-        StorageKey.LAST_STORE_SESSION_RENEWAL_ATTEMPT
-    );
-    if (lastAttempt && lastAttempt > Date.now() - 60 * 60 * 1000) {
-        // Steam already said no within the last hour, they're likely logged out of Steam entirely
-        return false;
-    }
-
-    // Only Steam answering counts towards the hourly throttle, network errors are retried on the next call
-    const steamAnswered = () =>
-        gStore.setWithStorage(chrome.storage.local, StorageKey.LAST_STORE_SESSION_RENEWAL_ATTEMPT, Date.now());
-
+function decodeJWTPayload(token: string): {sub?: unknown; exp?: unknown} | null {
     try {
-        const refreshForm = new FormData();
-        refreshForm.append('redir', 'https://store.steampowered.com/');
-        const refreshResp = await fetch(`https://login.steampowered.com/jwt/ajaxrefresh`, {
-            method: 'POST',
-            credentials: 'include',
-            body: refreshForm,
-        });
-
-        const refresh = refreshResp.ok ? await refreshResp.json().catch(() => null) : null;
-        if (
-            !refresh?.success ||
-            // Only ever send the auth to the store
-            refresh.login_url !== STORE_SETTOKEN_URL ||
-            !SETTOKEN_FIELDS.every((key) => typeof refresh[key] === 'string' && refresh[key])
-        ) {
-            await steamAnswered();
-            return false;
-        }
-
-        const tokenForm = new FormData();
-        for (const key of SETTOKEN_FIELDS) {
-            tokenForm.append(key, refresh[key]);
-        }
-        const tokenResp = await fetch(STORE_SETTOKEN_URL, {
-            method: 'POST',
-            credentials: 'include',
-            body: tokenForm,
-            // A redirect would resend the auth wherever it points
-            redirect: 'error',
-        });
-
-        await steamAnswered();
-        // Rejections are still HTTP 200, ie. `{"result": 8}`
-        const result = tokenResp.ok ? await tokenResp.json().catch(() => null) : null;
-        return result?.result === 1;
-    } catch (e) {
-        console.error('failed to renew steam store session', e);
-        return false;
+        const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(atob(payload));
+    } catch {
+        return null;
     }
 }
 
 export function extractSteamID(token: string): string | null {
-    try {
-        const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-        const {sub} = JSON.parse(atob(payload));
-        return /^\d+$/.test(sub) ? sub : null;
-    } catch {
-        return null;
-    }
+    const sub = decodeJWTPayload(token)?.sub;
+    return typeof sub === 'string' && /^\d+$/.test(sub) ? sub : null;
 }
 
 export function saveAccessToken(token: string, steamID: string | null): Promise<void> {
